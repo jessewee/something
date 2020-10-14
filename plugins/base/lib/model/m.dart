@@ -1,4 +1,5 @@
-import 'other.dart';
+/// 性别
+enum Gender { unknown, male, female }
 
 /// 用户信息
 class User {

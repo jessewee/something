@@ -44,7 +44,7 @@ class Network {
 
   Network._init() {
     _dio = Dio();
-    _dio.options.baseUrl = API_SERVER;
+    _dio.options.baseUrl = apiServer;
     // _dio.options.connectTimeout = 5000;
     // _dio.options.receiveTimeout = 5000;
     _dio.interceptors.add(CookieManager(CookieJar()));

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -92,4 +94,30 @@ Future<T> showAlertDialog<T>({
         ? WillPopScope(onWillPop: () => Future.value(false), child: alertDialog)
         : alertDialog,
   );
+}
+
+/// 带有数据的StreamController
+class StreamControllerWithData<T> {
+  StreamController<T> _controller;
+
+  T _value;
+
+  T get value => _value;
+
+  Stream<T> get stream => _controller.stream;
+
+  StreamControllerWithData(T defaultValue) {
+    _value = defaultValue;
+    _controller = StreamController<T>();
+  }
+
+  void dispose() {
+    if (!_controller.isClosed) _controller.close();
+  }
+
+  void add(T value) {
+    _value = value;
+    if (_controller.isPaused || _controller.isClosed) return;
+    _controller.add(value);
+  }
 }

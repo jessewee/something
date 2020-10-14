@@ -1,23 +1,13 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
 import 'package:base/base.dart';
-import 'package:forum/view/forum_page.dart';
+import 'package:flutter/material.dart';
+import 'package:forum/forum.dart';
 
 void main() {
-  runApp(BaseApp(
-    initialRoute: '/',
-    routes: {
-      '/': (_) => HomePage(),
-      '/forum': (_) => ForumPage(),
-    },
-    onGenerateRoute: (RouteSettings settings) {
-      return MaterialPageRoute(
-        settings: settings,
-        builder: (context) => NotFoundPage(),
-      );
-    },
-  ));
+  BaseApp.registerRoutes({'/': (_) => HomePage()});
+  BaseApp.registerRoutes(forumRoutes);
+  runApp(BaseApp(initialRoute: '/'));
 }
 
 class HomePage extends StatelessWidget {
@@ -82,12 +72,5 @@ class HomePage extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class NotFoundPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text('404'));
   }
 }

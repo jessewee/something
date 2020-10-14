@@ -1,4 +1,4 @@
-import 'package:base/model/other.dart';
+import 'package:base/model/m.dart';
 
 /// 帖子标签
 class PostLabel {
