@@ -4,7 +4,21 @@ import 'package:forum/model/m.dart';
 import 'package:forum/model/media.dart';
 import 'package:forum/model/post.dart';
 
+/// 数据仓库
 class Repository {
+  /// 获取帖子标签列表
+  static Future<Result<List<String>>> getPostLabels(
+    String searchContent,
+  ) async {
+    // TODO
+    return Result.success(
+      List.generate(
+        TestGenerator.generateNumber(100),
+        (index) => TestGenerator.generateChinese(10),
+      ),
+    );
+  }
+
   /// 获取帖子列表
   static Future<Result<List<Post>>> getPosts({
     int dataIdx = 0,
@@ -38,7 +52,7 @@ class Repository {
 /// 帖子列表筛选条件
 class PostsFilter {
   /// 标签
-  List<PostLabel> labels = [];
+  List<String> labels = [];
 
   /// 关注人
   List<ForumUser> users = [];

@@ -2,11 +2,15 @@ import 'package:base/base/configs.dart';
 import 'package:base/base/pub.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+
 import 'package:forum/repository/repository.dart';
-import 'package:forum/view/post_list.dart';
-import 'package:forum/view/post_wall.dart';
-import 'package:forum/view/search_content_page.dart';
 import 'package:forum/vm/forum.dart';
+
+import 'post_list.dart';
+import 'post_wall.dart';
+import 'search_content_page.dart';
+import 'select_post_label_page.dart';
+import 'select_followed_page.dart';
 
 /// 社区页
 class ForumPage extends StatefulWidget {
@@ -95,14 +99,14 @@ class _FilterAreaState extends State<FilterArea> {
     final textCaptionStyle = theme.textTheme.caption;
     final textPrimaryCaptionStyle =
         theme.textTheme.caption.copyWith(color: primaryColor);
-    final label = widget.filter.labels.map((e) => e.title).join(',');
+    final label = widget.filter.labels.join(',');
     final followed = widget.filter.users.map((e) => e.name).join(',');
     // 标签
     Widget labelWidget = OutlineButton(
       child: Text(
         label.isEmpty ? '标签' : label,
         overflow: TextOverflow.ellipsis,
-        style: textPrimaryCaptionStyle,
+        style: label.isEmpty ? textCaptionStyle : textPrimaryCaptionStyle,
       ),
       onPressed: _onLabelClick,
     );
@@ -115,7 +119,7 @@ class _FilterAreaState extends State<FilterArea> {
       child: Text(
         followed.isEmpty ? '关注人' : followed,
         overflow: TextOverflow.ellipsis,
-        style: textPrimaryCaptionStyle,
+        style: followed.isEmpty ? textCaptionStyle : textPrimaryCaptionStyle,
       ),
       onPressed: _onFollowedClick,
     );
@@ -143,6 +147,9 @@ class _FilterAreaState extends State<FilterArea> {
             child: Icon(
               Icons.search,
               size: textPrimaryCaptionStyle.fontSize * 1.5,
+              color: widget.filter.searchContent.isEmpty
+                  ? textCaptionStyle.color
+                  : primaryColor,
             ),
           ),
         ],
@@ -202,24 +209,34 @@ class _FilterAreaState extends State<FilterArea> {
 
   // 点标签
   void _onLabelClick() async {
-    // TODO
+    final result =
+        await Navigator.pushNamed(context, SelectPostLabelPage.routeName);
+    if (result == null) return;
+    setState(() {
+      widget.filter.labels = result;
+      widget.onFilterChanged();
+    });
   }
+
   // 点关注人
   void _onFollowedClick() async {
-// TODO
+    final result =
+        await Navigator.pushNamed(context, SelectFollowedPage.routeName);
+    if (result == null) return;
+    setState(() {
+      widget.filter.users = result;
+      widget.onFilterChanged();
+    });
   }
 
   // 点击搜索
   void _onSearchClick() async {
-    final result = await Navigator.pushNamed(
-      context,
-      SearchContentPage.routeName,
-    );
-    if (result != null && result != widget.filter.searchContent) {
-      setState(() {
-        widget.filter.searchContent = result;
-        widget.onFilterChanged();
-      });
-    }
+    final result =
+        await Navigator.pushNamed(context, SearchContentPage.routeName);
+    if (result == null) return;
+    setState(() {
+      widget.filter.searchContent = result;
+      widget.onFilterChanged();
+    });
   }
 }

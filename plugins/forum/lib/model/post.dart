@@ -4,6 +4,9 @@ import 'media.dart';
 class Post {
   final String id;
 
+  /// 标签
+  final String label;
+
   /// 发布人id
   final String posterId;
 
@@ -40,6 +43,7 @@ class Post {
 
   Post({
     this.id = '',
+    this.label = '',
     this.posterId = '',
     this.avatar = '',
     this.avatarThumb = '',

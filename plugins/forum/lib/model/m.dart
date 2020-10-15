@@ -1,12 +1,5 @@
 import 'package:base/model/m.dart';
 
-/// 帖子标签
-class PostLabel {
-  final String id;
-  final String title;
-  PostLabel(this.id, this.title);
-}
-
 /// 社区用户信息
 class ForumUser {
   final String id;
