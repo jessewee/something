@@ -1,9 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 
 import '../base.dart';
+import 'play_video_page.dart';
+import 'extensions.dart';
 
 /// 通用返回结果数据对象
 class Result<T> {
@@ -149,4 +154,64 @@ Future<String> showEditTextDialog({
     ],
   );
   return showDialog<String>(context: context, builder: (context) => dialog);
+}
+
+// 播放视频
+Future playVideo(BuildContext context, String videoUrl) {
+  return Navigator.of(context).pushNamed('playVideo',
+      arguments: VideoPlayerPageArguments(pathOrUrl: videoUrl));
+}
+
+// 查看图片
+void showImgs(BuildContext context, List<String> imgs, [int index = 0]) {
+  if (imgs == null || imgs.length == 0) return;
+  showDialog(
+    context: context,
+    builder: (context) {
+      if (imgs.length == 1) {
+        return PhotoView(
+          minScale: 0.1,
+          maxScale: 3.0,
+          imageProvider: imgs[0].startsWith(RegExp('http[s]://'))
+              ? NetworkImage(imgs[0])
+              : FileImage(File(imgs[0])),
+        );
+      } else {
+        return PhotoViewGallery.builder(
+          scrollPhysics: const BouncingScrollPhysics(),
+          itemCount: imgs.length,
+          pageController: PageController(initialPage: index),
+          builder: (context, index) {
+            return PhotoViewGalleryPageOptions(
+              minScale: 0.1,
+              maxScale: 3.0,
+              imageProvider: imgs[index].startsWith(RegExp('http[s]://'))
+                  ? NetworkImage(imgs[index])
+                  : FileImage(File(imgs[index])),
+              heroAttributes: PhotoViewHeroAttributes(tag: imgs[index]),
+            );
+          },
+        );
+      }
+    },
+  );
+}
+
+String secondsToTime(int seconds) {
+  int s = seconds % 60;
+  if (seconds < 60) {
+    return "00:${s.toStringWithTwoMinLength()}";
+  }
+  int tmp = seconds ~/ 60;
+  int m = tmp % 60;
+  if (m < 60) {
+    return "${m.toStringWithTwoMinLength()}:${m.toStringWithTwoMinLength()}";
+  }
+  tmp = tmp ~/ 60;
+  int h = tmp % 60;
+  if (m < 24) {
+    return "$h:${m.toStringWithTwoMinLength()}:${m.toStringWithTwoMinLength()}";
+  }
+  int d = tmp ~/ 60;
+  return "$d:${h.toStringWithTwoMinLength()}:${m.toStringWithTwoMinLength()}:${s.toStringWithTwoMinLength()}";
 }
