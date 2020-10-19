@@ -1,31 +1,33 @@
 import 'package:base/base/pub.dart';
 import 'package:base/base/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:forum/model/m.dart';
 import 'package:forum/repository/repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 选择标签给上一页，可多选
-class SelectPostLabelPage extends StatefulWidget {
-  static const routeName = 'select_post_label_page';
+class SelectFollowingPage extends StatefulWidget {
+  static const routeName = 'select_following_page';
   @override
-  _SelectPostLabelState createState() => _SelectPostLabelState();
+  _SelectFollowingPageState createState() => _SelectFollowingPageState();
 }
 
-class _SelectPostLabelState extends State<SelectPostLabelPage> {
+class _SelectFollowingPageState extends State<SelectFollowingPage> {
   String _text = '';
-
-  // 搜索历史记录
-  List<String> _records = [];
+  // 搜索次数记录id,cnt
+  List<MapEntry<String, int>> _records = [];
   // 接口返回的数据
-  List<String> _data = [];
+  List<ForumUser> _data = [];
   // 选中的数据
-  List<String> _selected = [];
+  List<ForumUser> _selected = [];
 
   @override
   void initState() {
     SharedPreferences.getInstance().then((sp) {
-      _records = sp.getStringList('forum_search_post_label_page') ?? [];
-      setState(() {});
+      _records = sp.getStringList('forum_search_following_page')?.map((e) {
+            final tmp = e.split(',');
+            return MapEntry(tmp[0], int.parse(tmp[1]));
+          }) ??
+          [];
     });
     super.initState();
   }
@@ -55,35 +57,33 @@ class _SelectPostLabelState extends State<SelectPostLabelPage> {
   // 搜索数据
   Future<void> _onSearch(String text) async {
     _text = text;
-    if (_text.isEmpty) {
-      setState(() {});
-      return;
-    }
-    final result = await Repository.getPostLabels(_text);
+    final result = await Repository.getFollowings(_text);
     if (result.fail) {
       showToast(result.msg);
       return;
     }
     _data = result.data ?? [];
+    _data.sort((u0, u1) {
+      final c0 = _records
+              .firstWhere((e) => e.key == u0.id, orElse: () => null)
+              ?.value ??
+          0;
+      final c1 = _records
+              .firstWhere((e) => e.key == u1.id, orElse: () => null)
+              ?.value ??
+          0;
+      return c0.compareTo(c1);
+    });
     setState(() {});
   }
 
   // 数据显示
   Widget _buildContentWidget() {
-    if (_text.isEmpty && _records.isEmpty) {
-      return Center(child: Text('暂无历史记录'));
-    }
-    if (_text.isNotEmpty && _data.isEmpty) {
+    if (_text.isEmpty && _data.isEmpty) {
       return Center(child: Text('暂无数据'));
     }
-    if (_text.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(12.0),
-        child: Wrap(
-          spacing: 5.0,
-          children: _records.map((e) => _buildChip(e, true)).toList(),
-        ),
-      );
+    if (_text.isNotEmpty && _data.isEmpty) {
+      return Center(child: Text('没有搜索到数据'));
     }
     return Container(
       padding: const EdgeInsets.all(12.0),
@@ -95,28 +95,19 @@ class _SelectPostLabelState extends State<SelectPostLabelPage> {
   }
 
   // 选项Widget
-  Widget _buildChip(String text, bool local) {
+  Widget _buildChip(ForumUser user, bool local) {
     return RawChip(
-      label: Text(text),
-      selected: _selected.contains(text),
+      label: Text(user.name),
+      selected: _selected.contains(user),
       onSelected: (value) {
         setState(() {
-          if (value && !_selected.contains(text)) {
-            _selected.add(text);
-          } else if (!value && _selected.contains(text)) {
-            _selected.remove(text);
+          if (value && !_selected.contains(user)) {
+            _selected.add(user);
+          } else if (!value && _selected.contains(user)) {
+            _selected.remove(user);
           }
         });
       },
-      deleteIcon: Icon(Icons.delete, color: Colors.red),
-      onDeleted: local
-          ? () => setState(() {
-                _records.remove(text);
-                SharedPreferences.getInstance().then((sp) {
-                  sp.setStringList('forum_search_post_label_page', _records);
-                });
-              })
-          : null,
     );
   }
 
@@ -129,14 +120,15 @@ class _SelectPostLabelState extends State<SelectPostLabelPage> {
             margin: const EdgeInsets.only(left: 8.0),
             child: Builder(
               builder: (_) {
+                final selectedText = _selected.map((e) => e.name).join(', ');
                 final text = Text(
-                  '已选择：${_selected.join(', ')}',
+                  '已选择：$selectedText',
                   style: Theme.of(context).textTheme.caption,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 );
                 if (_selected.isEmpty) return text;
-                return Tooltip(message: _selected.join(', '), child: text);
+                return Tooltip(message: selectedText, child: text);
               },
             ),
           ),
@@ -149,11 +141,19 @@ class _SelectPostLabelState extends State<SelectPostLabelPage> {
   // 确定返回结果
   void _onConfirm() {
     Navigator.pop(context, _selected);
-    final tmp = _selected.where((s) => !_records.contains(s));
-    if (tmp.isEmpty) return;
-    _records.addAll(tmp);
+    _records = _selected.map((s) {
+      final existed = _records.firstWhere((r) => r.key == s.id);
+      if (existed == null) {
+        return MapEntry(s.id, 1);
+      } else {
+        return MapEntry(s.id, existed.value + 1);
+      }
+    });
     SharedPreferences.getInstance().then((sp) {
-      sp.setStringList('forum_search_post_label_page', _records);
+      sp.setStringList(
+        'forum_search_following_page',
+        _records.map((e) => '${e.key},${e.value}'),
+      );
     });
   }
 }

@@ -1,3 +1,4 @@
+import 'package:base/base/pub.dart';
 import 'package:flutter/material.dart';
 
 /// loading提示
@@ -44,6 +45,21 @@ class SearchAppBar extends StatefulWidget implements PreferredSizeWidget {
 
 class _SearchAppBarState extends State<SearchAppBar> {
   String _text = '';
+  StreamControllerWithData<bool> _controller;
+  FocusNode _focusNode;
+
+  @override
+  void initState() {
+    _controller = StreamControllerWithData(false);
+    _focusNode = FocusNode();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +76,7 @@ class _SearchAppBarState extends State<SearchAppBar> {
           ),
         ),
         child: TextField(
+          focusNode: _focusNode,
           textAlignVertical: TextAlignVertical.center,
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -72,17 +89,39 @@ class _SearchAppBarState extends State<SearchAppBar> {
         ),
       ),
       actions: [
-        TextButton(
-          child: Text('搜索', style: TextStyle(color: Colors.white)),
-          onPressed: _onConfirm,
-        )
+        StreamBuilder<bool>(
+          initialData: false,
+          stream: _controller.stream,
+          builder: (context, snapshot) => snapshot.data
+              ? TextButton(
+                  child: Row(
+                    children: [
+                      Text('搜索', style: TextStyle(color: Colors.white54)),
+                      Container(
+                        margin: const EdgeInsets.only(left: 5.0, top: 2.0),
+                        width: 8.0,
+                        height: 8.0,
+                        child: CircularProgressIndicator(
+                          backgroundColor: Colors.white54,
+                          strokeWidth: 2.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                  onPressed: null,
+                )
+              : TextButton(
+                  child: Text('搜索', style: TextStyle(color: Colors.white)),
+                  onPressed: _onConfirm,
+                ),
+        ),
       ],
     );
   }
 
   void _onConfirm() {
-    widget.onConfirm(_text).then((value) {
-      // TODO
-    });
+    if (_focusNode.hasFocus) _focusNode.unfocus();
+    _controller.add(true);
+    widget.onConfirm(_text).then((_) => _controller.add(false));
   }
 }

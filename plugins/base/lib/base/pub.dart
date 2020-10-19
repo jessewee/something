@@ -23,6 +23,32 @@ class Result<T> {
   bool get fail => code != 0;
 }
 
+/// 带有数据的StreamController
+class StreamControllerWithData<T> {
+  StreamController<T> _controller;
+
+  T _value;
+
+  T get value => _value;
+
+  Stream<T> get stream => _controller.stream;
+
+  StreamControllerWithData(T defaultValue) {
+    _value = defaultValue;
+    _controller = StreamController<T>();
+  }
+
+  void dispose() {
+    if (!_controller.isClosed) _controller.close();
+  }
+
+  void add(T value) {
+    _value = value;
+    if (_controller.isPaused || _controller.isClosed) return;
+    _controller.add(value);
+  }
+}
+
 /// 显示Toast
 void showToast(String msg) {
   OverlayEntry overlayEntry = OverlayEntry(builder: (context) {
@@ -60,7 +86,7 @@ Future<T> showAlertDialog<T>({
   Future<T> Function() onCancel,
 }) {
   final context = navigatorKey.currentContext;
-  var alertDialog = AlertDialog(
+  final alertDialog = AlertDialog(
     title: title == null ? null : Text(title),
     content: content == null ? null : Text(content),
     actions: <Widget>[
@@ -96,28 +122,31 @@ Future<T> showAlertDialog<T>({
   );
 }
 
-/// 带有数据的StreamController
-class StreamControllerWithData<T> {
-  StreamController<T> _controller;
-
-  T _value;
-
-  T get value => _value;
-
-  Stream<T> get stream => _controller.stream;
-
-  StreamControllerWithData(T defaultValue) {
-    _value = defaultValue;
-    _controller = StreamController<T>();
-  }
-
-  void dispose() {
-    if (!_controller.isClosed) _controller.close();
-  }
-
-  void add(T value) {
-    _value = value;
-    if (_controller.isPaused || _controller.isClosed) return;
-    _controller.add(value);
-  }
+/// 编辑文本弹出框
+Future<String> showEditTextDialog({
+  String title = '文本编辑',
+  String hint = '请输入内容',
+}) {
+  var text = '';
+  final context = navigatorKey.currentContext;
+  final dialog = AlertDialog(
+    title: Text(title),
+    content: TextField(
+      decoration: InputDecoration(hintText: hint),
+      onChanged: (value) => text = value,
+    ),
+    actions: <Widget>[
+      // 取消按钮
+      TextButton(
+        child: Text('取消'),
+        onPressed: () => Navigator.pop(context),
+      ),
+      // 确定按钮
+      TextButton(
+        child: Text('确定'),
+        onPressed: () => Navigator.pop(context, text),
+      ),
+    ],
+  );
+  return showDialog<String>(context: context, builder: (context) => dialog);
 }

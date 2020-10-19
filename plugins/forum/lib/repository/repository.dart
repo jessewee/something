@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:base/base/pub.dart';
+import 'package:base/model/m.dart';
 import 'package:base/test_generator.dart';
 import 'package:forum/model/m.dart';
 import 'package:forum/model/media.dart';
@@ -6,10 +9,32 @@ import 'package:forum/model/post.dart';
 
 /// 数据仓库
 class Repository {
+  /// 获取关注人列表
+  static Future<Result<List<ForumUser>>> getFollowings(
+      String searchContent) async {
+    // TODO
+    return Result.success(
+      List.generate(
+        TestGenerator.generateNumber(100),
+        (index) => ForumUser(
+          id: TestGenerator.generateId(10),
+          name: TestGenerator.generateChinese(20),
+          avatar: TestGenerator.generateImg(),
+          avatarThumb: TestGenerator.generateImg(),
+          gender: Random.secure().nextBool() ? Gender.male : Gender.female,
+          birthday: TestGenerator.generateDate(),
+          registerDate: TestGenerator.generateDate(),
+          followerCount: TestGenerator.generateNumber(9999),
+          followingCount: TestGenerator.generateNumber(9999),
+          followed: Random.secure().nextBool(),
+        ),
+      ),
+    );
+  }
+
   /// 获取帖子标签列表
   static Future<Result<List<String>>> getPostLabels(
-    String searchContent,
-  ) async {
+      String searchContent) async {
     // TODO
     return Result.success(
       List.generate(

@@ -10,7 +10,7 @@ import 'post_list.dart';
 import 'post_wall.dart';
 import 'search_content_page.dart';
 import 'select_post_label_page.dart';
-import 'select_followed_page.dart';
+import 'select_following_page.dart';
 
 /// 社区页
 class ForumPage extends StatefulWidget {
@@ -100,14 +100,19 @@ class _FilterAreaState extends State<FilterArea> {
     final textPrimaryCaptionStyle =
         theme.textTheme.caption.copyWith(color: primaryColor);
     final label = widget.filter.labels.join(',');
-    final followed = widget.filter.users.map((e) => e.name).join(',');
+    final following = widget.filter.users.map((e) => e.name).join(',');
     // 标签
     Widget labelWidget = OutlineButton(
-      child: Text(
-        label.isEmpty ? '标签' : label,
-        overflow: TextOverflow.ellipsis,
-        style: label.isEmpty ? textCaptionStyle : textPrimaryCaptionStyle,
-      ),
+      child: label.isEmpty
+          ? Text('标签', overflow: TextOverflow.ellipsis, style: textCaptionStyle)
+          : Tooltip(
+              message: label,
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: textPrimaryCaptionStyle,
+              ),
+            ),
       onPressed: _onLabelClick,
     );
     labelWidget = Container(
@@ -115,16 +120,25 @@ class _FilterAreaState extends State<FilterArea> {
       margin: const EdgeInsets.symmetric(horizontal: 4.0),
     );
     // 关注人
-    Widget followedWidget = OutlineButton(
-      child: Text(
-        followed.isEmpty ? '关注人' : followed,
-        overflow: TextOverflow.ellipsis,
-        style: followed.isEmpty ? textCaptionStyle : textPrimaryCaptionStyle,
-      ),
-      onPressed: _onFollowedClick,
+    Widget followingWidget = OutlineButton(
+      child: following.isEmpty
+          ? Text(
+              '关注人',
+              overflow: TextOverflow.ellipsis,
+              style: textCaptionStyle,
+            )
+          : Tooltip(
+              message: following,
+              child: Text(
+                following,
+                overflow: TextOverflow.ellipsis,
+                style: textPrimaryCaptionStyle,
+              ),
+            ),
+      onPressed: _onFollowingClick,
     );
-    followedWidget = Container(
-      child: followedWidget,
+    followingWidget = Container(
+      child: followingWidget,
       margin: const EdgeInsets.symmetric(horizontal: 4.0),
     );
     // 搜索
@@ -156,6 +170,12 @@ class _FilterAreaState extends State<FilterArea> {
       ),
       onPressed: _onSearchClick,
     );
+    if (widget.filter.searchContent.isNotEmpty) {
+      searchWidget = Tooltip(
+        message: widget.filter.searchContent,
+        child: searchWidget,
+      );
+    }
     searchWidget = Container(
       alignment: Alignment.centerRight,
       child: searchWidget,
@@ -199,7 +219,7 @@ class _FilterAreaState extends State<FilterArea> {
       child: Row(
         children: [
           Expanded(child: labelWidget),
-          Expanded(child: followedWidget),
+          Expanded(child: followingWidget),
           Expanded(child: searchWidget),
           sortWidget,
         ],
@@ -219,9 +239,9 @@ class _FilterAreaState extends State<FilterArea> {
   }
 
   // 点关注人
-  void _onFollowedClick() async {
+  void _onFollowingClick() async {
     final result =
-        await Navigator.pushNamed(context, SelectFollowedPage.routeName);
+        await Navigator.pushNamed(context, SelectFollowingPage.routeName);
     if (result == null) return;
     setState(() {
       widget.filter.users = result;
