@@ -3,23 +3,22 @@ import 'package:flutter/widgets.dart';
 /// 自定义字体图标
 class Iconfont {
   /// 点赞
-  static const IconData like = IconData(0xf010d, fontFamily: "iconfont");
-
-  /// 点赞，已选中
-  static const IconData liked = IconData(0xe60c, fontFamily: "iconfont");
+  static const IconData like =
+      IconData(0xe651, fontFamily: "iconfont", fontPackage: 'forum');
 
   /// 点踩
-  static const IconData dislike = IconData(0xe61e, fontFamily: "iconfont");
-
-  /// 点踩，已选中
-  static const IconData disliked = IconData(0xe60e, fontFamily: "iconfont");
+  static const IconData dislike =
+      IconData(0xe667, fontFamily: "iconfont", fontPackage: 'forum');
 
   /// 回复
-  static const IconData reply = IconData(0xe61a, fontFamily: "iconfont");
+  static const IconData reply =
+      IconData(0xe7a9, fontFamily: "iconfont", fontPackage: 'forum');
 
   /// 男
-  static const IconData male = IconData(0xe643, fontFamily: "iconfont");
+  static const IconData male =
+      IconData(0xe609, fontFamily: "iconfont", fontPackage: 'forum');
 
   /// 女
-  static const IconData female = IconData(0xe665, fontFamily: "iconfont");
+  static const IconData female =
+      IconData(0xe688, fontFamily: "iconfont", fontPackage: 'forum');
 }

@@ -73,7 +73,7 @@ class _ForumPageState extends State<ForumPage> {
       replace: replace,
     );
     if (result.success) {
-      setState(() {});
+      if (mounted) setState(() {});
     } else {
       showToast(result.msg);
     }
@@ -210,6 +210,7 @@ class _FilterAreaState extends State<FilterArea> {
         } else {
           widget.filter.sortBy = 1;
         }
+        widget.onFilterChanged();
       }),
       child: sortWidget,
     );

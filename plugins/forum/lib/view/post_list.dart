@@ -20,10 +20,10 @@ class PostList extends StatelessWidget {
     return ListView.builder(
       itemCount: _vm.posts.length,
       itemBuilder: (context, index) {
-        final item = _vm.posts[index];
-        return ListTile(
-          title: Text(item.avatar),
-        );
+        return _PostItem(_vm.posts[index], (post, clickType, [arg]) async {
+          // TODO
+          return true;
+        });
       },
     );
   }
@@ -32,7 +32,7 @@ class PostList extends StatelessWidget {
 /// 列表里的帖子
 class _PostItem extends StatefulWidget {
   final Post post;
-  final Future Function(Post, PostClickType, [dynamic arg]) onClick;
+  final Future<bool> Function(Post, PostClickType, [dynamic arg]) onClick;
 
   const _PostItem(this.post, this.onClick);
 
@@ -41,30 +41,24 @@ class _PostItem extends StatefulWidget {
 }
 
 class __PostItemState extends State<_PostItem> {
+  int _screenW = 750;
+
   @override
   Widget build(BuildContext context) {
+    _screenW = MediaQuery.of(context).size.width.toInt();
     final theme = Theme.of(context);
     String avatarThumbUrl = widget.post.avatarThumb;
     String avatarUrl = widget.post.avatar;
     String infoText = widget.post.date;
     // 名字
-    Widget name = Text(widget.post.name, style: theme.textTheme.headline6);
+    Widget name = Text(widget.post.name, style: theme.textTheme.subtitle2);
     // 头像
     Widget avatar = ImageWithUrl(
       avatarThumbUrl,
-      imageBuilder: (context, imageProvider) =>
-          CircleAvatar(radius: 25.0, backgroundImage: imageProvider),
-    );
-    avatar = OutlineButton(
-      child: avatar,
-      shape: CircleBorder(),
-      onPressed: () => showImgs(context, [avatarUrl]),
-    );
-    avatar = Container(
+      round: true,
       width: 50.0,
       height: 50.0,
-      child: avatar,
-      decoration: ShapeDecoration(shape: CircleBorder(), color: Colors.grey),
+      onPressed: () => showImgs(context, [avatarUrl]),
     );
     // 日期或信息
     Widget info = Text(infoText, style: theme.textTheme.caption);
@@ -82,32 +76,29 @@ class __PostItemState extends State<_PostItem> {
     );
     top = FlatButton(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
-      onPressed: _toUserPage,
+      onPressed: _onClick(PostClickType.VIEW_USER, widget.post.posterId),
       child: top,
     ).withMargin(bottom: 8.0);
     // 回复
     Widget reply = ButtonWithIcon(
+      color: Colors.grey,
       icon: Iconfont.reply,
       text: '${widget.post.replyCnt}',
-      onPressed: _toPostPage,
+      onPressed: _onClick(PostClickType.VIEW_POST),
     );
     // 点赞
     Widget like = ButtonWithIcon(
-      icon: widget.post.myAttitude == 1 ? Iconfont.liked : Iconfont.like,
+      color: widget.post.myAttitude == 1 ? theme.primaryColor : Colors.grey,
+      icon: Iconfont.like,
       text: '${widget.post.likeCnt}',
-      onPressed: _onClick(
-          PostClickType.LIKE,
-          // widget.post.myAttitude==-1，原来是点赞，现在是取消点赞
-          widget.post.myAttitude == 1),
+      onPressed: _onClick(PostClickType.LIKE, widget.post.myAttitude == 1),
     );
     // 点踩
     Widget dislike = ButtonWithIcon(
-      icon: widget.post.myAttitude == -1 ? Iconfont.disliked : Iconfont.dislike,
+      color: widget.post.myAttitude == 1 ? theme.primaryColor : Colors.grey,
+      icon: Iconfont.dislike,
       text: '${widget.post.dislikeCnt}',
-      onPressed: _onClick(
-          PostClickType.DISLIKE,
-          // widget.post.myAttitude==-1，原来是点踩，现在是取消点踩
-          widget.post.myAttitude == -1),
+      onPressed: _onClick(PostClickType.DISLIKE, widget.post.myAttitude == -1),
     );
     // 回复、点赞、点踩区域
     Widget bottom = Row(children: <Widget>[reply, like, dislike]);
@@ -120,97 +111,97 @@ class __PostItemState extends State<_PostItem> {
     // 图片和视频
     Widget media;
     if (widget.post.medias.isNotEmpty) {
-      if()
-    }
-    // 图片
-    Widget imgs;
-    final postImgs = widget.post.medias.whereType<ImageMedia>().toList();
-    if (postImgs.isNotEmpty) {
-      if (postImgs.length == 1) {
-        imgs = Container(
-          margin: const EdgeInsets.all(5.0),
-          alignment: Alignment.centerLeft,
-          child: ButtonWithInk(
-            width: 150.0,
-            height: 150.0,
-            child: ImageWithUrl(postImgs.first.thumbUrl, fit: BoxFit.cover),
-            onClick: () => showImgs(context, [postImgs.first.url]),
-          ),
-        );
+      if (widget.post.medias.length == 1) {
+        media = _buildMedia(widget.post.medias.first, 1);
       } else {
-        imgs = Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            for (var i = 0; i < 3 && i < postImgs.length; i++)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(5.0),
-                  child: AspectRatio(
-                    aspectRatio: 1.0,
-                    child: ButtonWithInk(
-                      child: ImageWithUrl(
-                        postImgs[i].thumbUrl,
-                        fit: BoxFit.cover,
-                      ),
-                      onClick: () => showImgs(
-                        context,
-                        postImgs.map((e) => e.url),
-                        min(i, postImgs.length - 1),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+        final cnt = min(9, widget.post.medias.length);
+        media = Wrap(
+          spacing: 5.0,
+          runSpacing: 5.0,
+          children: [
+            for (var i = 0; i < cnt; i++)
+              _buildMedia(widget.post.medias[i], cnt)
           ],
         );
       }
-    }
-    // 视频
-    Widget video;
-    final postVideos = widget.post.medias.whereType<VideoMedia>();
-    if (postVideos.isNotEmpty) {
-      video = Container(
-        child: VideoCover(
-            coverUrl: widget.post.videoCover,
-            onPressed: () => playVideo(context, widget.post.video)),
-        margin: const EdgeInsets.symmetric(vertical: 8.0),
-      );
+      media = Container(margin: const EdgeInsets.only(top: 5.0), child: media);
     }
     // 结果
-    return FlatButton(
-      onPressed: _toPostPage,
-      padding: const EdgeInsets.fromLTRB(15.0, 15.0, 15.0, 0.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          top,
-          content,
-          if (imgs != null) imgs,
-          if (video != null) video,
-          bottom.withMargin(top: 8.0),
-          Divider().withMargin(top: 8.0),
-        ],
+    return InkWell(
+      onTap: () => _onClick(PostClickType.VIEW_POST),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(15.0, 15.0, 15.0, 0.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            top,
+            content,
+            if (media != null) media,
+            bottom.withMargin(top: 8.0),
+            Divider().withMargin(top: 8.0),
+          ],
+        ),
       ),
     );
   }
 
   // 构建图片或者视频Widget
-  Widget _buildMedia(Media media) {
-    
+  Widget _buildMedia(Media media, int cnt) {
+    Widget w;
+    if (media is ImageMedia) {
+      w = AspectRatio(
+        aspectRatio: 1,
+        child: ImageWithUrl(
+          media.thumbUrl,
+          fit: BoxFit.cover,
+          onPressed: () => _viewImgs(media),
+        ),
+      );
+    } else if (media is VideoMedia) {
+      w = AspectRatio(
+        aspectRatio: 1.75,
+        child: Stack(
+          alignment: Alignment.center,
+          children: <Widget>[
+            ImageWithUrl(media.coverUrl, fit: BoxFit.cover).positioned(),
+            IconButton(
+              icon: Icon(Icons.play_circle_outline),
+              color: Colors.white,
+              iconSize: 50.0,
+              onPressed: () => playVideo(context, media.url),
+            ),
+          ],
+        ),
+      );
+    } else {
+      w = Container();
+    }
+    final contentW = _screenW - 40;
+    if (cnt == 1) {
+      w = SizedBox(width: contentW / 3 * 2, child: w);
+    } else if (cnt == 2) {
+      w = SizedBox(width: contentW / 2, child: w);
+    } else {
+      w = SizedBox(width: contentW / 3, child: w);
+    }
+    return w;
   }
 
+  // 查看图片
+  void _viewImgs(ImageMedia cur) {
+    final imgs = widget.post.medias.whereType<ImageMedia>().toList();
+    final idx = imgs.indexOf(cur);
+    showImgs(context, imgs.map((e) => e.url).toList(), max(0, idx));
+  }
+
+  // 点击事件
   Future Function() _onClick(PostClickType type, [dynamic arg]) {
     if (widget.onClick == null) return null;
-    return () => widget.onClick(widget.post, type, arg).then((value) {
-          if (value && mounted) setState(() {});
-        });
+    return () async {
+      final result = await widget.onClick(widget.post, type, arg);
+      if (result && mounted) setState(() {});
+    };
   }
-
-  void _toPostPage() =>
-      Navigator.of(context).pushNamed('postPage', arguments: widget.post);
-
-  void _toUserPage() =>
-      Navigator.of(context).pushNamed('user', arguments: widget.post.posterId);
 }
 
 enum PostClickType {
@@ -222,6 +213,12 @@ enum PostClickType {
 
   /// 点踩
   DISLIKE,
+
+  /// 查看用户
+  VIEW_USER,
+
+  /// 查看帖子详情
+  VIEW_POST,
 
   // 查看楼层回复
   VIEW_FLOOR_REPLIES,

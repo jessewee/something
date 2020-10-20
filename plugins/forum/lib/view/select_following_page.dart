@@ -74,7 +74,7 @@ class _SelectFollowingPageState extends State<SelectFollowingPage> {
           0;
       return c0.compareTo(c1);
     });
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   // 数据显示

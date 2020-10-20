@@ -17,9 +17,10 @@ class _SearchContentPageState extends State<SearchContentPage> {
   @override
   void initState() {
     SharedPreferences.getInstance().then((sp) {
-      setState(() {
-        _records = sp.getStringList('forum_search_content_page') ?? [];
-      });
+      if (mounted)
+        setState(() {
+          _records = sp.getStringList('forum_search_content_page') ?? [];
+        });
     });
     super.initState();
   }

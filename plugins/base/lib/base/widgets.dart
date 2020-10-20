@@ -132,14 +132,23 @@ class _SearchAppBarState extends State<SearchAppBar> {
 class ImageWithUrl extends StatelessWidget {
   final String url;
   final BoxFit fit;
-  final ImageWidgetBuilder imageBuilder;
+  final double width;
+  final double height;
+  final bool round;
+  final void Function() onPressed;
 
-  const ImageWithUrl(this.url, {this.fit = BoxFit.contain, this.imageBuilder});
+  const ImageWithUrl(
+    this.url, {
+    this.fit = BoxFit.cover,
+    this.onPressed,
+    this.width,
+    this.height,
+    this.round = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return CachedNetworkImage(
-      imageBuilder: imageBuilder,
       fit: fit,
       imageUrl: url,
       errorWidget: (context, url, error) => Icon(Icons.broken_image),
@@ -149,6 +158,29 @@ class ImageWithUrl extends StatelessWidget {
             height: 20.0,
             child: CircularProgressIndicator(value: progress.progress)),
       ),
+      imageBuilder: onPressed == null
+          ? null
+          : (context, imageProvider) => Container(
+                width: width,
+                height: height,
+                clipBehavior: Clip.hardEdge,
+                decoration: ShapeDecoration(
+                  shape: round
+                      ? CircleBorder()
+                      : RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(2.0),
+                        ),
+                  image: DecorationImage(image: imageProvider, fit: fit),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    highlightColor: Colors.black26,
+                    splashColor: Colors.black26,
+                    onTap: onPressed,
+                  ),
+                ),
+              ),
     );
   }
 }
@@ -173,18 +205,20 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final iconColor = widget.color ?? theme.iconTheme.color;
-    final textColor = widget.color ?? theme.textTheme.bodyText1.color;
+    Color color;
     final loadingSize = theme.textTheme.bodyText1.fontSize * 0.75;
-    Widget child;
-    if (_loading) {
-      child = Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Icon(widget.icon, color: Colors.grey),
-          Text(widget.text, style: TextStyle(color: Colors.grey))
-              .withMargin(left: 5.0),
+    if (widget.onPressed == null || _loading) {
+      color = Colors.grey[100];
+    } else {
+      color = widget.color ?? Colors.grey;
+    }
+    Widget child = Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Icon(widget.icon, color: color),
+        Text(widget.text, style: TextStyle(color: color)).withMargin(left: 5.0),
+        if (_loading)
           Container(
             margin: const EdgeInsets.only(left: 5.0),
             width: loadingSize,
@@ -194,30 +228,24 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
               valueColor: AlwaysStoppedAnimation(Colors.grey),
             ),
           ),
-        ],
-      );
-    } else {
-      child = Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Icon(widget.icon, color: iconColor),
-          Text(widget.text, style: TextStyle(color: textColor))
-              .withMargin(left: 5.0),
-        ],
-      );
-    }
-    return FlatButton(
-      color: Colors.transparent,
-      disabledTextColor: Colors.grey,
+      ],
+    );
+    child = Padding(
       child: child,
-      onPressed: widget.onPressed == null || _loading
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
+    );
+    return InkWell(
+      child: child,
+      onTap: widget.onPressed == null || _loading
           ? null
           : () {
               final result = widget.onPressed();
               if (result is Future) {
+                if (!mounted) return;
                 setState(() => _loading = true);
-                result.then((value) => setState(() => _loading = false));
+                result.then((_) {
+                  if (mounted) setState(() => _loading = false);
+                });
               }
             },
     );

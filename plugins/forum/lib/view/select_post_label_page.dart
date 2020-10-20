@@ -25,7 +25,7 @@ class _SelectPostLabelState extends State<SelectPostLabelPage> {
   void initState() {
     SharedPreferences.getInstance().then((sp) {
       _records = sp.getStringList('forum_search_post_label_page') ?? [];
-      setState(() {});
+      if (mounted) setState(() {});
     });
     super.initState();
   }
@@ -65,7 +65,7 @@ class _SelectPostLabelState extends State<SelectPostLabelPage> {
       return;
     }
     _data = result.data ?? [];
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   // 数据显示
