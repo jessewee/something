@@ -16,8 +16,14 @@ class ForumVM {
   /// 加载数据
   Future<Result> loadPosts({
     int dataPageSize = 100,
+    bool refresh = true,
     bool replace = false,
   }) async {
+    if (refresh) {
+      dataIdx = 0;
+    } else {
+      dataIdx += dataPageSize;
+    }
     final result = await Repository.getPosts(
       dataIdx: dataIdx,
       dataPageSize: dataPageSize,

@@ -54,7 +54,7 @@ class _ForumPageState extends State<ForumPage> {
       body: Column(
         children: [
           // 筛选条件
-          FilterArea(_vm.filter, () => _loadData(true)),
+          FilterArea(_vm.filter, () => _loadData()),
           // 列表显示
           Expanded(
             child: AnimatedSwitcher(
@@ -67,10 +67,11 @@ class _ForumPageState extends State<ForumPage> {
     );
   }
 
-  void _loadData([bool replace = false]) async {
+  void _loadData([bool refresh = true]) async {
     final result = await _vm.loadPosts(
       dataPageSize: _displayType ? 20 : 100,
-      replace: replace,
+      refresh: refresh,
+      replace: _displayType,
     );
     if (result.success) {
       if (mounted) setState(() {});

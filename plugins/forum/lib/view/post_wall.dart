@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math';
 import 'dart:ui' as dartUI;
 
@@ -21,10 +20,8 @@ class PostWall extends StatelessWidget {
 
 class _PostWallWidget extends StatefulWidget {
   final List<_PostWrapper> _posts;
-  final ChangeNotifier notifier;
   _PostWallWidget(List<Post> posts)
-      : _posts = posts.map((p) => _PostWrapper(p)).toList(),
-        notifier = ChangeNotifier();
+      : _posts = posts.map((p) => _PostWrapper(p)).toList();
 
   @override
   __PostWallWidgetState createState() => __PostWallWidgetState();
@@ -33,9 +30,14 @@ class _PostWallWidget extends StatefulWidget {
 class __PostWallWidgetState extends State<_PostWallWidget> {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      child: CustomPaint(
-        painter: _PostWallPainter(widget._posts, widget.notifier),
+    return RepaintBoundary(
+      child: GestureDetector(
+        child: CustomPaint(
+          painter: _PostWallPainter(
+            widget._posts,
+            MediaQuery.of(context).devicePixelRatio,
+          ),
+        ),
       ),
     );
   }
@@ -44,15 +46,13 @@ class __PostWallWidgetState extends State<_PostWallWidget> {
 class _PostWallPainter extends CustomPainter with ChangeNotifier {
   final List<_PostWrapper> _posts;
   final Paint _painter;
-  final ChangeNotifier _notifier;
+  final double devicePixelRatio;
   _PostWrapperPubParams _params;
 
-  _PostWallPainter(List<_PostWrapper> posts, ChangeNotifier notifier)
+  _PostWallPainter(List<_PostWrapper> posts, this.devicePixelRatio)
       : _posts = posts,
         _painter = Paint()..color = Colors.cyan,
-        _notifier = notifier,
-        _params = _PostWrapperPubParams(),
-        super(repaint: notifier);
+        _params = _PostWrapperPubParams();
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -89,68 +89,105 @@ class _PostWallPainter extends CustomPainter with ChangeNotifier {
       _painter..color = post.color,
     );
     // 绘制图片
-    final media = post.media;
-    String imgUrl;
-    if (media != null) {
-      if (media is ImageMedia) {
-        imgUrl = media.thumbUrl;
-      } else if (media is VideoMedia) {
-        imgUrl = media.coverUrl;
-      }
-      if (imgUrl?.isNotEmpty == true) {
-        final dst = Rect.fromLTWH(
-          contentX,
-          contentY,
-          _params.minOfContentWH,
-          _params.minOfContentWH,
-        );
-        canvas.drawRect(dst, _painter..color = Colors.grey);
-        if (post.image == null) {
-          _loadImg(imgUrl, post);
-        } else {
-          final src = Rect.fromLTWH(
-            contentX,
-            contentY,
-            post.image.width.toDouble(), // TODO
-            post.image.height.toDouble(),
-          );
-          print(
-              '---------${post.image.width}--${post.image.height}------${_params.minOfContentWH}');
-          canvas.drawImageRect(post.image, src, dst, _painter);
-        }
-      }
-    }
+    final existed = _drawImg(canvas, post, contentX, contentY);
     // 绘制文字
     final pb = dartUI.ParagraphBuilder(dartUI.ParagraphStyle(
       fontSize: _params.fontSize,
       height: _params.fontHeight,
-      maxLines: imgUrl == null ? _params.maxLines : _params.maxLinesAfterImg,
+      maxLines: existed ? _params.maxLinesAfterImg : _params.maxLines,
       ellipsis: '...',
     ))
       ..pushStyle(dartUI.TextStyle(color: Colors.white))
       ..addText(post.post.content);
     final paragraph = pb.build()
       ..layout(dartUI.ParagraphConstraints(width: _params.contentW));
-    final textY =
-        imgUrl == null ? contentY : (contentY + _params.minOfContentWH + 2);
+    final textY = existed ? (contentY + _params.imgSize + 2) : contentY;
     canvas.drawParagraph(paragraph, Offset(contentX, textY));
     // 恢复canvas，主要是为了每个帖子的旋转
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
+  bool shouldRepaint(covariant _PostWallPainter oldDelegate) {
+    var result = false;
+    // 遍历数据判断是否重绘，同时重复利用已有的数据，主要是图片数据
+    final unusedOld = <_PostWrapper>[];
+    for (var i = 0; i < oldDelegate._posts.length; i++) {
+      final op = _posts[i];
+      bool matchedImg = false;
+      bool sameOrder = false;
+      for (var j = 0; j < _posts.length; j++) {
+        final np = oldDelegate._posts[j];
+        // 查看旧列表里的图片是否在新列表里使用到了
+        if (np.image == op.image || np.mediaImgUrl == op.mediaImgUrl) {
+          matchedImg = true;
+          np.image = op.image;
+        }
+        // 根据帖子id来匹配新旧列表
+        if (np.post.id == op.post.id) {
+          np.color = op.color;
+          np.rotation = op.rotation;
+          np.x = op.x;
+          np.y = op.y;
+          if (j == i) {
+            sameOrder = true;
+            break;
+          }
+        }
+      }
+      if (!sameOrder) result = true;
+      if (!matchedImg && op.image != null) unusedOld.add(op);
+    }
+    // 释放不再使用的图片资源
+    unusedOld.map((e) => e.image).toSet().forEach((e) => e.dispose());
+    unusedOld.forEach((e) => e.image = null);
+    // 再次判断，上边只是遍历，如果有没匹配到的说明长度不一样
+    if (_posts.length != oldDelegate._posts.length) {
+      result = true;
+    }
+    return result;
   }
 
-  // 加载图片
-  void _loadImg(String url, _PostWrapper post) {
-    CachedNetworkImageProvider(url).resolve(ImageConfiguration()).addListener(
-      ImageStreamListener((info, synchronousCall) {
-        post.image = info.image;
-        _notifier.notifyListeners();
-      }),
+  // 绘制图片
+  bool _drawImg(
+    Canvas canvas,
+    _PostWrapper post,
+    double contentX,
+    double contentY,
+  ) {
+    String imgUrl = post.mediaImgUrl;
+    if (imgUrl?.isNotEmpty != true) return false;
+    // 绘制图片背景色
+    final dst = Rect.fromLTWH(
+      contentX,
+      contentY,
+      _params.imgSize,
+      _params.imgSize,
     );
+    canvas.drawRect(dst, _painter..color = Colors.grey);
+    // 加载图片
+    if (post.image == null) {
+      final imgSmListener = ImageStreamListener((info, synchronousCall) {
+        post.image = info.image;
+        if (!synchronousCall) notifyListeners();
+      });
+      CachedNetworkImageProvider(imgUrl)
+          .resolve(ImageConfiguration())
+          .addListener(imgSmListener);
+    }
+    // 上边在listener里给post.image赋值有可能是同步的[synchronousCall]，所以这里再判断一次
+    if (post.image == null) return false;
+    final imgCx = post.image.width / 2;
+    final imgCy = post.image.height / 2;
+    final imgRadius = min(imgCx, imgCy);
+    final src = Rect.fromLTRB(
+      imgCx - imgRadius,
+      imgCy - imgRadius,
+      imgCx + imgRadius,
+      imgCy + imgRadius,
+    );
+    canvas.drawImageRect(post.image, src, dst, _painter);
+    return true;
   }
 }
 
@@ -162,7 +199,15 @@ class _PostWrapper {
   Color color;
   dartUI.Image image;
 
-  Media get media => post.medias.isNotEmpty ? post.medias.first : null;
+  String get mediaImgUrl {
+    final tmp = post.medias.isNotEmpty ? post.medias.first : null;
+    if (tmp is ImageMedia) {
+      return tmp.thumbUrl;
+    } else if (tmp is VideoMedia) {
+      return tmp.coverUrl;
+    }
+    return '';
+  }
 
   _PostWrapper(this.post);
 
@@ -185,7 +230,7 @@ class _PostWrapper {
 class _PostWrapperPubParams {
   Size frameSize;
   double width, height;
-  double minOfContentWH;
+  double imgSize;
   double padding;
   double contentW;
   double contentH;
@@ -203,8 +248,8 @@ class _PostWrapperPubParams {
     padding = min(width, height) / 20;
     contentW = width - padding * 2;
     contentH = height - padding * 2;
-    minOfContentWH = min(contentW, contentH);
+    imgSize = min(contentW, contentH);
     maxLines = contentH ~/ (fontSize * fontHeight);
-    maxLinesAfterImg = (contentH - minOfContentWH) ~/ (fontSize * fontHeight);
+    maxLinesAfterImg = (contentH - imgSize) ~/ (fontSize * fontHeight);
   }
 }
