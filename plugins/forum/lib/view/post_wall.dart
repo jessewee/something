@@ -1,3 +1,4 @@
+import 'package:base/base/circle_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/model/media.dart';
 import 'package:forum/vm/forum.dart';
@@ -27,6 +28,26 @@ class PostWall extends StatelessWidget {
             imgUrl: imgUrl,
           );
         }).toList(),
+        [
+          CircleMenuItem(
+            text: '查看',
+            onClick: (id) => print('----点了查看$id'), // TODO
+          ),
+          CircleMenuItem(
+            text: '点赞',
+            onClick: (id) => print('----点了点赞$id'), // TODO
+          ),
+          CircleMenuItem(
+            text: '点踩',
+            onClick: (id) => print('----点了点踩$id'), // TODO
+          ),
+          CircleMenuItem(
+            onGetText: (id) =>
+                posts.firstWhere((p) => p.id == id, orElse: () => null)?.name ??
+                '',
+            onClick: (id) => print('----点了发布人$id'), // TODO
+          ),
+        ],
       ),
     );
   }

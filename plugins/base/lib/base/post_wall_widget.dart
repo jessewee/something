@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:ui' as dartUI;
 
+import 'package:base/base/circle_menu.dart';
+import 'package:base/base/pub.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -8,63 +10,116 @@ import 'package:flutter/material.dart';
 class PostWallWidget extends StatefulWidget {
   final List<PostWallItem> items;
 
-  PostWallWidget(this.items);
+  /// 菜单列表
+  final List<CircleMenuItem> menus;
+
+  PostWallWidget(this.items, this.menus);
 
   @override
   _PostWallWidgetState createState() => _PostWallWidgetState();
 }
 
 class _PostWallWidgetState extends State<PostWallWidget> {
+  StreamControllerWithData<PostWallClickParams> _controller;
+  @override
+  void initState() {
+    _controller = StreamControllerWithData(null);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final postWallPainter = _PostWallPainter(
       widget.items,
       MediaQuery.of(context).devicePixelRatio,
+      (postWallClickParams) => _controller.add(postWallClickParams),
     );
-    return RepaintBoundary(
-      child: GestureDetector(
-        child: CustomPaint(painter: postWallPainter),
-        onTapDown: (details) => postWallPainter.onTouch(
-          TouchEvt.down,
-          details.localPosition.dx,
-          details.localPosition.dy,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // 墙
+        RepaintBoundary(
+          child: GestureDetector(
+            child: CustomPaint(painter: postWallPainter),
+            onTapDown: (details) => postWallPainter.onTouch(
+              TouchEvt.down,
+              details.localPosition.dx,
+              details.localPosition.dy,
+            ),
+            onTapUp: (details) => postWallPainter.onTouch(
+              TouchEvt.up,
+              details.localPosition.dx,
+              details.localPosition.dy,
+            ),
+            onTapCancel: () => postWallPainter.onTouch(
+              TouchEvt.cancel,
+              0,
+              0,
+            ),
+            onPanDown: (details) => postWallPainter.onTouch(
+              TouchEvt.dragDown,
+              details.localPosition.dx,
+              details.localPosition.dy,
+            ),
+            onPanStart: (details) => postWallPainter.onTouch(
+              TouchEvt.dragStart,
+              details.localPosition.dx,
+              details.localPosition.dy,
+            ),
+            onPanUpdate: (details) => postWallPainter.onTouch(
+              TouchEvt.dragUpdate,
+              details.localPosition.dx,
+              details.localPosition.dy,
+            ),
+            onPanEnd: (details) => postWallPainter.onTouch(
+              TouchEvt.dragEnd,
+              0,
+              0,
+            ),
+            onPanCancel: () => postWallPainter.onTouch(
+              TouchEvt.dragEnd,
+              0,
+              0,
+            ),
+          ),
         ),
-        onTapUp: (details) => postWallPainter.onTouch(
-          TouchEvt.up,
-          details.localPosition.dx,
-          details.localPosition.dy,
-        ),
-        onTapCancel: () => postWallPainter.onTouch(
-          TouchEvt.cancel,
-          0,
-          0,
-        ),
-        onPanDown: (details) => postWallPainter.onTouch(
-          TouchEvt.dragDown,
-          details.localPosition.dx,
-          details.localPosition.dy,
-        ),
-        onPanStart: (details) => postWallPainter.onTouch(
-          TouchEvt.dragStart,
-          details.localPosition.dx,
-          details.localPosition.dy,
-        ),
-        onPanUpdate: (details) => postWallPainter.onTouch(
-          TouchEvt.dragUpdate,
-          details.localPosition.dx,
-          details.localPosition.dy,
-        ),
-        onPanEnd: (details) => postWallPainter.onTouch(
-          TouchEvt.dragEnd,
-          0,
-          0,
-        ),
-        onPanCancel: () => postWallPainter.onTouch(
-          TouchEvt.dragEnd,
-          0,
-          0,
-        ),
-      ),
+        // 环形菜单
+        StreamBuilder<PostWallClickParams>(
+            stream: _controller.stream,
+            builder: (context, snapshot) {
+              if (snapshot.data == null || widget.menus?.isNotEmpty != true)
+                return Container();
+              final params = snapshot.data;
+              final circleMenu = CircleMenu(
+                params.id,
+                widget.menus,
+                params.x + params.w / 2,
+                params.y + params.h / 2,
+                min(params.w, params.h) * 0.7,
+                () => _controller.add(null),
+              );
+              return RepaintBoundary(
+                child: GestureDetector(
+                  child: CustomPaint(painter: circleMenu),
+                  onTapDown: (details) => circleMenu.onTapDown(
+                    details.localPosition.dx,
+                    details.localPosition.dy,
+                  ),
+                  onTapUp: (details) => circleMenu.onTapUp(
+                    details.localPosition.dx,
+                    details.localPosition.dy,
+                  ),
+                  onTapCancel: () => circleMenu.onTapCancel(),
+                ),
+              );
+            }),
+      ],
     );
   }
 }
@@ -74,10 +129,14 @@ class _PostWallPainter extends CustomPainter
   final List<PostWallItem> _items;
   final Paint _painter;
   final double devicePixelRatio;
+  final Function(PostWallClickParams) onItemClick;
   PostWallItemPubParams _params;
 
-  _PostWallPainter(List<PostWallItem> items, this.devicePixelRatio)
-      : _items = items,
+  _PostWallPainter(
+    List<PostWallItem> items,
+    this.devicePixelRatio,
+    this.onItemClick,
+  )   : _items = items,
         _painter = Paint()..color = Colors.cyan,
         _params = PostWallItemPubParams();
 
@@ -134,8 +193,15 @@ class _PostWallPainter extends CustomPainter
 
   @override
   void _onItemClicked(PostWallItem item) {
-    // TODO
-    print('---------点中了帖子----id:${item.id}');
+    onItemClick(
+      PostWallClickParams(
+        item.id,
+        item.x,
+        item.y,
+        _params.width,
+        _params.height,
+      ),
+    );
   }
 
   @override
@@ -416,4 +482,15 @@ enum TouchEvt {
   dragEnd,
   dragCancel,
   dragUpdate,
+}
+
+/// PostWall点击时通知外层用到的参数
+class PostWallClickParams {
+  final String id;
+  final double x, y, w, h;
+  PostWallClickParams(this.id, this.x, this.y, this.w, this.h);
+  @override
+  String toString() {
+    return 'id:$id,x:$x,y:$y,w:$w,h:$h';
+  }
 }
