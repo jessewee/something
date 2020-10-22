@@ -10,6 +10,14 @@
             "type": "dart"
         },
         {
+            "name": "something--profile",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--profile"
+            ]
+        },
+        {
             "name": "base",
             "cwd": "plugins\\base",
             "request": "launch",
