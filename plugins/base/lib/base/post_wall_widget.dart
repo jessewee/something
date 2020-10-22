@@ -39,6 +39,7 @@ class _PostWallWidgetState extends State<PostWallWidget> {
       widget.items,
       MediaQuery.of(context).devicePixelRatio,
       (postWallClickParams) => _controller.add(postWallClickParams),
+      () => _controller.add(null),
     );
     return Stack(
       fit: StackFit.expand,
@@ -130,12 +131,14 @@ class _PostWallPainter extends CustomPainter
   final Paint _painter;
   final double devicePixelRatio;
   final Function(PostWallClickParams) onItemClick;
+  final Function() onRefreshed;
   PostWallItemPubParams _params;
 
   _PostWallPainter(
     List<PostWallItem> items,
     this.devicePixelRatio,
     this.onItemClick,
+    this.onRefreshed,
   )   : _items = items,
         _painter = Paint()..color = Colors.cyan,
         _params = PostWallItemPubParams();
@@ -185,7 +188,9 @@ class _PostWallPainter extends CustomPainter
     if (_items.length != oldDelegate._items.length) {
       result = true;
     }
-    if (!result) {
+    if (result) {
+      onRefreshed();
+    } else {
       _params = oldDelegate._params;
     }
     return result;
