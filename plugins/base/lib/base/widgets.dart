@@ -124,7 +124,9 @@ class _SearchAppBarState extends State<SearchAppBar> {
   void _onConfirm() {
     if (_focusNode.hasFocus) _focusNode.unfocus();
     _controller.add(true);
-    widget.onConfirm(_text).then((_) => _controller.add(false));
+    widget.onConfirm(_text).then((_) {
+      if (mounted) _controller.add(false);
+    });
   }
 }
 

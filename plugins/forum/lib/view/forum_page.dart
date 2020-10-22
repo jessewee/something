@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:base/base/configs.dart';
 import 'package:base/base/pub.dart';
+import 'package:base/base/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -22,13 +25,23 @@ class ForumPage extends StatefulWidget {
 
 class _ForumPageState extends State<ForumPage> {
   ForumVM _vm;
-  bool _displayType = true; // 显示方式，true:帖子墙、false:列表
+  StreamControllerWithData<bool> _displayType; // 显示方式，true:帖子墙、false:列表
+  StreamController _dataChanged;
 
   @override
   void initState() {
+    _displayType = StreamControllerWithData(true, broadcast: true);
+    _dataChanged = StreamController();
     _vm = ForumVM();
-    SchedulerBinding.instance.addPostFrameCallback((timeStamp) => _loadData());
+    SchedulerBinding.instance.addPostFrameCallback((_) => _loadData());
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _displayType.dispose();
+    _dataChanged.makeSureClosed();
+    super.dispose();
   }
 
   @override
@@ -38,15 +51,23 @@ class _ForumPageState extends State<ForumPage> {
         title: Text('社区'),
         actions: [
           /// 切换显示方式
-          AnimatedSwitcher(
-            duration: animDuration,
-            transitionBuilder: (child, animation) =>
-                ScaleTransition(child: child, scale: animation),
-            child: IconButton(
-              key: ValueKey(_displayType),
-              color: Colors.white,
-              icon: Icon(_displayType ? Icons.auto_awesome_motion : Icons.list),
-              onPressed: () => setState(() => _displayType = !_displayType),
+          StreamBuilder<bool>(
+            initialData: _displayType.value,
+            stream: _displayType.stream,
+            builder: (context, snapshot) => AnimatedSwitcher(
+              duration: animDuration,
+              transitionBuilder: (child, animation) => ScaleTransition(
+                child: child,
+                scale: animation,
+              ),
+              child: IconButton(
+                key: ValueKey(_displayType),
+                color: Colors.white,
+                icon: Icon(
+                  snapshot.data ? Icons.auto_awesome_motion : Icons.list,
+                ),
+                onPressed: () => _displayType.add(!snapshot.data),
+              ),
             ),
           ),
         ],
@@ -54,12 +75,20 @@ class _ForumPageState extends State<ForumPage> {
       body: Column(
         children: [
           // 筛选条件
-          FilterArea(_vm.filter, () => _loadData()),
+          _FilterArea(_vm.filter, () => _loadData()),
           // 列表显示
           Expanded(
-            child: AnimatedSwitcher(
-              duration: animDuration,
-              child: _displayType ? PostWall(_vm) : PostList(_vm),
+            child: StreamBuilder<bool>(
+              initialData: _displayType.value,
+              stream: _displayType.stream,
+              builder: (context, snapshot) => AnimatedSwitcher(
+                duration: animDuration,
+                child: StreamBuilder(
+                  stream: _dataChanged.stream,
+                  builder: (context, _) =>
+                      snapshot.data ? PostWall(_vm) : PostList(_vm),
+                ),
+              ),
             ),
           ),
         ],
@@ -69,12 +98,12 @@ class _ForumPageState extends State<ForumPage> {
 
   void _loadData([bool refresh = true]) async {
     final result = await _vm.loadPosts(
-      dataPageSize: _displayType ? 20 : 100,
+      dataPageSize: _displayType.value ? 20 : 100,
       refresh: refresh,
-      replace: _displayType,
+      replace: _displayType.value,
     );
     if (result.success) {
-      if (mounted) setState(() {});
+      if (mounted) _dataChanged.send(null);
     } else {
       showToast(result.msg);
     }
@@ -82,17 +111,17 @@ class _ForumPageState extends State<ForumPage> {
 }
 
 /// 筛选条件区域
-class FilterArea extends StatefulWidget {
+class _FilterArea extends StatefulWidget {
   final PostsFilter filter;
   final Function() onFilterChanged;
 
-  const FilterArea(this.filter, this.onFilterChanged);
+  const _FilterArea(this.filter, this.onFilterChanged);
 
   @override
   _FilterAreaState createState() => _FilterAreaState();
 }
 
-class _FilterAreaState extends State<FilterArea> {
+class _FilterAreaState extends State<_FilterArea> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -233,7 +262,7 @@ class _FilterAreaState extends State<FilterArea> {
   void _onLabelClick() async {
     final result =
         await Navigator.pushNamed(context, SelectPostLabelPage.routeName);
-    if (result == null) return;
+    if (result == null || !mounted) return;
     setState(() {
       widget.filter.labels = result;
       widget.onFilterChanged();
@@ -244,7 +273,7 @@ class _FilterAreaState extends State<FilterArea> {
   void _onFollowingClick() async {
     final result =
         await Navigator.pushNamed(context, SelectFollowingPage.routeName);
-    if (result == null) return;
+    if (result == null || !mounted) return;
     setState(() {
       widget.filter.users = result;
       widget.onFilterChanged();
@@ -255,7 +284,7 @@ class _FilterAreaState extends State<FilterArea> {
   void _onSearchClick() async {
     final result =
         await Navigator.pushNamed(context, SearchContentPage.routeName);
-    if (result == null) return;
+    if (result == null || !mounted) return;
     setState(() {
       widget.filter.searchContent = result;
       widget.onFilterChanged();

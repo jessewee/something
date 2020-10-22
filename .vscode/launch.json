@@ -7,12 +7,14 @@
         {
             "name": "something",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "program": "lib/main.dart"
         },
         {
             "name": "something--profile",
             "request": "launch",
             "type": "dart",
+            "program": "lib/main.dart",
             "args": [
                 "--profile"
             ]

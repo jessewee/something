@@ -15,7 +15,11 @@ class PostWall extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.expand(child: _PostWallWidget(_vm.posts));
+    return SizedBox.expand(
+      child: _PostWallWidget(
+        _vm.posts.length <= 20 ? _vm.posts : _vm.posts.sublist(0, 20),
+      ),
+    );
   }
 }
 

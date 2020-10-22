@@ -38,9 +38,10 @@ class StreamControllerWithData<T> {
 
   Stream<T> get stream => _controller.stream;
 
-  StreamControllerWithData(T defaultValue) {
+  StreamControllerWithData(T defaultValue, {bool broadcast = false}) {
     _value = defaultValue;
-    _controller = StreamController<T>();
+    _controller =
+        broadcast ? StreamController<T>.broadcast() : StreamController<T>();
   }
 
   void dispose() {
