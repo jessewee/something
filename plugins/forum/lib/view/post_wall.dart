@@ -147,6 +147,9 @@ class _PostWallPainter extends CustomPainter
     if (_posts.length != oldDelegate._posts.length) {
       result = true;
     }
+    if (!result) {
+      _params = oldDelegate._params;
+    }
     return result;
   }
 
