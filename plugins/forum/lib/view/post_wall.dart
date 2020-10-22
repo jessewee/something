@@ -117,16 +117,13 @@ class _PostWallPainter extends CustomPainter
   bool shouldRepaint(covariant _PostWallPainter oldDelegate) {
     var result = false;
     // 遍历数据判断是否重绘，同时重复利用已有的数据，主要是图片数据
-    final unusedOld = <_PostWrapper>[];
     for (var i = 0; i < oldDelegate._posts.length; i++) {
-      final op = _posts[i];
-      bool matchedImg = false;
+      final op = oldDelegate._posts[i];
       bool sameOrder = false;
       for (var j = 0; j < _posts.length; j++) {
-        final np = oldDelegate._posts[j];
+        final np = _posts[j];
         // 查看旧列表里的图片是否在新列表里使用到了
         if (np.image == op.image || np.mediaImgUrl == op.mediaImgUrl) {
-          matchedImg = true;
           np.image = op.image;
         }
         // 根据帖子id来匹配新旧列表
@@ -142,11 +139,7 @@ class _PostWallPainter extends CustomPainter
         }
       }
       if (!sameOrder) result = true;
-      if (!matchedImg && op.image != null) unusedOld.add(op);
     }
-    // 释放不再使用的图片资源
-    unusedOld.map((e) => e.image).toSet().forEach((e) => e.dispose());
-    unusedOld.forEach((e) => e.image = null);
     // 再次判断，上边只是遍历，如果有没匹配到的说明长度不一样
     if (_posts.length != oldDelegate._posts.length) {
       result = true;
