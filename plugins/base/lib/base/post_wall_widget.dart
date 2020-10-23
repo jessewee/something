@@ -246,7 +246,8 @@ class _PostWallPainter extends CustomPainter
       _painter..color = item.color,
     );
     // 绘制图片
-    final existed = _drawImg(canvas, item, contentX, contentY);
+    final existed = item.imgUrl?.isNotEmpty == true;
+    if (existed) _drawImg(canvas, item, contentX, contentY);
     // 绘制文字
     final pb = dartUI.ParagraphBuilder(dartUI.ParagraphStyle(
       fontSize: _params.fontSize,
@@ -265,13 +266,12 @@ class _PostWallPainter extends CustomPainter
   }
 
   // 绘制图片
-  bool _drawImg(
+  void _drawImg(
     Canvas canvas,
     PostWallItem item,
     double contentX,
     double contentY,
   ) {
-    if (item.imgUrl?.isNotEmpty != true) return false;
     // 绘制图片背景色
     final dst = Rect.fromLTWH(
       contentX,
@@ -279,7 +279,7 @@ class _PostWallPainter extends CustomPainter
       _params.imgSize,
       _params.imgSize,
     );
-    canvas.drawRect(dst, _painter..color = Colors.grey);
+    canvas.drawRect(dst, _painter..color = Colors.grey[400]);
     // 加载图片
     if (item.image == null) {
       final imgSmListener = ImageStreamListener((info, synchronousCall) {
@@ -291,7 +291,7 @@ class _PostWallPainter extends CustomPainter
           .addListener(imgSmListener);
     }
     // 上边在listener里给post.image赋值有可能是同步的[synchronousCall]，所以这里再判断一次
-    if (item.image == null) return false;
+    if (item.image == null) return;
     final imgCx = item.image.width / 2;
     final imgCy = item.image.height / 2;
     final imgRadius = min(imgCx, imgCy);
@@ -302,7 +302,6 @@ class _PostWallPainter extends CustomPainter
       imgCy + imgRadius,
     );
     canvas.drawImageRect(item.image, src, dst, _painter);
-    return true;
   }
 }
 

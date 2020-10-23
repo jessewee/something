@@ -58,20 +58,33 @@ class CircleMenu extends CustomPainter with ChangeNotifier {
     if (menus == null || menus.isEmpty) return;
     // 计算各属性
     if (_radius == null) {
-      if (centerX + radius <= size.width &&
-          centerX - radius >= 0 &&
-          centerY + radius <= size.height &&
-          centerY - radius >= 0) {
-        _centerX = centerX;
-        _centerY = centerY;
-        _radius = radius;
+      _centerX = centerX;
+      _centerY = centerY;
+      _radius = min(radius, min(size.width, size.height) / 2);
+      // 左右不超边界
+      final left = _centerX - _radius;
+      if (left < 0) {
+        _centerX -= left;
       } else {
-        _centerX = size.width / 2;
-        _centerY = size.height / 2;
-        _radius = min(radius, min(size.width, size.height) / 2);
+        final right = _centerX + _radius;
+        if (right > size.width) {
+          _centerX -= right - size.width;
+        }
       }
+      // 上下不超边界
+      final top = _centerY - _radius;
+      if (top < 0) {
+        _centerY -= top;
+      } else {
+        final bottom = _centerY + _radius;
+        if (bottom > size.height) {
+          _centerY -= bottom - size.height;
+        }
+      }
+      // 按钮半径和菜单圆环半径计算
       _itemRadius = _radius / 4;
       _radius = _radius - _itemRadius;
+      // 刷新动画显示的ticker
       _tickerTime = 0;
       _ticker = Ticker((elapsed) {
         _tickerTime += elapsed.inMilliseconds;
@@ -104,10 +117,10 @@ class CircleMenu extends CustomPainter with ChangeNotifier {
         center: center,
         radius: _animatedRadius + _animatedItemRadius,
       ));
-    canvas.drawShadow(path, Colors.black, 5, true);
+    canvas.drawShadow(path, Colors.black38, 2, true);
     _painter.style = PaintingStyle.stroke;
     _painter.strokeWidth = _animatedItemRadius * 2;
-    _painter.color = Color.fromARGB(200, 200, 200, 200);
+    _painter.color = Color.fromARGB(50, 0, 0, 0);
     canvas.drawCircle(center, _animatedRadius, _painter);
     // 画菜单
     _painter.strokeWidth = 2.0;
@@ -136,7 +149,7 @@ class CircleMenu extends CustomPainter with ChangeNotifier {
       _animatedItemRadius,
       _painter
         ..style = PaintingStyle.fill
-        ..color = Colors.blue[300],
+        ..color = Color.fromARGB(200, 0, 200, 200),
     );
     // 字
     final textW = _animatedItemRadius * 2 - 10;
