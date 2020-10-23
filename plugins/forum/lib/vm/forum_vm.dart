@@ -2,7 +2,7 @@ import 'package:base/base/pub.dart';
 import 'package:forum/model/post.dart';
 import 'package:forum/repository/repository.dart';
 
-/// 数据和逻辑处理
+/// 社区帖子列表数据和逻辑处理
 class ForumVM {
   /// 筛选条件
   PostsFilter filter = PostsFilter();

@@ -52,3 +52,10 @@ class NotFoundPage extends StatelessWidget {
     return Center(child: Text('404'));
   }
 }
+
+class ParamErrorPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('参数错误'));
+  }
+}

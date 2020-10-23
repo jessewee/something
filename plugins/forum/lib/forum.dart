@@ -1,5 +1,6 @@
 library forum;
 
+import 'package:base/base.dart';
 import 'package:flutter/widgets.dart';
 
 import 'view/select_following_page.dart';
@@ -14,6 +15,14 @@ final Map<String, WidgetBuilder> forumRoutes = {
   SearchContentPage.routeName: (_) => SearchContentPage(),
   SelectPostLabelPage.routeName: (_) => SelectPostLabelPage(),
   SelectFollowingPage.routeName: (_) => SelectFollowingPage(),
-  PostDetailPage.routeName: (_) => PostDetailPage(),
-  UserPage.routeName: (_) => UserPage(),
+  PostDetailPage.routeName: (context) {
+    final arg = ModalRoute.of(context).settings.arguments;
+    if (arg == null || arg is! String) return ParamErrorPage();
+    return PostDetailPage(arg);
+  },
+  UserPage.routeName: (context) {
+    final arg = ModalRoute.of(context).settings.arguments;
+    if (arg == null || arg is! String) return ParamErrorPage();
+    return UserPage(arg);
+  },
 };
