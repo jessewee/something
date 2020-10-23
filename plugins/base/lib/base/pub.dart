@@ -1,13 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:photo_view/photo_view.dart';
-import 'package:photo_view/photo_view_gallery.dart';
 
 import '../base.dart';
-import 'play_video_page.dart';
 import 'extensions.dart';
 
 /// 通用返回结果数据对象
@@ -57,7 +53,8 @@ class StreamControllerWithData<T> {
     if (!_controller.isClosed) _controller.close();
   }
 
-  void add(T value) {
+  void add(T value, {bool ignoreIfSameValue = false}) {
+    if (ignoreIfSameValue && value == _value) return;
     _value = value;
     if (_controller.isPaused || _controller.isClosed) return;
     _controller.add(value);
@@ -164,41 +161,6 @@ Future<String> showEditTextDialog({
     ],
   );
   return showDialog<String>(context: context, builder: (context) => dialog);
-}
-
-// 查看图片
-void showImgs(BuildContext context, List<String> imgs, [int index = 0]) {
-  if (imgs == null || imgs.length == 0) return;
-  showDialog(
-    context: context,
-    builder: (context) {
-      if (imgs.length == 1) {
-        return PhotoView(
-          minScale: 0.1,
-          maxScale: 3.0,
-          imageProvider: imgs[0].startsWith(RegExp('http[s]://'))
-              ? NetworkImage(imgs[0])
-              : FileImage(File(imgs[0])),
-        );
-      } else {
-        return PhotoViewGallery.builder(
-          scrollPhysics: const BouncingScrollPhysics(),
-          itemCount: imgs.length,
-          pageController: PageController(initialPage: index),
-          builder: (context, index) {
-            return PhotoViewGalleryPageOptions(
-              minScale: 0.1,
-              maxScale: 3.0,
-              imageProvider: imgs[index].startsWith(RegExp('http[s]://'))
-                  ? NetworkImage(imgs[index])
-                  : FileImage(File(imgs[index])),
-              heroAttributes: PhotoViewHeroAttributes(tag: imgs[index]),
-            );
-          },
-        );
-      }
-    },
-  );
 }
 
 String secondsToTime(int seconds) {

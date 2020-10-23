@@ -140,11 +140,35 @@ class _ForumPageState extends State<ForumPage> {
       [dynamic arg]) async {
     switch (clickType) {
       case PostClickType.LIKE:
-        final param = arg == true ? true : null;
+        bool param;
+        // 没传参数的话自己查找当前状态，然后改变状态
+        if (arg == null) {
+          if (_vm.getLikeStatus(id) == true) {
+            param = null;
+          } else {
+            param = true;
+          }
+        }
+        // 传了参数的话参数就是目标状态
+        else {
+          param = arg ? true : null;
+        }
         final result = await _vm.changeLikeState(id, param);
         return result.success;
       case PostClickType.DISLIKE:
-        final param = arg == true ? false : null;
+        bool param;
+        // 没传参数的话自己查找当前状态，然后改变状态
+        if (arg == null) {
+          if (_vm.getLikeStatus(id) == false) {
+            param = null;
+          } else {
+            param = false;
+          }
+        }
+        // 传了参数的话参数就是目标状态
+        else {
+          param = arg ? false : null;
+        }
         final result = await _vm.changeLikeState(id, param);
         return result.success;
       case PostClickType.VIEW_POST:

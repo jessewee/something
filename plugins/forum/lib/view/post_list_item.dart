@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:base/base/event_bus.dart';
 import 'package:base/base/play_video_page.dart';
+import 'package:base/base/view_images.dart';
 import 'package:flutter/material.dart';
-import 'package:base/base/pub.dart';
 import 'package:base/base/widgets.dart';
 import 'package:base/base/extensions.dart';
 import 'package:forum/model/media.dart';
@@ -62,7 +62,7 @@ class _PostItemState extends State<PostItem> {
       round: true,
       width: 50.0,
       height: 50.0,
-      onPressed: () => showImgs(context, [widget.post.avatar]),
+      onPressed: () => viewImages(context, [widget.post.avatar]),
     );
     // 日期
     Widget date = Text(widget.post.date, style: theme.textTheme.caption);
@@ -191,7 +191,7 @@ class _PostItemState extends State<PostItem> {
   void _viewImgs(ImageMedia cur) {
     final imgs = widget.post.medias.whereType<ImageMedia>().toList();
     final idx = imgs.indexOf(cur);
-    showImgs(context, imgs.map((e) => e.url).toList(), max(0, idx));
+    viewImages(context, imgs.map((e) => e.url).toList(), max(0, idx));
   }
 
   // 点击事件

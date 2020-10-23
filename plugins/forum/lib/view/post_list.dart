@@ -56,7 +56,6 @@ class _PostListState extends State<PostList> {
     if (widget.posts.isNotEmpty && widget.errorMsg.isNotEmpty)
       showToast(widget.errorMsg);
     final len = widget.posts.length;
-    print('---------------len:$len');
     Widget child;
     if (widget.posts.isEmpty) {
       if (widget.errorMsg.isNotEmpty) {

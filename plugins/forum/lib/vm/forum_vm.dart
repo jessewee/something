@@ -12,6 +12,15 @@ class ForumVM {
   int _totalCnt = 0; // 总数据数量
   get noMoreData => _posts.length >= _totalCnt;
 
+  /// 获取登录人对某个帖子当前的态度 null 表示中立
+  bool getLikeStatus(String postId) {
+    final post = _posts.firstWhere((p) => p.id == postId, orElse: () => null);
+    if (post == null) return null;
+    if (post.myAttitude == 1) return true;
+    if (post.myAttitude == -1) return false;
+    return null;
+  }
+
   /// 获取数据
   Future<Result<List<Post>>> getPosts({
     bool refresh = true,
