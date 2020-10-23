@@ -148,7 +148,7 @@ class _SelectFollowingPageState extends State<SelectFollowingPage> {
       } else {
         return MapEntry(s.id, existed.value + 1);
       }
-    });
+    }).toList();
     SharedPreferences.getInstance().then((sp) {
       sp.setStringList(
         'forum_search_following_page',
