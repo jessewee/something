@@ -45,32 +45,46 @@ class Repository {
   }
 
   /// 获取帖子列表
-  static Future<Result<List<Post>>> getPosts({
+  static Future<Result<DataWidthPageInfo<Post>>> getPosts({
     int dataIdx = 0,
     int dataPageSize = 100,
     PostsFilter filter,
   }) async {
     // TODO
+    await Future.delayed(Duration(seconds: 3));
     return Result.success(
-      List.generate(
-        dataPageSize,
-        (index) => Post(
-          id: (dataIdx + index).toString(),
-          posterId: TestGenerator.generateId(12),
-          avatar: TestGenerator.generateImg(),
-          avatarThumb: TestGenerator.generateImg(),
-          name: TestGenerator.generateChinese(20),
-          date: TestGenerator.generateDate(),
-          content: TestGenerator.generateChinese(500),
-          replyCnt: TestGenerator.generateNumber(9999),
-          likeCnt: TestGenerator.generateNumber(9999),
-          myAttitude: TestGenerator.generateNumber(1, -1),
-          medias: TestGenerator.generateImgs()
-              .map((e) => ImageMedia(e, TestGenerator.generateImg()))
-              .toList(),
+      DataWidthPageInfo(
+        List.generate(
+          dataPageSize,
+          (index) => Post(
+            id: (dataIdx + index).toString(),
+            posterId: TestGenerator.generateId(12),
+            avatar: TestGenerator.generateImg(),
+            avatarThumb: TestGenerator.generateImg(),
+            name: TestGenerator.generateChinese(20),
+            date: TestGenerator.generateDate(),
+            content: TestGenerator.generateChinese(500),
+            replyCnt: TestGenerator.generateNumber(9999),
+            likeCnt: TestGenerator.generateNumber(9999),
+            myAttitude: TestGenerator.generateNumber(1, -1),
+            medias: TestGenerator.generateImgs()
+                .map((e) => ImageMedia(e, TestGenerator.generateImg()))
+                .toList(),
+          ),
         ),
+        TestGenerator.generateNumber(9999),
+        dataIdx,
+        dataPageSize,
       ),
     );
+  }
+
+  /// 点赞 [like] null 表示中立
+  static Future<Result> changeLikeState(String postId, [bool like]) async {
+    // TODO
+    await Future.delayed(Duration(seconds: 1));
+//    return Random.secure().nextBool() ? Result.success() : Result(msg: '随便出错');
+    return Result.success();
   }
 }
 

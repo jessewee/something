@@ -192,10 +192,19 @@ class ButtonWithIcon extends StatefulWidget {
   final Color color;
   final IconData icon;
   final String text;
+  final bool loading;
+  final bool disabled;
 
   final Function() onPressed;
 
-  const ButtonWithIcon({this.color, this.icon, this.text, this.onPressed});
+  const ButtonWithIcon({
+    this.color,
+    this.icon,
+    this.text,
+    this.loading = false,
+    this.disabled = false,
+    this.onPressed,
+  });
 
   @override
   _ButtonWithIconState createState() => _ButtonWithIconState();
@@ -209,18 +218,23 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
     final theme = Theme.of(context);
     Color color;
     final loadingSize = theme.textTheme.bodyText1.fontSize * 0.75;
-    if (widget.onPressed == null || _loading) {
-      color = Colors.grey[100];
+    if (widget.onPressed == null ||
+        _loading ||
+        widget.loading ||
+        widget.disabled) {
+      color = Colors.grey;
     } else {
-      color = widget.color ?? Colors.grey;
+      color = widget.color ?? theme.primaryColor;
     }
     Widget child = Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        Icon(widget.icon, color: color),
-        Text(widget.text, style: TextStyle(color: color)).withMargin(left: 5.0),
-        if (_loading)
+        if (widget.icon != null) Icon(widget.icon, color: color),
+        if (widget.icon != null || widget.text != null) Container(width: 5.0),
+        if (widget.text != null)
+          Text(widget.text, style: TextStyle(color: color)),
+        if (_loading || widget.loading)
           Container(
             margin: const EdgeInsets.only(left: 5.0),
             width: loadingSize,
@@ -238,7 +252,10 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
     );
     return InkWell(
       child: child,
-      onTap: widget.onPressed == null || _loading
+      onTap: widget.onPressed == null ||
+              _loading ||
+              widget.loading ||
+              widget.disabled
           ? null
           : () {
               final result = widget.onPressed();
@@ -250,6 +267,43 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
                 });
               }
             },
+    );
+  }
+}
+
+/// 底部加载更多显示
+class LoadMore extends StatelessWidget {
+  final bool noMore;
+
+  const LoadMore({this.noMore});
+
+  @override
+  Widget build(BuildContext context) {
+    var loadingSize = Theme.of(context).textTheme.bodyText1.fontSize * 0.75;
+    return Container(
+      color: Colors.grey[100],
+      padding: const EdgeInsets.all(5.0),
+      alignment: Alignment.center,
+      child: noMore == true
+          ? Text('没有更多数据了')
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[Loading(size: loadingSize), Text('加载中')],
+            ),
+    );
+  }
+}
+
+/// 剧中显示的提示文字，比如暂无数据
+class CenterInfoText extends StatelessWidget {
+  final String text;
+  const CenterInfoText(this.text);
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        child: Text(text ?? '', style: TextStyle(color: Colors.grey)),
+      ),
     );
   }
 }

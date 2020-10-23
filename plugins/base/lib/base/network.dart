@@ -63,7 +63,7 @@ class Network {
       onResponse: (e) {
         // 需要重新登录
         if (e.data != null && e.data['code'] == 10000) {
-          eventBus.sendEvent(EventBusType.loginInvalid);
+          eventBus.sendEvent('base_login_invalid');
         } else {
           // 保存服务器返回的token
           _token = e.headers.value('token') ?? '';
@@ -77,7 +77,7 @@ class Network {
         return e;
       },
     ));
-    eventBus.on(EventBusType.leavePage, (arg) {
+    eventBus.on('base_leave_page', (arg) {
       if (arg == null || !(arg is String)) return;
       CancelToken ct = _cancelTokens[arg];
       if (ct != null) {

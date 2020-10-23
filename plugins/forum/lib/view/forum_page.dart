@@ -2,18 +2,21 @@ import 'dart:async';
 
 import 'package:base/base/configs.dart';
 import 'package:base/base/pub.dart';
-import 'package:base/base/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:forum/model/post.dart';
 
 import 'package:forum/repository/repository.dart';
-import 'package:forum/vm/forum.dart';
+import 'package:forum/vm/forum_vm.dart';
 
+import 'post_detail_page.dart';
 import 'post_list.dart';
+import 'post_list_item.dart';
 import 'post_wall.dart';
 import 'search_content_page.dart';
 import 'select_post_label_page.dart';
 import 'select_following_page.dart';
+import 'user_page.dart';
 
 /// 社区页
 class ForumPage extends StatefulWidget {
@@ -26,21 +29,22 @@ class ForumPage extends StatefulWidget {
 class _ForumPageState extends State<ForumPage> {
   ForumVM _vm;
   StreamControllerWithData<bool> _displayType; // 显示方式，true:帖子墙、false:列表
-  StreamController _dataChanged;
+  StreamControllerWithData<bool> _load; // true: 刷新、false: 下一页
+  List<Post> _lastPosts = []; // 上次显示的数据，刷新或者加载更多时要继续显示，只是为了这段时间显示，没有其他作用
 
   @override
   void initState() {
     _displayType = StreamControllerWithData(true, broadcast: true);
-    _dataChanged = StreamController();
+    _load = StreamControllerWithData(true);
     _vm = ForumVM();
-    SchedulerBinding.instance.addPostFrameCallback((_) => _loadData());
+    SchedulerBinding.instance.addPostFrameCallback((_) => _load.add(true));
     super.initState();
   }
 
   @override
   void dispose() {
     _displayType.dispose();
-    _dataChanged.makeSureClosed();
+    _load.dispose();
     super.dispose();
   }
 
@@ -75,37 +79,82 @@ class _ForumPageState extends State<ForumPage> {
       body: Column(
         children: [
           // 筛选条件
-          _FilterArea(_vm.filter, () => _loadData()),
+          _FilterArea(_vm.filter, () => _load.add(true)),
           // 列表显示
           Expanded(
             child: StreamBuilder<bool>(
-              initialData: _displayType.value,
-              stream: _displayType.stream,
-              builder: (context, snapshot) => AnimatedSwitcher(
-                duration: animDuration,
-                child: StreamBuilder(
-                  stream: _dataChanged.stream,
-                  builder: (context, _) =>
-                      snapshot.data ? PostWall(_vm) : PostList(_vm),
-                ),
-              ),
-            ),
+                initialData: _load.value,
+                stream: _load.stream,
+                builder: (context, _) {
+                  return FutureBuilder<Result<List<Post>>>(
+                    future: _vm.getPosts(
+                      refresh: _load.value,
+                      // 列表比墙少的话会有问题，一般不会少
+                      dataSize: _displayType.value ? 20 : 30,
+                      onePageData: _displayType.value,
+                    ),
+                    builder: (context, dataSs) => _buildContent(
+                      dataSs.data,
+                      dataSs.connectionState != ConnectionState.done,
+                    ),
+                  );
+                }),
           ),
         ],
       ),
     );
   }
 
-  void _loadData([bool refresh = true]) async {
-    final result = await _vm.loadPosts(
-      dataPageSize: _displayType.value ? 20 : 100,
-      refresh: refresh,
-      replace: _displayType.value,
+  // 内容显示
+  Widget _buildContent(Result<List<Post>> result, bool loading) {
+    final posts = loading || result.fail ? _lastPosts : result.data;
+    if (result?.success == true) _lastPosts = result.data;
+    return StreamBuilder<bool>(
+      initialData: _displayType.value,
+      stream: _displayType.stream,
+      builder: (context, dt) => AnimatedSwitcher(
+        duration: animDuration,
+        child: dt.data
+            ? PostWall(
+                posts: posts,
+                loading: loading ? _load.value : null,
+                noMoreData: _vm.noMoreData,
+                errorMsg: result?.fail == true ? result.msg : '',
+                loadData: (refresh) => _load.add(refresh),
+                onPostClick: _onPostClick,
+              )
+            : PostList(
+                posts: posts,
+                loading: loading ? _load.value : null,
+                noMoreData: _vm.noMoreData,
+                errorMsg: result?.fail == true ? result.msg : '',
+                loadData: (refresh) => _load.add(refresh),
+                onPostClick: _onPostClick,
+              ),
+      ),
     );
-    if (result.success) {
-      if (mounted) _dataChanged.send(null);
-    } else {
-      showToast(result.msg);
+  }
+
+  // 帖子的点击事件
+  Future<bool> _onPostClick(String id, PostClickType clickType,
+      [dynamic arg]) async {
+    switch (clickType) {
+      case PostClickType.LIKE:
+        final param = arg == true ? null : true;
+        final result = await _vm.changeLikeState(id, param);
+        return result.success;
+      case PostClickType.DISLIKE:
+        final param = arg == true ? null : false;
+        final result = await _vm.changeLikeState(id, param);
+        return result.success;
+      case PostClickType.VIEW_POST:
+        Navigator.pushNamed(context, PostDetailPage.routeName, arguments: id);
+        return false;
+      case PostClickType.VIEW_USER:
+        Navigator.pushNamed(context, UserPage.routeName, arguments: id);
+        return false;
+      default:
+        return false;
     }
   }
 }

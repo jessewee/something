@@ -28,6 +28,15 @@ class Result<T> {
   bool get fail => code != 0;
 }
 
+/// 带总数量的列表返回结果
+class DataWidthPageInfo<T> {
+  final List<T> list;
+  final int totalCount;
+  final int dataIndex;
+  final int pageSize;
+  DataWidthPageInfo(this.list, this.totalCount, this.dataIndex, this.pageSize);
+}
+
 /// 带有数据的StreamController
 class StreamControllerWithData<T> {
   StreamController<T> _controller;
