@@ -140,11 +140,11 @@ class _ForumPageState extends State<ForumPage> {
       [dynamic arg]) async {
     switch (clickType) {
       case PostClickType.LIKE:
-        final param = arg == true ? null : true;
+        final param = arg == true ? true : null;
         final result = await _vm.changeLikeState(id, param);
         return result.success;
       case PostClickType.DISLIKE:
-        final param = arg == true ? null : false;
+        final param = arg == true ? false : null;
         final result = await _vm.changeLikeState(id, param);
         return result.success;
       case PostClickType.VIEW_POST:

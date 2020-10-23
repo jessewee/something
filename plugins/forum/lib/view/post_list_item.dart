@@ -91,7 +91,7 @@ class _PostItemState extends State<PostItem> {
     );
     // 点踩
     Widget dislike = ButtonWithIcon(
-      color: widget.post.myAttitude == 1 ? theme.primaryColor : Colors.black,
+      color: widget.post.myAttitude == -1 ? theme.primaryColor : Colors.black,
       icon: Iconfont.dislike,
       text: '${widget.post.dislikeCnt}',
       onPressed: _onClick(PostClickType.DISLIKE, widget.post.myAttitude != -1),
