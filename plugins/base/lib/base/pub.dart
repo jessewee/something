@@ -166,12 +166,6 @@ Future<String> showEditTextDialog({
   return showDialog<String>(context: context, builder: (context) => dialog);
 }
 
-// 播放视频
-Future playVideo(BuildContext context, String videoUrl) {
-  return Navigator.of(context).pushNamed('playVideo',
-      arguments: VideoPlayerPageArguments(pathOrUrl: videoUrl));
-}
-
 // 查看图片
 void showImgs(BuildContext context, List<String> imgs, [int index = 0]) {
   if (imgs == null || imgs.length == 0) return;

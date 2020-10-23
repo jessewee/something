@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:base/base/event_bus.dart';
+import 'package:base/base/play_video_page.dart';
 import 'package:flutter/material.dart';
 import 'package:base/base/pub.dart';
 import 'package:base/base/widgets.dart';

@@ -10,6 +10,20 @@ import 'pub.dart';
 
 const APP_BAR_HEIGHT = 44.0;
 
+// 播放视频
+Future playVideo(BuildContext context, String videoUrl, [String title]) {
+  return showGeneralDialog(
+    context: context,
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return AnimatedBuilder(
+        animation: animation,
+        builder: (context, child) =>
+            VideoPlayerWidget(videoUrl: videoUrl, title: title),
+      );
+    },
+  );
+}
+
 class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
   final String title;
@@ -359,11 +373,4 @@ class _ControllerBar extends StatelessWidget {
       ),
     );
   }
-}
-
-class VideoPlayerPageArguments {
-  final String pathOrUrl;
-  final String title;
-
-  VideoPlayerPageArguments({@required this.pathOrUrl, this.title});
 }
