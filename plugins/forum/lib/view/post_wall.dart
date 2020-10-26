@@ -12,7 +12,7 @@ class PostWall extends StatelessWidget {
   final bool loading; // true: 刷新、false: 下一页、null: 不在加载状态中
   final bool noMoreData;
   final String errorMsg;
-  final void Function(bool) loadData;
+  final Future Function(bool) loadData;
   final void Function(String, PostClickType, [dynamic]) onPostClick;
   const PostWall({
     this.posts = const [],
@@ -92,7 +92,7 @@ class PostWall extends StatelessWidget {
           loading: loading == true,
           disabled: loading != null,
           text: '刷新',
-          onPressed: () => loadData(true),
+          onPressed: ()  => loadData(true),
         ),
         ButtonWithIcon(
           loading: loading == false,

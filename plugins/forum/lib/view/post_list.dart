@@ -10,8 +10,9 @@ class PostList extends StatefulWidget {
   final bool loading; // true: 刷新、false: 下一页、null: 不在加载状态中
   final bool noMoreData;
   final String errorMsg;
-  final void Function(bool) loadData;
+  final Future Function(bool) loadData;
   final void Function(String, PostClickType, [dynamic]) onPostClick;
+
   const PostList({
     this.posts = const [],
     this.loading = false,
@@ -75,7 +76,7 @@ class _PostListState extends State<PostList> {
       );
     }
     return RefreshIndicator(
-      onRefresh: () async => widget.loadData(true),
+      onRefresh: () => widget.loadData(true),
       child: child,
     );
   }

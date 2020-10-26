@@ -30,24 +30,23 @@ class ForumPage extends StatefulWidget {
 class _ForumPageState extends State<ForumPage> {
   ForumVM _vm;
   StreamControllerWithData<bool> _displayType; // 显示方式，true:帖子墙、false:列表
-  StreamControllerWithData<bool> _load; // true: 刷新、false: 下一页
+  StreamControllerWithData<Result<List<Post>>> _dataChanged;
   StreamControllerWithData<bool> _loading;
-  List<Post> _lastPosts = []; // 上次显示的数据，刷新或者加载更多时要继续显示，只是为了这段时间显示，没有其他作用
 
   @override
   void initState() {
     _displayType = StreamControllerWithData(true, broadcast: true);
-    _load = StreamControllerWithData(true, broadcast: true);
+    _dataChanged = StreamControllerWithData(null, broadcast: true);
     _loading = StreamControllerWithData(true);
     _vm = ForumVM();
-    SchedulerBinding.instance.addPostFrameCallback((_) => _load.add(true));
+    SchedulerBinding.instance.addPostFrameCallback((_) => _loadData(true));
     super.initState();
   }
 
   @override
   void dispose() {
     _displayType.dispose();
-    _load.dispose();
+    _dataChanged.dispose();
     _loading.dispose();
     super.dispose();
   }
@@ -88,26 +87,14 @@ class _ForumPageState extends State<ForumPage> {
       body: Column(
         children: [
           // 筛选条件
-          _FilterArea(_vm.filter, () => _load.add(true)),
+          _FilterArea(_vm.filter, () => _loadData(true)),
           // 列表显示
           Expanded(
-            child: StreamBuilder<bool>(
-                initialData: _load.value,
-                stream: _load.stream,
-                builder: (context, _) {
-                  return FutureBuilder<Result<List<Post>>>(
-                    future: _vm.getPosts(
-                      refresh: _load.value,
-                      // 列表比墙少的话会有问题，一般不会少
-                      dataSize: _displayType.value ? 20 : 100,
-                      onePageData: _displayType.value,
-                    ),
-                    builder: (context, dataSs) => _buildContent(
-                      dataSs.data,
-                      dataSs.connectionState != ConnectionState.done,
-                    ),
-                  );
-                }),
+            child: StreamBuilder<Result<List<Post>>>(
+              initialData: _dataChanged.value,
+              stream: _dataChanged.stream,
+              builder: (context, snapshot) => _buildContent(snapshot.data),
+            ),
           ),
         ],
       ),
@@ -115,10 +102,8 @@ class _ForumPageState extends State<ForumPage> {
   }
 
   // 内容显示
-  Widget _buildContent(Result<List<Post>> result, bool loading) {
-    _loading.add(loading);
-    final posts = loading || result.fail ? _lastPosts : result.data;
-    if (result?.success == true) _lastPosts = result.data;
+  Widget _buildContent(Result<List<Post>> result) {
+    final posts = result?.data ?? [];
     return StreamBuilder<bool>(
       initialData: _displayType.value,
       stream: _displayType.stream,
@@ -127,18 +112,18 @@ class _ForumPageState extends State<ForumPage> {
         child: dt.data
             ? PostWall(
                 posts: posts,
-                loading: loading ? _load.value : null,
+                loading: _dataChanged.value == null ? true : null,
                 noMoreData: _vm.noMoreData,
                 errorMsg: result?.fail == true ? result.msg : '',
-                loadData: (refresh) => _load.add(refresh),
+                loadData: _loadData,
                 onPostClick: _onPostClick,
               )
             : PostList(
                 posts: posts,
-                loading: loading ? _load.value : null,
+                loading: _dataChanged.value == null ? true : null,
                 noMoreData: _vm.noMoreData,
                 errorMsg: result?.fail == true ? result.msg : '',
-                loadData: (refresh) => _load.add(refresh),
+                loadData: _loadData,
                 onPostClick: _onPostClick,
               ),
       ),
@@ -189,6 +174,23 @@ class _ForumPageState extends State<ForumPage> {
         return false;
       default:
         return false;
+    }
+  }
+
+  // 加载数据
+  Future _loadData(bool refresh) async {
+    _loading.add(true);
+    final result = await _vm.getPosts(
+      refresh: refresh,
+      // 列表比墙少的话会有问题，一般不会少
+      dataSize: _displayType.value ? 20 : 30,
+      onePageData: _displayType.value,
+    );
+    _loading.add(false);
+    if (result.success) {
+      _dataChanged.add(result);
+    } else {
+      showToast(result.msg);
     }
   }
 }
