@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:base/base/configs.dart';
 import 'package:base/base/pub.dart';
+import 'package:base/base/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:forum/model/post.dart';
@@ -30,12 +31,14 @@ class _ForumPageState extends State<ForumPage> {
   ForumVM _vm;
   StreamControllerWithData<bool> _displayType; // 显示方式，true:帖子墙、false:列表
   StreamControllerWithData<bool> _load; // true: 刷新、false: 下一页
+  StreamControllerWithData<bool> _loading;
   List<Post> _lastPosts = []; // 上次显示的数据，刷新或者加载更多时要继续显示，只是为了这段时间显示，没有其他作用
 
   @override
   void initState() {
     _displayType = StreamControllerWithData(true, broadcast: true);
-    _load = StreamControllerWithData(true);
+    _load = StreamControllerWithData(true, broadcast: true);
+    _loading = StreamControllerWithData(true);
     _vm = ForumVM();
     SchedulerBinding.instance.addPostFrameCallback((_) => _load.add(true));
     super.initState();
@@ -45,6 +48,7 @@ class _ForumPageState extends State<ForumPage> {
   void dispose() {
     _displayType.dispose();
     _load.dispose();
+    _loading.dispose();
     super.dispose();
   }
 
@@ -52,7 +56,28 @@ class _ForumPageState extends State<ForumPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('社区'),
+        title: StreamBuilder<bool>(
+          initialData: _loading.value,
+            stream: _loading.stream,
+            builder: (context, snapshot) {
+              return snapshot.data != true
+                  ? Text('社区')
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text('社区'),
+                        Container(
+                          width: 12.0,
+                          height: 12.0,
+                          margin: const EdgeInsets.only(left: 5.0),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation(Colors.grey),
+                          ),
+                        )
+                      ],
+                    );
+            }),
         actions: [
           /// 切换显示方式
           StreamBuilder<bool>(
@@ -107,6 +132,7 @@ class _ForumPageState extends State<ForumPage> {
 
   // 内容显示
   Widget _buildContent(Result<List<Post>> result, bool loading) {
+    _loading.add(loading);
     final posts = loading || result.fail ? _lastPosts : result.data;
     if (result?.success == true) _lastPosts = result.data;
     return StreamBuilder<bool>(
@@ -201,50 +227,89 @@ class _FilterAreaState extends State<_FilterArea> {
     final primaryColor = theme.primaryColor;
     final textCaptionStyle = theme.textTheme.caption;
     final textPrimaryCaptionStyle =
-        theme.textTheme.caption.copyWith(color: primaryColor);
+        textCaptionStyle.copyWith(color: theme.primaryColor);
     final label = widget.filter.labels.join(',');
     final following = widget.filter.users.map((e) => e.name).join(',');
     // 标签
-    Widget labelWidget = OutlineButton(
-      child: label.isEmpty
-          ? Text('标签', overflow: TextOverflow.ellipsis, style: textCaptionStyle)
-          : Tooltip(
-              message: label,
-              child: Text(
-                label,
-                overflow: TextOverflow.ellipsis,
-                style: textPrimaryCaptionStyle,
-              ),
-            ),
-      onPressed: _onLabelClick,
-    );
-    labelWidget = Container(
-      child: labelWidget,
-      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+    Widget labelWidget = _buildLabelOrFollowing(
+      label,
+      '标签',
+      textCaptionStyle,
+      textPrimaryCaptionStyle,
+      _onLabelClick,
     );
     // 关注人
-    Widget followingWidget = OutlineButton(
-      child: following.isEmpty
-          ? Text(
-              '关注人',
-              overflow: TextOverflow.ellipsis,
-              style: textCaptionStyle,
-            )
-          : Tooltip(
-              message: following,
-              child: Text(
-                following,
-                overflow: TextOverflow.ellipsis,
-                style: textPrimaryCaptionStyle,
-              ),
-            ),
-      onPressed: _onFollowingClick,
-    );
-    followingWidget = Container(
-      child: followingWidget,
-      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+    Widget followingWidget = _buildLabelOrFollowing(
+      following,
+      '关注人',
+      textCaptionStyle,
+      textPrimaryCaptionStyle,
+      _onFollowingClick,
     );
     // 搜索
+    Widget searchWidget = _buildSearchBtn(
+      primaryColor,
+      textCaptionStyle,
+      textPrimaryCaptionStyle,
+    );
+    // 排序
+    Widget sortWidget = TextSwitch(
+      leftText: '最新',
+      rightText: '最热',
+      animDuration: animDuration,
+      defaultStatus: widget.filter.sortBy == 2,
+      onChange: (status) {
+        widget.filter.sortBy = status ? 2 : 1;
+        widget.onFilterChanged();
+      },
+    );
+    // 页面
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        children: [
+          Expanded(child: labelWidget),
+          Expanded(child: followingWidget),
+          Expanded(child: searchWidget),
+          sortWidget,
+        ],
+      ),
+    );
+  }
+
+  // 标签和关注人按钮
+  Widget _buildLabelOrFollowing(
+    String text,
+    String defaultText,
+    TextStyle textCaptionStyle,
+    TextStyle textPrimaryCaptionStyle,
+    void Function() onPressed,
+  ) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: OutlineButton(
+        child: text.isEmpty
+            ? Text(defaultText,
+                overflow: TextOverflow.ellipsis, style: textCaptionStyle)
+            : Tooltip(
+                message: text,
+                child: Text(
+                  text,
+                  overflow: TextOverflow.ellipsis,
+                  style: textPrimaryCaptionStyle,
+                ),
+              ),
+        onPressed: onPressed,
+      ),
+    );
+  }
+
+  // 搜索按钮
+  Widget _buildSearchBtn(
+    Color primaryColor,
+    TextStyle textCaptionStyle,
+    TextStyle textPrimaryCaptionStyle,
+  ) {
     Widget searchWidget = TextButton(
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -284,51 +349,7 @@ class _FilterAreaState extends State<_FilterArea> {
       child: searchWidget,
       margin: const EdgeInsets.symmetric(horizontal: 4.0),
     );
-    // 排序
-    Widget sortWidget = AnimatedSwitcher(
-      duration: animDuration,
-      child: RichText(
-        key: ValueKey(widget.filter.sortBy),
-        text: widget.filter.sortBy == 2
-            // 最热
-            ? TextSpan(
-                children: [
-                  TextSpan(text: '最新 / ', style: textCaptionStyle),
-                  TextSpan(text: '最热', style: textPrimaryCaptionStyle),
-                ],
-              )
-            // 最新
-            : TextSpan(
-                children: [
-                  TextSpan(text: '最新', style: textPrimaryCaptionStyle),
-                  TextSpan(text: ' / 最热', style: textCaptionStyle),
-                ],
-              ),
-      ),
-    );
-    sortWidget = TextButton(
-      onPressed: () => setState(() {
-        if (widget.filter.sortBy != 2) {
-          widget.filter.sortBy = 2;
-        } else {
-          widget.filter.sortBy = 1;
-        }
-        widget.onFilterChanged();
-      }),
-      child: sortWidget,
-    );
-    // 页面
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Row(
-        children: [
-          Expanded(child: labelWidget),
-          Expanded(child: followingWidget),
-          Expanded(child: searchWidget),
-          sortWidget,
-        ],
-      ),
-    );
+    return searchWidget;
   }
 
   // 点标签

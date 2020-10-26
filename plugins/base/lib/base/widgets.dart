@@ -297,12 +297,84 @@ class LoadMore extends StatelessWidget {
 /// 剧中显示的提示文字，比如暂无数据
 class CenterInfoText extends StatelessWidget {
   final String text;
+
   const CenterInfoText(this.text);
+
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Container(
         child: Text(text ?? '', style: TextStyle(color: Colors.grey)),
+      ),
+    );
+  }
+}
+
+/// 文字开关，类似 最新 / 最热
+class TextSwitch extends StatefulWidget {
+  final Duration animDuration;
+  final String leftText, rightText;
+  final void Function(bool) onChange;
+
+  /// 状态，true:左边的文字、false:右边的文字
+  final bool defaultStatus;
+
+  TextSwitch({
+    @required this.leftText,
+    @required this.rightText,
+    this.defaultStatus = true,
+    this.animDuration = const Duration(milliseconds: 250),
+    this.onChange,
+  });
+
+  @override
+  _TextSwitchState createState() => _TextSwitchState();
+}
+
+class _TextSwitchState extends State<TextSwitch> {
+  /// 状态，true:左边的文字、false:右边的文字
+  bool status;
+
+  @override
+  void initState() {
+    status = widget.defaultStatus;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textCaptionStyle = theme.textTheme.caption;
+    final textPrimaryCaptionStyle =
+        textCaptionStyle.copyWith(color: theme.primaryColor);
+    return TextButton(
+      onPressed: () {
+        setState(() => status = !status);
+        widget.onChange(status);
+      },
+      child: AnimatedSwitcher(
+        duration: widget.animDuration,
+        child: RichText(
+          key: ValueKey(status),
+          text: status
+              ? TextSpan(
+                  children: [
+                    TextSpan(
+                        text: '${widget.leftText} / ', style: textCaptionStyle),
+                    TextSpan(
+                        text: widget.rightText, style: textPrimaryCaptionStyle),
+                  ],
+                )
+              : TextSpan(
+                  children: [
+                    TextSpan(
+                        text: widget.leftText, style: textPrimaryCaptionStyle),
+                    TextSpan(
+                        text: ' / ${widget.rightText}',
+                        style: textCaptionStyle),
+                  ],
+                ),
+        ),
       ),
     );
   }
