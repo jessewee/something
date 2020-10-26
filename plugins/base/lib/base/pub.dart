@@ -28,9 +28,9 @@ class Result<T> {
 class DataWidthPageInfo<T> {
   final List<T> list;
   final int totalCount;
-  final int dataIndex;
+  final int lastDataIndex;
   final int pageSize;
-  DataWidthPageInfo(this.list, this.totalCount, this.dataIndex, this.pageSize);
+  DataWidthPageInfo(this.list, this.totalCount, this.lastDataIndex, this.pageSize);
 }
 
 /// 带有数据的StreamController

@@ -80,11 +80,58 @@ class Repository {
   }
 
   /// 点赞 [like] null 表示中立
-  static Future<Result> changeLikeState(String postId, [bool like]) async {
+  static Future<Result> changeLikeState({
+    String postId,
+    String floorId,
+    String innerFloorId,
+    bool like,
+  }) async {
     // TODO
     await Future.delayed(Duration(seconds: 1));
 //    return Random.secure().nextBool() ? Result.success() : Result(msg: '随便出错');
     return Result.success();
+  }
+
+  /// 获取帖子内的楼层列表
+  static Future<Result<FloorResultData>> getFloors({
+    int dataIdx,
+    int dataPageSize = 100,
+    int floorStartIdx,
+    int floorEndIdx,
+  }) async {
+    assert(
+      dataIdx != null || (floorStartIdx != null && floorEndIdx != null),
+      'getFloors---dataIdx和floorIdx必须传其中一个',
+    );
+    // TODO
+    await Future.delayed(Duration(seconds: 3));
+    return Result.success(
+      FloorResultData(
+        List.generate(
+          dataPageSize,
+          (index) => Floor(
+            id: (dataIdx + index).toString(),
+            posterId: TestGenerator.generateId(12),
+            avatar: TestGenerator.generateImg(),
+            avatarThumb: TestGenerator.generateImg(),
+            name: TestGenerator.generateChinese(20),
+            date: TestGenerator.generateDate(),
+            content: TestGenerator.generateChinese(500),
+            replyCnt: TestGenerator.generateNumber(9999),
+            likeCnt: TestGenerator.generateNumber(9999),
+            myAttitude: TestGenerator.generateNumber(1, -1),
+            medias: TestGenerator.generateImgs()
+                .map((e) => ImageMedia(e, TestGenerator.generateImg()))
+                .toList(),
+            floor: index,
+          ),
+        ),
+        TestGenerator.generateNumber(9999),
+        dataIdx,
+        dataPageSize,
+        TestGenerator.generateNumber(9999),
+      ),
+    );
   }
 }
 
@@ -101,4 +148,22 @@ class PostsFilter {
 
   /// 1最新、2最热
   int sortBy = 1;
+}
+
+/// 楼层返回数据
+class FloorResultData extends DataWidthPageInfo<Floor> {
+  final int totalFloorCnt;
+
+  FloorResultData(
+    List<Floor> list,
+    int totalCount,
+    int lastDataIndex,
+    int pageSize,
+    this.totalFloorCnt,
+  ) : super(
+          list,
+          totalCount,
+          lastDataIndex,
+          pageSize,
+        );
 }

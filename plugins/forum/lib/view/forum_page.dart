@@ -57,26 +57,10 @@ class _ForumPageState extends State<ForumPage> {
     return Scaffold(
       appBar: AppBar(
         title: StreamBuilder<bool>(
-          initialData: _loading.value,
+            initialData: _loading.value,
             stream: _loading.stream,
             builder: (context, snapshot) {
-              return snapshot.data != true
-                  ? Text('社区')
-                  : Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text('社区'),
-                        Container(
-                          width: 12.0,
-                          height: 12.0,
-                          margin: const EdgeInsets.only(left: 5.0),
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation(Colors.grey),
-                          ),
-                        )
-                      ],
-                    );
+              return TextWithLoading('社区', snapshot.data == true);
             }),
         actions: [
           /// 切换显示方式
@@ -115,7 +99,7 @@ class _ForumPageState extends State<ForumPage> {
                     future: _vm.getPosts(
                       refresh: _load.value,
                       // 列表比墙少的话会有问题，一般不会少
-                      dataSize: _displayType.value ? 20 : 30,
+                      dataSize: _displayType.value ? 20 : 100,
                       onePageData: _displayType.value,
                     ),
                     builder: (context, dataSs) => _buildContent(

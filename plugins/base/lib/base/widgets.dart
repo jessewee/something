@@ -1,7 +1,6 @@
 import 'package:base/base/pub.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'extensions.dart';
 
 /// loading提示
 class Loading extends StatelessWidget {
@@ -377,5 +376,34 @@ class _TextSwitchState extends State<TextSwitch> {
         ),
       ),
     );
+  }
+}
+
+/// 文字后边带loading
+class TextWithLoading extends StatelessWidget {
+  final String text;
+  final bool loading;
+
+  const TextWithLoading(this.text, this.loading);
+
+  @override
+  Widget build(BuildContext context) {
+    return loading
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(text),
+              Container(
+                width: 12.0,
+                height: 12.0,
+                margin: const EdgeInsets.only(left: 5.0),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(Colors.grey),
+                ),
+              )
+            ],
+          )
+        : Text(text);
   }
 }

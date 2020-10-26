@@ -54,31 +54,37 @@ class ForumVM {
 
   /// 点赞 [like] null 表示中立
   Future<Result> changeLikeState(String postId, [bool like]) async {
-    Result result = await Repository.changeLikeState(postId, like);
+    Result result =
+        await Repository.changeLikeState(postId: postId, like: like);
     if (result.success) {
       for (var p in _posts.where((e) => e.id == postId)) {
-        final old = p.myAttitude;
-        p.myAttitude = like == null
-            ? 0
-            : like
-                ? 1
-                : -1;
-        if (old == p.myAttitude) continue;
-        if (old == 0) {
-          if (p.myAttitude == 1) {
-            p.likeCnt++;
-          } else {
-            p.dislikeCnt++;
-          }
-        } else if (old == -1) {
-          p.dislikeCnt--;
-          if (p.myAttitude == 1) p.likeCnt++;
-        } else {
-          p.likeCnt--;
-          if (p.myAttitude == -1) p.dislikeCnt++;
-        }
+        changePostBaseLikeStatus(p, like);
       }
     }
     return result;
+  }
+}
+
+/// 更改点赞状态 [like] null 表示中立
+void changePostBaseLikeStatus(PostBase postBase, [bool like]) {
+  final oa = postBase.myAttitude;
+  final na = like == null
+      ? 0
+      : like
+          ? 1
+          : -1;
+  if (oa == na) return;
+  if (oa == 0) {
+    if (na == 1) {
+      postBase.likeCnt++;
+    } else {
+      postBase.dislikeCnt++;
+    }
+  } else if (oa == -1) {
+    postBase.dislikeCnt--;
+    if (na == 1) postBase.likeCnt++;
+  } else {
+    postBase.likeCnt--;
+    if (na == -1) postBase.dislikeCnt++;
   }
 }
