@@ -8,14 +8,9 @@ import 'widgets.dart';
 // 浏览图片
 Future viewImages(BuildContext context, List<String> imageUrls,
     [int curIndex = 0]) {
-  return showGeneralDialog(
+  return showDialog(
     context: context,
-    pageBuilder: (context, animation, secondaryAnimation) {
-      return AnimatedBuilder(
-        animation: animation,
-        builder: (context, child) => ViewImages(imageUrls, curIndex),
-      );
-    },
+    builder: (context) => ViewImages(imageUrls, curIndex),
   );
 }
 

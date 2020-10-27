@@ -20,7 +20,7 @@ class BaseApp extends StatelessWidget {
     this.onGenerateRoute = (RouteSettings settings) {
       return MaterialPageRoute(
         settings: settings,
-        builder: (context) => NotFoundPage(),
+        builder: (context) => NotFoundPage(settings.name),
       );
     };
   }
@@ -47,15 +47,29 @@ class BaseApp extends StatelessWidget {
 }
 
 class NotFoundPage extends StatelessWidget {
+  final String path;
+
+  const NotFoundPage(this.path);
+
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text('404'));
+    return Scaffold(
+      appBar: AppBar(title: Text('页面未找到')),
+      body: Center(child: Text('$path')),
+    );
   }
 }
 
 class ParamErrorPage extends StatelessWidget {
+  final dynamic arg;
+
+  const ParamErrorPage(this.arg);
+
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text('参数错误'));
+    return Scaffold(
+      appBar: AppBar(title: Text('参数错误')),
+      body: Center(child: Text('$arg')),
+    );
   }
 }

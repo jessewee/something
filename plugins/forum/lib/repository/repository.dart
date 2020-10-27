@@ -58,6 +58,7 @@ class Repository {
           dataPageSize,
           (index) => Post(
             id: (dataIdx + index).toString(),
+            label: TestGenerator.generateChinese(5),
             posterId: TestGenerator.generateId(12),
             avatar: TestGenerator.generateImg(),
             avatarThumb: TestGenerator.generateImg(),
@@ -68,7 +69,12 @@ class Repository {
             likeCnt: TestGenerator.generateNumber(9999),
             myAttitude: TestGenerator.generateNumber(1, -1),
             medias: TestGenerator.generateImgs()
-                .map((e) => ImageMedia(e, TestGenerator.generateImg()))
+                .map((e) => ImageMedia(
+                      e,
+                      TestGenerator.generateImg(),
+                      TestGenerator.generateNumber(100, 50),
+                      TestGenerator.generateNumber(100, 50),
+                    ))
                 .toList(),
           ),
         ),
@@ -77,6 +83,14 @@ class Repository {
         dataPageSize,
       ),
     );
+  }
+
+  /// 关注用户
+  static Future<Result> follow(String userId, bool follow) async {
+    // TODO
+    await Future.delayed(Duration(seconds: 1));
+//    return Random.secure().nextBool() ? Result.success() : Result(msg: '随便出错');
+    return Result.success();
   }
 
   /// 点赞 [like] null 表示中立
@@ -121,7 +135,12 @@ class Repository {
             likeCnt: TestGenerator.generateNumber(9999),
             myAttitude: TestGenerator.generateNumber(1, -1),
             medias: TestGenerator.generateImgs()
-                .map((e) => ImageMedia(e, TestGenerator.generateImg()))
+                .map((e) => ImageMedia(
+                      e,
+                      TestGenerator.generateImg(),
+                      TestGenerator.generateNumber(100, 50),
+                      TestGenerator.generateNumber(100, 50),
+                    ))
                 .toList(),
             floor: index,
           ),

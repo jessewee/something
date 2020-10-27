@@ -19,12 +19,12 @@ final Map<String, WidgetBuilder> forumRoutes = {
   SelectFollowingPage.routeName: (_) => SelectFollowingPage(),
   PostDetailPage.routeName: (context) {
     final arg = ModalRoute.of(context).settings.arguments;
-    if (arg == null || arg is! Post) return ParamErrorPage();
+    if (arg == null || arg is! Post) return ParamErrorPage(arg);
     return PostDetailPage(arg);
   },
   UserPage.routeName: (context) {
     final arg = ModalRoute.of(context).settings.arguments;
-    if (arg == null || arg is! ForumUser) return ParamErrorPage();
+    if (arg == null || arg is! String) return ParamErrorPage(arg);
     return UserPage(arg);
   },
 };

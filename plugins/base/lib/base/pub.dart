@@ -30,7 +30,9 @@ class DataWidthPageInfo<T> {
   final int totalCount;
   final int lastDataIndex;
   final int pageSize;
-  DataWidthPageInfo(this.list, this.totalCount, this.lastDataIndex, this.pageSize);
+
+  DataWidthPageInfo(
+      this.list, this.totalCount, this.lastDataIndex, this.pageSize);
 }
 
 /// 带有数据的StreamController
@@ -58,6 +60,10 @@ class StreamControllerWithData<T> {
     _value = value;
     if (_controller.isPaused || _controller.isClosed) return;
     _controller.add(value);
+  }
+
+  void setValueWithoutNotify(T value) {
+    _value = value;
   }
 }
 

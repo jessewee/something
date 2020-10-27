@@ -44,6 +44,10 @@ extension WidgetExt on Widget {
         margin: EdgeInsets.fromLTRB(left, top, right, bottom), child: this);
   }
 
+  Widget withMarginAll(double all) {
+    return Container(margin: EdgeInsets.all(all), child: this);
+  }
+
   Widget positioned(
       {double left = 0.0,
       double top = 0.0,

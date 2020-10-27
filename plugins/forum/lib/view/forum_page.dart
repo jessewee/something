@@ -149,7 +149,8 @@ class _ForumPageState extends State<ForumPage> {
           param = arg ? true : null;
         }
         final result = await _vm.changeLikeState(id, param);
-        return result.success;
+        if (result.isNotEmpty) showToast(result);
+        return result.isEmpty;
       case PostClickType.DISLIKE:
         bool param;
         // 没传参数的话自己查找当前状态，然后改变状态
@@ -165,9 +166,11 @@ class _ForumPageState extends State<ForumPage> {
           param = arg ? false : null;
         }
         final result = await _vm.changeLikeState(id, param);
-        return result.success;
+        if (result.isNotEmpty) showToast(result);
+        return result.isEmpty;
       case PostClickType.VIEW_POST:
-        Navigator.pushNamed(context, PostDetailPage.routeName, arguments: id);
+        final post = _vm.getPostById(id);
+        Navigator.pushNamed(context, PostDetailPage.routeName, arguments: post);
         return false;
       case PostClickType.VIEW_USER:
         Navigator.pushNamed(context, UserPage.routeName, arguments: id);

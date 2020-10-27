@@ -1,6 +1,7 @@
 import 'package:base/base/pub.dart';
 import 'package:forum/model/post.dart';
 import 'package:forum/repository/repository.dart';
+import 'extensions.dart';
 
 /// 社区帖子列表数据和逻辑处理
 class ForumVM {
@@ -11,6 +12,11 @@ class ForumVM {
   List<Post> _posts = []; // 帖子列表
   int _totalCnt = 0; // 总数据数量
   get noMoreData => _posts.length >= _totalCnt;
+
+  /// 根据id获取post对象
+  Post getPostById(String id) {
+    return _posts.firstWhere((p) => p.id == id, orElse: () => null);
+  }
 
   /// 获取登录人对某个帖子当前的态度 null 表示中立
   bool getLikeStatus(String postId) {
@@ -53,38 +59,9 @@ class ForumVM {
   }
 
   /// 点赞 [like] null 表示中立
-  Future<Result> changeLikeState(String postId, [bool like]) async {
-    Result result =
-        await Repository.changeLikeState(postId: postId, like: like);
-    if (result.success) {
-      for (var p in _posts.where((e) => e.id == postId)) {
-        changePostBaseLikeStatus(p, like);
-      }
-    }
-    return result;
-  }
-}
-
-/// 更改点赞状态 [like] null 表示中立
-void changePostBaseLikeStatus(PostBase postBase, [bool like]) {
-  final oa = postBase.myAttitude;
-  final na = like == null
-      ? 0
-      : like
-          ? 1
-          : -1;
-  if (oa == na) return;
-  if (oa == 0) {
-    if (na == 1) {
-      postBase.likeCnt++;
-    } else {
-      postBase.dislikeCnt++;
-    }
-  } else if (oa == -1) {
-    postBase.dislikeCnt--;
-    if (na == 1) postBase.likeCnt++;
-  } else {
-    postBase.likeCnt--;
-    if (na == -1) postBase.dislikeCnt++;
+  Future<String> changeLikeState(String postId, [bool like]) async {
+    final p = _posts.firstWhere((e) => e.id == postId, orElse: () => null);
+    if (p == null) return '没有找到数据';
+    return p.changeLikeState(like);
   }
 }

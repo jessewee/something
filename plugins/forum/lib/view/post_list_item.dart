@@ -154,7 +154,7 @@ class _PostItemState extends State<PostItem> {
         child: ImageWithUrl(
           media.thumbUrl,
           fit: BoxFit.cover,
-          onPressed: () => _viewImgs(media),
+          onPressed: () => _viewMediaImages(media),
         ),
       );
     } else if (media is VideoMedia) {
@@ -188,10 +188,10 @@ class _PostItemState extends State<PostItem> {
   }
 
   // 查看图片
-  void _viewImgs(ImageMedia cur) {
-    final imgs = widget.post.medias.whereType<ImageMedia>().toList();
-    final idx = imgs.indexOf(cur);
-    viewImages(context, imgs.map((e) => e.url).toList(), max(0, idx));
+  void _viewMediaImages(ImageMedia cur) {
+    final images = widget.post.medias.whereType<ImageMedia>().toList();
+    final idx = images.indexOf(cur);
+    viewImages(context, images.map((e) => e.url).toList(), max(0, idx));
   }
 
   // 点击事件

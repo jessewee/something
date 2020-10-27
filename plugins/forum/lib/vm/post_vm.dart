@@ -1,10 +1,8 @@
-import 'package:base/base/event_bus.dart';
 import 'package:base/base/pub.dart';
 import 'package:forum/model/post.dart';
 import 'package:forum/repository/repository.dart';
-import 'package:forum/view/post_list_item.dart';
 
-import 'forum_vm.dart';
+import 'extensions.dart';
 
 /// 帖子详情数据和逻辑
 class PostVM {
@@ -18,6 +16,8 @@ class PostVM {
   get totalFloorCnt => _totalFloorCnt;
 
   get noMoreData => _floors.length >= _totalCnt;
+
+  get floors => _floors;
 
   PostVM(this.post);
 
@@ -55,35 +55,19 @@ class PostVM {
   }
 
   /// 点赞 [like] null 表示中立
-  Future<Result> changeLikeState({
+  Future<String> changeLikeState({
     String postId,
     String floorId,
     bool like,
   }) async {
     if (postId != null) {
-      Result result = await Repository.changeLikeState(
-        postId: postId,
-        like: like,
-      );
-      if (result.success) {
-        changePostBaseLikeStatus(post, like);
-        eventBus.sendEvent(PostItem.eventBusEventType, {
-          'postId': postId,
-          'likeCnt': post.likeCnt,
-          'dislikeCnt': post.dislikeCnt,
-        });
-      }
-      return result;
+      return await post.changeLikeState(like);
     }
-    Result result = await Repository.changeLikeState(
-      floorId: floorId,
-      like: like,
-    );
-    if (result.success) {
-      for (var f in _floors.where((e) => e.id == floorId)) {
-        changePostBaseLikeStatus(f, like);
-      }
+    if (floorId != null) {
+      final f = _floors.firstWhere((e) => e.id == floorId, orElse: () => null);
+      if (f == null) return '没有找到数据';
+      return await f.changeLikeState(like);
     }
-    return result;
+    return '参数不正确';
   }
 }
