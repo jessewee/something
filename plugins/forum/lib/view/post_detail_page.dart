@@ -13,6 +13,7 @@ import 'package:flutter/widgets.dart';
 import 'package:forum/model/media.dart';
 import 'package:forum/model/post.dart';
 import 'package:forum/other/iconfont.dart';
+import 'package:forum/view/bottom_reply_bar.dart';
 import 'package:forum/view/user_page.dart';
 import 'package:forum/vm/post_vm.dart';
 import 'package:forum/vm/extensions.dart';
@@ -32,11 +33,13 @@ class PostDetailPage extends StatefulWidget {
 
 class _PostDetailPageState extends State<PostDetailPage> {
   StreamControllerWithData<bool> _loading; // true: 刷新、false: 下一页、null: 不在加载状态中
+  StreamControllerWithData<PostBase> _replyTarget; // 回复的对象
   ScrollController _scrollController;
 
   @override
   void initState() {
     _loading = StreamControllerWithData(null);
+    _replyTarget = StreamControllerWithData(widget._vm.post);
     _scrollController = ScrollController();
     _scrollController.addListener(() async {
       if (_loading.value == false) return;
@@ -52,6 +55,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   @override
   void dispose() {
     _loading.dispose();
+    _replyTarget.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -74,8 +78,38 @@ class _PostDetailPageState extends State<PostDetailPage> {
             TextButton(child: Text('跳转楼层'), onPressed: _showToFloors),
         ],
       ),
-      body: _buildContent(),
+      body: Column(
+        children: [
+          Expanded(child: _buildContent()),
+          StreamBuilder<PostBase>(
+              initialData: _replyTarget.value,
+              stream: _replyTarget.stream,
+              builder: (context, snapshot) {
+                if (snapshot.data is Post) {
+                  return BottomReplyBar(
+                    postId: snapshot.data.id,
+                    onReplied: _onReplied,
+                  );
+                } else if (snapshot.data is Floor) {
+                  return BottomReplyBar(
+                    floorId: snapshot.data.id,
+                    onReplied: _onReplied,
+                  );
+                } else {
+                  return Container();
+                }
+              }),
+        ],
+      ),
     );
+  }
+
+  // 回复发送成功的回调
+  void _onReplied(PostBase postBase) {
+    // TODO
+    if(postBase is Post){
+
+    }
   }
 
   // 内容显示

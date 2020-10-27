@@ -70,4 +70,9 @@ class PostVM {
     }
     return '参数不正确';
   }
+
+  /// 回复楼主后添加新数据到最上边
+  void addNewReply(Floor floor) {
+    _floors.insert(0, floor);
+  }
 }
