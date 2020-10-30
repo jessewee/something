@@ -184,7 +184,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
     );
     _loading.add(null);
     if (result.success) {
-      setState(() => _loading.setValueWithoutNotify(null));
+      if (mounted) setState(() => _loading.setValueWithoutNotify(null));
     } else {
       showToast(result.msg);
     }
