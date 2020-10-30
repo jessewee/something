@@ -129,7 +129,7 @@ class Floor extends PostBase {
 /// 楼中回复，跟楼层差不多，为了区分还是单独吧
 class InnerFloor extends PostBase {
   /// 楼层
-  final int floor;
+  final int innerFloor;
 
   /// 回复对象id，直接回复层主的时候这个参数没有
   final String targetId;
@@ -149,7 +149,7 @@ class InnerFloor extends PostBase {
     int likeCnt = 0,
     int dislikeCnt = 0,
     int myAttitude = 0,
-    this.floor = 0,
+    this.innerFloor = 0,
     this.targetId = '',
     this.targetName = '',
   }) : super.essential(

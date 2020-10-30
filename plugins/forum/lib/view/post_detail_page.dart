@@ -14,6 +14,7 @@ import 'package:forum/model/media.dart';
 import 'package:forum/model/post.dart';
 import 'package:forum/other/iconfont.dart';
 import 'package:forum/view/bottom_reply_bar.dart';
+import 'package:forum/view/post_floor_replies_page.dart';
 import 'package:forum/view/user_page.dart';
 import 'package:forum/vm/post_vm.dart';
 import 'package:forum/vm/extensions.dart';
@@ -38,7 +39,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   @override
   void initState() {
-    _loading = StreamControllerWithData(null);
+    _loading = StreamControllerWithData(null, broadcast: true);
     _replyTarget = StreamControllerWithData(widget._vm.post);
     _scrollController = ScrollController();
     _scrollController.addListener(() async {
@@ -107,9 +108,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   // 回复发送成功的回调
   void _onReplied(PostBase postBase) {
     // TODO
-    if(postBase is Post){
-
-    }
+    if (postBase is Post) {}
   }
 
   // 内容显示
@@ -124,7 +123,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
             ? _PostItem(widget._vm.post)
             : index < len + 1
                 ? _PostFloorItem(widget._vm.floors[index - 1])
-                : LoadMore(noMore: widget._vm.noMoreData),
+                : StreamBuilder<bool>(
+                    stream: _loading.stream,
+                    builder: (context, snapshot) {
+                      return LoadMore(
+                        noMore: snapshot.data == null && widget._vm.noMoreData,
+                      );
+                    }),
       ),
     );
   }
@@ -289,7 +294,7 @@ class __PostItemState extends State<_PostItem> {
     // 文本
     Widget content = Text(widget.post.content);
     // 图片和视频
-    Widget media = _buildMedias(context, widget.post.medias);
+    Widget media = buildMedias(context, widget.post.medias);
     // 结果
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -433,25 +438,21 @@ class __PostFloorItemState extends State<_PostFloorItem> {
     // 文本
     Widget content = Text(widget.floor.content);
     // 图片和视频
-    Widget media = _buildMedias(context, widget.floor.medias);
+    Widget media = buildMedias(context, widget.floor.medias);
     // 查看回复
-    Widget viewReplies;
-    if (widget.floor.replyCnt > 0) {
-      viewReplies = StreamBuilder<int>(
-          stream: _replyCntStreamController.stream,
-          builder: (context, _) {
-            return TextButton(
-              child: Text(
-                '查看${widget.floor.replyCnt}条回复>>',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-              onPressed: _viewReplies,
-            );
-          });
-    }
+    Widget viewReplies = StreamBuilder<int>(
+      stream: _replyCntStreamController.stream,
+      builder: (context, _) => TextButton(
+        child: Text(
+          widget.floor.replyCnt > 0 ? '查看${widget.floor.replyCnt}条回复>>' : '回复',
+          style: TextStyle(
+            color: Colors.grey[500],
+            fontWeight: FontWeight.normal,
+          ),
+        ),
+        onPressed: _viewReplies,
+      ),
+    );
     // 点赞
     Widget like = StreamBuilder(
       stream: _likeStreamController.stream,
@@ -477,7 +478,7 @@ class __PostFloorItemState extends State<_PostFloorItem> {
     Widget buttons = Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
-        if (viewReplies != null) Expanded(child: viewReplies),
+        Expanded(child: viewReplies),
         like,
         dislike,
       ],
@@ -502,8 +503,13 @@ class __PostFloorItemState extends State<_PostFloorItem> {
 
   // 查看回复
   void _viewReplies() async {
-    // TODO
-    final result = await showDialog(context: null);
+    final result = await showModalBottomSheet(
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20.0))),
+      context: context,
+      builder: (context) => PostFloorRepliesPage(widget.floor),
+    );
     if (result != null && result is int) {
       widget.floor.replyCnt = result;
       _replyCntStreamController.send(null);
@@ -536,7 +542,7 @@ class __PostFloorItemState extends State<_PostFloorItem> {
 }
 
 // 图片和视频显示
-Widget _buildMedias(BuildContext context, List<Media> medias) {
+Widget buildMedias(BuildContext context, List<Media> medias) {
   if (medias.isEmpty) return null;
   final list = <Widget>[];
   for (final m in medias) {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:forum/forum.dart';
 
 void main() {
+  debugProfileBuildsEnabled = true;
   BaseApp.registerRoutes({'/': (_) => HomePage()});
   BaseApp.registerRoutes(forumRoutes);
   runApp(BaseApp(initialRoute: '/'));

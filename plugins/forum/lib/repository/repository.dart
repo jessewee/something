@@ -152,6 +152,47 @@ class Repository {
       ),
     );
   }
+
+  /// 获取楼层内的回复列表
+  static Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
+    int dataIdx,
+    int dataPageSize = 100,
+  }) async {
+    // TODO
+    await Future.delayed(Duration(seconds: 3));
+    return Result.success(
+      DataWidthPageInfo<InnerFloor>(
+        List.generate(
+          dataPageSize,
+          (index) => InnerFloor(
+            id: (dataIdx + index).toString(),
+            posterId: TestGenerator.generateId(12),
+            avatar: TestGenerator.generateImg(),
+            avatarThumb: TestGenerator.generateImg(),
+            name: TestGenerator.generateChinese(20),
+            date: TestGenerator.generateDate(),
+            content: TestGenerator.generateChinese(500),
+            likeCnt: TestGenerator.generateNumber(9999),
+            myAttitude: TestGenerator.generateNumber(1, -1),
+            medias: TestGenerator.generateImgs()
+                .map((e) => ImageMedia(
+                      e,
+                      TestGenerator.generateImg(),
+                      TestGenerator.generateNumber(100, 50),
+                      TestGenerator.generateNumber(100, 50),
+                    ))
+                .toList(),
+            innerFloor: index,
+            targetId: TestGenerator.generateChinese(20),
+            targetName: TestGenerator.generateChinese(20),
+          ),
+        ),
+        TestGenerator.generateNumber(9999),
+        dataIdx,
+        dataPageSize,
+      ),
+    );
+  }
 }
 
 /// 帖子列表筛选条件
