@@ -11,7 +11,6 @@ class PostList extends StatefulWidget {
   final bool noMoreData;
   final String errorMsg;
   final Future Function(bool) loadData;
-  final void Function(String, PostClickType, [dynamic]) onPostClick;
 
   const PostList({
     this.posts = const [],
@@ -19,7 +18,6 @@ class PostList extends StatefulWidget {
     this.noMoreData = false,
     this.errorMsg = '',
     this.loadData,
-    this.onPostClick,
   });
 
   @override
@@ -72,7 +70,7 @@ class _PostListState extends State<PostList> {
         itemCount: len + 1,
         itemBuilder: (context, index) => index == len
             ? LoadMore(noMore: widget.noMoreData)
-            : PostItem(widget.posts[index], widget.onPostClick),
+            : PostItem(widget.posts[index]),
       );
     }
     return RefreshIndicator(

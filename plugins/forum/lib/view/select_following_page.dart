@@ -3,7 +3,7 @@ import 'package:base/base/view_images.dart';
 import 'package:base/base/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/model/m.dart';
-import 'package:forum/repository/repository.dart';
+import 'package:forum/repository/repository.dart' as repository;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SelectFollowingPage extends StatefulWidget {
@@ -62,7 +62,7 @@ class _SelectFollowingPageState extends State<SelectFollowingPage> {
   // 搜索数据
   Future<void> _onSearch(String text) async {
     _text = text;
-    final result = await Repository.getFollowings(_text);
+    final result = await repository.getFollowings(_text);
     if (result.fail) {
       showToast(result.msg);
       return;

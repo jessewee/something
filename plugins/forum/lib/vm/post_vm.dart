@@ -1,6 +1,6 @@
 import 'package:base/base/pub.dart';
 import 'package:forum/model/post.dart';
-import 'package:forum/repository/repository.dart';
+import 'package:forum/repository/repository.dart' as repository;
 
 import 'extensions.dart';
 
@@ -37,7 +37,7 @@ class PostVM {
     } else {
       _dataIdx += dataSize;
     }
-    final result = await Repository.getFloors(
+    final result = await repository.getFloors(
       dataIdx: floorStartIdx == null ? _dataIdx : null,
       dataPageSize: dataSize,
       floorStartIdx: floorStartIdx,

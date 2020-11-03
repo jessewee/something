@@ -6,18 +6,14 @@ import 'package:base/base/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:forum/model/post.dart';
-
-import 'package:forum/repository/repository.dart';
 import 'package:forum/vm/forum_vm.dart';
+import 'package:forum/vm/others.dart';
 
-import 'post_detail_page.dart';
 import 'post_list.dart';
-import 'post_list_item.dart';
 import 'post_wall.dart';
 import 'search_content_page.dart';
-import 'select_post_label_page.dart';
 import 'select_following_page.dart';
-import 'user_page.dart';
+import 'select_post_label_page.dart';
 
 /// 社区页
 class ForumPage extends StatefulWidget {
@@ -116,7 +112,6 @@ class _ForumPageState extends State<ForumPage> {
                 noMoreData: _vm.noMoreData,
                 errorMsg: result?.fail == true ? result.msg : '',
                 loadData: _loadData,
-                onPostClick: _onPostClick,
               )
             : PostList(
                 posts: posts,
@@ -124,60 +119,9 @@ class _ForumPageState extends State<ForumPage> {
                 noMoreData: _vm.noMoreData,
                 errorMsg: result?.fail == true ? result.msg : '',
                 loadData: _loadData,
-                onPostClick: _onPostClick,
               ),
       ),
     );
-  }
-
-  // 帖子的点击事件
-  Future<bool> _onPostClick(String id, PostClickType clickType,
-      [dynamic arg]) async {
-    switch (clickType) {
-      case PostClickType.LIKE:
-        bool param;
-        // 没传参数的话自己查找当前状态，然后改变状态
-        if (arg == null) {
-          if (_vm.getLikeStatus(id) == true) {
-            param = null;
-          } else {
-            param = true;
-          }
-        }
-        // 传了参数的话参数就是目标状态
-        else {
-          param = arg ? true : null;
-        }
-        final result = await _vm.changeLikeState(id, param);
-        if (result.isNotEmpty) showToast(result);
-        return result.isEmpty;
-      case PostClickType.DISLIKE:
-        bool param;
-        // 没传参数的话自己查找当前状态，然后改变状态
-        if (arg == null) {
-          if (_vm.getLikeStatus(id) == false) {
-            param = null;
-          } else {
-            param = false;
-          }
-        }
-        // 传了参数的话参数就是目标状态
-        else {
-          param = arg ? false : null;
-        }
-        final result = await _vm.changeLikeState(id, param);
-        if (result.isNotEmpty) showToast(result);
-        return result.isEmpty;
-      case PostClickType.VIEW_POST:
-        final post = _vm.getPostById(id);
-        Navigator.pushNamed(context, PostDetailPage.routeName, arguments: post);
-        return false;
-      case PostClickType.VIEW_USER:
-        Navigator.pushNamed(context, UserPage.routeName, arguments: id);
-        return false;
-      default:
-        return false;
-    }
   }
 
   // 加载数据
@@ -186,7 +130,7 @@ class _ForumPageState extends State<ForumPage> {
     final result = await _vm.getPosts(
       refresh: refresh,
       // 列表比墙少的话会有问题，一般不会少
-      dataSize: _displayType.value ? 20 : 30,
+      dataSize: _displayType.value ? 20 : 100,
       onePageData: _displayType.value,
     );
     _loading.add(false);

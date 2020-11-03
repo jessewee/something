@@ -3,12 +3,17 @@ import 'dart:ui';
 import 'package:base/base.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/forum.dart';
+import 'package:provider/provider.dart';
+import 'package:base/model/m.dart';
 
 void main() {
   debugProfileBuildsEnabled = true;
   BaseApp.registerRoutes({'/': (_) => HomePage()});
   BaseApp.registerRoutes(forumRoutes);
-  runApp(BaseApp(initialRoute: '/'));
+  runApp(MultiProvider(
+    providers: [ChangeNotifierProvider<User>(create: (_) => User())],
+    child: BaseApp(initialRoute: '/'),
+  ));
 }
 
 class HomePage extends StatelessWidget {

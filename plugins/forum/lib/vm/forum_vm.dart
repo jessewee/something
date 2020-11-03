@@ -1,11 +1,13 @@
 import 'package:base/base/pub.dart';
 import 'package:forum/model/post.dart';
-import 'package:forum/repository/repository.dart';
+import 'package:forum/repository/repository.dart' as repository;
 import 'extensions.dart';
+import 'others.dart';
 
 /// 社区帖子列表数据和逻辑处理
 class ForumVM {
   /// 筛选条件
+  ///
   PostsFilter filter = PostsFilter();
 
   int _dataIdx = 0; // 当前数据索引
@@ -43,7 +45,7 @@ class ForumVM {
       return Result.success(
           _posts.sublist(onePageData ? _dataIdx : 0, _dataIdx + dataSize));
     }
-    final result = await Repository.getPosts(
+    final result = await repository.getPosts(
       dataIdx: _dataIdx,
       dataPageSize: dataSize,
       filter: filter,

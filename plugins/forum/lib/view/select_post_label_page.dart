@@ -1,7 +1,7 @@
 import 'package:base/base/pub.dart';
 import 'package:base/base/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:forum/repository/repository.dart';
+import 'package:forum/repository/repository.dart' as repository;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 选择标签给上一页，可多选
@@ -59,7 +59,7 @@ class _SelectPostLabelState extends State<SelectPostLabelPage> {
       setState(() {});
       return;
     }
-    final result = await Repository.getPostLabels(_text);
+    final result = await repository.getPostLabels(_text);
     if (result.fail) {
       showToast(result.msg);
       return;

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// 类型
 enum MediaType { image, video, voice }
 
@@ -7,7 +9,12 @@ mixin Media {
 }
 
 class ImageMedia with Media {
-  ImageMedia(this.thumbUrl, this.url, this.width, this.height);
+  ImageMedia({
+    @required this.thumbUrl,
+    @required this.url,
+    @required this.width,
+    @required this.height,
+  });
 
   @override
   MediaType get type => MediaType.image;

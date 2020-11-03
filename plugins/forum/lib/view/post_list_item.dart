@@ -1,22 +1,25 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:base/base/event_bus.dart';
+import 'package:base/base/extensions.dart';
 import 'package:base/base/play_video_page.dart';
 import 'package:base/base/view_images.dart';
-import 'package:flutter/material.dart';
 import 'package:base/base/widgets.dart';
-import 'package:base/base/extensions.dart';
+import 'package:flutter/material.dart';
 import 'package:forum/model/media.dart';
 import 'package:forum/model/post.dart';
 import 'package:forum/other/iconfont.dart';
+import 'package:forum/view/post_detail_page.dart';
+import 'package:forum/view/user_page.dart';
+import 'package:forum/vm/extensions.dart';
 
 /// 列表里的帖子
 class PostItem extends StatefulWidget {
   static final eventBusEventType = 'forum_post_item_changed';
   final Post post;
-  final Future<bool> Function(String, PostClickType, [dynamic arg]) onClick;
 
-  const PostItem(this.post, this.onClick);
+  const PostItem(this.post);
 
   @override
   _PostItemState createState() => _PostItemState();
@@ -24,6 +27,7 @@ class PostItem extends StatefulWidget {
 
 class _PostItemState extends State<PostItem> {
   int _screenW = 750;
+  StreamController<int> _likeStatusStreamController; // 点赞点踩按钮改变
 
   @override
   void initState() {
@@ -41,11 +45,13 @@ class _PostItemState extends State<PostItem> {
       },
       '${PostItem.eventBusEventType}_${widget.post.id}',
     );
+    _likeStatusStreamController = StreamController.broadcast();
     super.initState();
   }
 
   @override
   void dispose() {
+    _likeStatusStreamController.makeSureClosed();
     eventBus.off(tag: '${PostItem.eventBusEventType}_${widget.post.id}');
     super.dispose();
   }
@@ -80,22 +86,34 @@ class _PostItemState extends State<PostItem> {
     );
     top = FlatButton(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
-      onPressed: _onClick(PostClickType.VIEW_USER, widget.post.posterId),
+      onPressed: () => Navigator.pushNamed(
+        context,
+        UserPage.routeName,
+        arguments: widget.post.posterId,
+      ),
       child: top,
     ).withMargin(bottom: 8.0);
     // 点赞
-    Widget like = ButtonWithIcon(
-      color: widget.post.myAttitude == 1 ? theme.primaryColor : Colors.black,
-      icon: Iconfont.like,
-      text: '${widget.post.likeCnt}',
-      onPressed: _onClick(PostClickType.LIKE, widget.post.myAttitude != 1),
+    Widget like = StreamBuilder(
+      stream: _likeStatusStreamController.stream,
+      builder: (context, _) => ButtonWithIcon(
+        color: widget.post.myAttitude == 1 ? theme.primaryColor : Colors.black,
+        icon: Iconfont.like,
+        text: '${widget.post.likeCnt}',
+        onPressed: () =>
+            _changeLikeState(widget.post.myAttitude == 1 ? null : true),
+      ),
     );
     // 点踩
-    Widget dislike = ButtonWithIcon(
-      color: widget.post.myAttitude == -1 ? theme.primaryColor : Colors.black,
-      icon: Iconfont.dislike,
-      text: '${widget.post.dislikeCnt}',
-      onPressed: _onClick(PostClickType.DISLIKE, widget.post.myAttitude != -1),
+    Widget dislike = StreamBuilder(
+      stream: _likeStatusStreamController.stream,
+      builder: (context, _) => ButtonWithIcon(
+        color: widget.post.myAttitude == -1 ? theme.primaryColor : Colors.black,
+        icon: Iconfont.dislike,
+        text: '${widget.post.dislikeCnt}',
+        onPressed: () =>
+            _changeLikeState(widget.post.myAttitude == -1 ? null : false),
+      ),
     );
     // 点赞、点踩区域
     Widget bottom = Row(
@@ -128,9 +146,11 @@ class _PostItemState extends State<PostItem> {
     }
     // 结果
     return InkWell(
-      onTap: widget.onClick == null
-          ? null
-          : () => widget.onClick(widget.post.id, PostClickType.VIEW_POST),
+      onTap: () => Navigator.pushNamed(
+        context,
+        PostDetailPage.routeName,
+        arguments: widget.post,
+      ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(15.0, 15.0, 15.0, 0.0),
         child: Column(
@@ -196,26 +216,10 @@ class _PostItemState extends State<PostItem> {
     viewImages(context, images.map((e) => e.url).toList(), max(0, idx));
   }
 
-  // 点击事件
-  Future Function() _onClick(PostClickType type, [dynamic arg]) {
-    if (widget.onClick == null) return null;
-    return () async {
-      final result = await widget.onClick(widget.post.id, type, arg);
-      if (result && mounted) setState(() {});
-    };
+  // 更改点赞点踩 [like] null表示中立
+  Future _changeLikeState(bool like) async {
+    final result = await widget.post.changeLikeState(like);
+    if (result.isEmpty) _likeStatusStreamController.send(null);
+    return;
   }
-}
-
-enum PostClickType {
-  /// 点赞
-  LIKE,
-
-  /// 点踩
-  DISLIKE,
-
-  /// 查看用户
-  VIEW_USER,
-
-  /// 查看帖子详情
-  VIEW_POST,
 }

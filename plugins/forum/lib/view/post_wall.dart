@@ -4,8 +4,10 @@ import 'package:base/base/pub.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/model/media.dart';
 import 'package:forum/model/post.dart';
-import 'package:forum/view/post_list_item.dart';
+import 'package:forum/view/post_detail_page.dart';
+import 'package:forum/vm/extensions.dart';
 import 'package:base/base/widgets.dart';
+import 'package:forum/view/user_page.dart';
 
 class PostWall extends StatelessWidget {
   final List<Post> posts;
@@ -13,14 +15,13 @@ class PostWall extends StatelessWidget {
   final bool noMoreData;
   final String errorMsg;
   final Future Function(bool) loadData;
-  final void Function(String, PostClickType, [dynamic]) onPostClick;
+
   const PostWall({
     this.posts = const [],
     this.loading = false,
     this.noMoreData = false,
     this.errorMsg = '',
     this.loadData,
-    this.onPostClick,
   });
 
   @override
@@ -35,7 +36,7 @@ class PostWall extends StatelessWidget {
           else
             _buildPostWallWidget(context),
           // 刷新和下一页按钮
-          Positioned(right: 0, bottom: 10, child: _buildBtns()),
+          Positioned(right: 0, bottom: 10, child: _buildButtons()),
         ],
       ),
     );
@@ -60,39 +61,63 @@ class PostWall extends StatelessWidget {
     final menus = [
       CircleMenuItem(
         text: '查看',
-        onClick: (id) => onPostClick(id, PostClickType.VIEW_POST),
+        onClick: (id) {
+          final post = posts.match(id);
+          if (post == null) return;
+          Navigator.pushNamed(
+            context,
+            PostDetailPage.routeName,
+            arguments: post,
+          );
+        },
       ),
       CircleMenuItem(
         onGetText: (id) {
           final cnt = posts.match(id)?.likeCnt;
           return cnt == null || cnt == 0 ? '点赞' : '点赞$cnt';
         },
-        onClick: (id) => onPostClick(id, PostClickType.LIKE),
+        onClick: (id) {
+          final post = posts.match(id);
+          if (post == null) return;
+          post.changeLikeState(post.myAttitude == 1 ? null : true);
+        },
       ),
       CircleMenuItem(
         onGetText: (id) {
           final cnt = posts.match(id)?.dislikeCnt;
           return cnt == null || cnt == 0 ? '点踩' : '点踩$cnt';
         },
-        onClick: (id) => onPostClick(id, PostClickType.DISLIKE),
+        onClick: (id) {
+          final post = posts.match(id);
+          if (post == null) return;
+          post.changeLikeState(post.myAttitude == -1 ? null : false);
+        },
       ),
       CircleMenuItem(
         onGetText: (id) => posts.match(id)?.name ?? '',
-        onClick: (id) => onPostClick(id, PostClickType.VIEW_USER),
+        onClick: (id) {
+          final post = posts.match(id);
+          if (post == null) return;
+          Navigator.pushNamed(
+            context,
+            UserPage.routeName,
+            arguments: post.posterId,
+          );
+        },
       ),
     ];
     return PostWallWidget(items, menus);
   }
 
   // 刷新和下一页按钮
-  Widget _buildBtns() {
+  Widget _buildButtons() {
     return Row(
       children: [
         ButtonWithIcon(
           loading: loading == true,
           disabled: loading != null,
           text: '刷新',
-          onPressed: ()  => loadData(true),
+          onPressed: () => loadData(true),
         ),
         ButtonWithIcon(
           loading: loading == false,

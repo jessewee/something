@@ -2,15 +2,20 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:base/base/play_video_page.dart';
+import 'package:base/base/pub.dart';
 import 'package:base/base/view_images.dart';
 import 'package:base/base/widgets.dart';
+import 'package:base/model/m.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/model/m.dart';
+import 'package:forum/model/media.dart';
+import 'package:forum/repository/repository.dart';
 import 'package:forum/view/select_following_page.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:forum/model/post.dart';
 import 'package:base/base/extensions.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:forum/api/api.dart' as api;
 
 class BottomReplyBar extends StatefulWidget {
   /// 回复楼主时用这个参数
@@ -95,7 +100,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
                   borderSide: BorderSide(color: Colors.transparent),
                 ),
               ),
-              onSubmitted: _onSubmitText,
+              onSubmitted: (text) => _onSubmit(text, []),
             ),
           ),
           // 长回复按钮
@@ -115,14 +120,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
     );
   }
 
-  void _onSubmitText(text) {
-    // TODO
-  }
-
-  void _onSubmit(PostBase postBase) {
-    // TODO
-  }
-
+  // 长回复
   Future<void> _onLongReplyClick(BuildContext context) async {
     _focusNode.unfocus();
     showModalBottomSheet(
@@ -136,6 +134,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
     );
   }
 
+  // @某人
   Future<void> _onAtFriendClick(BuildContext context) async {
     ForumUser user = await Navigator.of(context)
         .pushNamed(SelectFollowingPage.routeName, arguments: true);
@@ -145,6 +144,12 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
           TextSelection.collapsed(offset: _controller.text.length);
     }
   }
+
+  // 提交回复
+  void _onSubmit(String text, List<Media> medias) {
+    // TODO
+    final result = reply(widget.postId, widget.floorId, widget.innerFloorId);
+  }
 }
 
 /// 长回复，多行文本，图片，视频
@@ -152,7 +157,7 @@ class _LongReplyPage extends StatefulWidget {
   final String defaultText;
 
   /// 发送
-  final Future<bool> Function(PostBase) onSend;
+  final Future<bool> Function(String, List<Media>) onSend;
 
   const _LongReplyPage({this.defaultText, this.onSend});
 
@@ -187,7 +192,9 @@ class __LongReplyPageState extends State<_LongReplyPage> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery
+        .of(context)
+        .size;
     final screenH = size.height;
     final screenW = size.width;
     // 顶行
@@ -253,7 +260,7 @@ class __LongReplyPageState extends State<_LongReplyPage> {
       ),
     );
     // 图片
-    Widget imgs = StreamBuilder<List>(
+    Widget images = StreamBuilder<List>(
       initialData: imgPaths,
       stream: _imgSc.stream,
       builder: (context, snapshot) {
@@ -335,7 +342,7 @@ class __LongReplyPageState extends State<_LongReplyPage> {
     );
     // 结果
     return Container(
-      height: screenH - 150,
+      height: screenH - 60,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Column(
@@ -349,7 +356,7 @@ class __LongReplyPageState extends State<_LongReplyPage> {
               ),
             ),
             video,
-            imgs,
+            images,
           ],
         ),
       ),
@@ -395,55 +402,32 @@ class __LongReplyPageState extends State<_LongReplyPage> {
 
   // 点发送按钮
   Future _onSendPressed() async {
-    // TODO
-    List<String> imgUrls;
-    List<String> imgThumbUrls;
-    String videoUrl;
-    String videoCoverUrl;
-    // // 图片
-    // if (imgPaths?.isNotEmpty == true) {
-    //   for (int i = 0; i < imgPaths.length; i++) {
-    //     Result result =
-    //         await api.upload(imgPaths[i], FileType.image, tag: pageTag);
-    //     if (result.fail) {
-    //       showToast('第${i + 1}张图片上传失败');
-    //       return Future.value();
-    //     }
-    //     if (imgUrls == null) imgUrls = [];
-    //     if (imgThumbUrls == null) imgThumbUrls = [];
-    //     imgUrls.add(result.data['url']);
-    //     imgThumbUrls.add(result.data['thumbUrl']);
-    //   }
-    // }
-    // // 视频
-    // if (videoPath?.isNotEmpty == true) {
-    //   Result result = await api.upload(videoPath, FileType.video, tag: pageTag);
-    //   if (result.fail) {
-    //     showToast('视频上传失败');
-    //     return Future.value();
-    //   }
-    //   videoUrl = result.data['url'];
-    //   videoCoverUrl = result.data['thumbUrl'];
-    // }
-    // Reply reply;
-    // if (imgUrls != null && videoUrl != null) {
-    //   reply = Reply(
-    //       content: _controller.text,
-    //       imgs: imgUrls,
-    //       imgThumbs: imgThumbUrls,
-    //       video: videoUrl,
-    //       videoCover: videoCoverUrl);
-    // } else if (imgUrls != null) {
-    //   reply = Reply(
-    //       content: _controller.text, imgs: imgUrls, imgThumbs: imgThumbUrls);
-    // } else if (videoUrl != null) {
-    //   reply = Reply(
-    //       content: _controller.text,
-    //       video: videoUrl,
-    //       videoCover: videoCoverUrl);
-    // } else {
-    //   reply = Reply(content: _controller.text);
-    // }
-    // return widget.onSend(reply).then((value) => Navigator.of(context).pop());
+    final medias = List<Media>();
+    // 图片
+    if (imgPaths?.isNotEmpty == true) {
+      for (int i = 0; i < imgPaths.length; i++) {
+        Result result = await api.upload(imgPaths[i], FileType.image);
+        if (result.fail) {
+          showToast('第${i + 1}张图片上传失败');
+          return;
+        }
+        medias.add(ImageMedia(
+          thumbUrl: result.data['thumbUrl'],
+          url: result.data['url'],
+          width: result.data['width'],
+          height: result.data['height'],
+        ));
+      }
+    }
+    // 视频
+    if (videoPath?.isNotEmpty == true) {
+      Result result = await api.upload(videoPath, FileType.video);
+      if (result.fail) {
+        showToast('视频上传失败');
+        return;
+      }
+      medias.add(VideoMedia(result.data['thumbUrl'], result.data['url']));
+    }
+    return widget.onSend(_controller.text, medias);
   }
 }

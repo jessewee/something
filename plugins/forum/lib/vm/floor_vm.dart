@@ -1,6 +1,6 @@
 import 'package:base/base/pub.dart';
 import 'package:forum/model/post.dart';
-import 'package:forum/repository/repository.dart';
+import 'package:forum/repository/repository.dart' as repository;
 
 /// 楼层回复数据和逻辑
 class FloorVM {
@@ -24,7 +24,7 @@ class FloorVM {
     } else {
       _dataIdx += dataSize;
     }
-    final result = await Repository.getInnerFloors(
+    final result = await repository.getInnerFloors(
       dataIdx: _dataIdx,
       dataPageSize: dataSize,
     );
