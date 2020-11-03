@@ -139,22 +139,19 @@ class _PostInnerFloorItem extends StatefulWidget {
 
 class ___PostInnerFloorItemState extends State<_PostInnerFloorItem> {
   StreamController<int> _replyCntStreamController; // 回复按钮改变
-  StreamController<int> _likeStreamController; // 点赞按钮改变
-  StreamController<int> _dislikeStreamController; // 点踩按钮改变
+  StreamController<int> _likeStatusStreamController; // 点赞点踩按钮改变
 
   @override
   void initState() {
     _replyCntStreamController = StreamController();
-    _likeStreamController = StreamController();
-    _dislikeStreamController = StreamController();
+    _likeStatusStreamController = StreamController.broadcast();
     super.initState();
   }
 
   @override
   void dispose() {
     _replyCntStreamController.makeSureClosed();
-    _likeStreamController.makeSureClosed();
-    _dislikeStreamController.makeSureClosed();
+    _likeStatusStreamController.makeSureClosed();
     super.dispose();
   }
 
@@ -213,7 +210,7 @@ class ___PostInnerFloorItemState extends State<_PostInnerFloorItem> {
     );
     // 点赞
     Widget like = StreamBuilder(
-      stream: _likeStreamController.stream,
+      stream: _likeStatusStreamController.stream,
       builder: (context, _) => ButtonWithIcon(
         color: widget.innerFloor.myAttitude == 1
             ? theme.primaryColor
@@ -225,7 +222,7 @@ class ___PostInnerFloorItemState extends State<_PostInnerFloorItem> {
     );
     // 点踩
     Widget dislike = StreamBuilder(
-      stream: _dislikeStreamController.stream,
+      stream: _likeStatusStreamController.stream,
       builder: (context, _) => ButtonWithIcon(
         color: widget.innerFloor.myAttitude == -1
             ? theme.primaryColor
@@ -274,7 +271,7 @@ class ___PostInnerFloorItemState extends State<_PostInnerFloorItem> {
     if (result.isNotEmpty) {
       showToast(result);
     } else {
-      _likeStreamController.send(null);
+      _likeStatusStreamController.send(null);
     }
     return;
   }
@@ -286,7 +283,7 @@ class ___PostInnerFloorItemState extends State<_PostInnerFloorItem> {
     if (result.isNotEmpty) {
       showToast(result);
     } else {
-      _dislikeStreamController.send(null);
+      _likeStatusStreamController.send(null);
     }
     return;
   }

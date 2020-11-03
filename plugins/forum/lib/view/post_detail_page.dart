@@ -203,22 +203,19 @@ class _PostItem extends StatefulWidget {
 
 class __PostItemState extends State<_PostItem> {
   StreamController<bool> _followStreamController; // 关注按钮改变
-  StreamController<int> _likeStreamController; // 点赞按钮改变
-  StreamController<int> _dislikeStreamController; // 点踩按钮改变
+  StreamController<int> _likeStatusStreamController; // 点赞点踩按钮改变
 
   @override
   void initState() {
     _followStreamController = StreamController();
-    _likeStreamController = StreamController();
-    _dislikeStreamController = StreamController();
+    _likeStatusStreamController = StreamController.broadcast();
     super.initState();
   }
 
   @override
   void dispose() {
     _followStreamController.makeSureClosed();
-    _likeStreamController.makeSureClosed();
-    _dislikeStreamController.makeSureClosed();
+    _likeStatusStreamController.makeSureClosed();
     super.dispose();
   }
 
@@ -268,7 +265,7 @@ class __PostItemState extends State<_PostItem> {
     );
     // 点赞
     Widget like = StreamBuilder(
-      stream: _likeStreamController.stream,
+      stream: _likeStatusStreamController.stream,
       builder: (context, _) => ButtonWithIcon(
         color: widget.post.myAttitude == 1 ? theme.primaryColor : Colors.black,
         icon: Iconfont.like,
@@ -278,7 +275,7 @@ class __PostItemState extends State<_PostItem> {
     );
     // 点踩
     Widget dislike = StreamBuilder(
-      stream: _dislikeStreamController.stream,
+      stream: _likeStatusStreamController.stream,
       builder: (context, _) => ButtonWithIcon(
         color: widget.post.myAttitude == -1 ? theme.primaryColor : Colors.black,
         icon: Iconfont.dislike,
@@ -339,7 +336,7 @@ class __PostItemState extends State<_PostItem> {
     if (result.isNotEmpty) {
       showToast(result);
     } else {
-      _likeStreamController.send(null);
+      _likeStatusStreamController.send(null);
       eventBus.sendEvent(PostItem.eventBusEventType, {
         'postId': widget.post.id,
         'likeCnt': widget.post.likeCnt,
@@ -356,7 +353,7 @@ class __PostItemState extends State<_PostItem> {
     if (result.isNotEmpty) {
       showToast(result);
     } else {
-      _dislikeStreamController.send(null);
+      _likeStatusStreamController.send(null);
       eventBus.sendEvent(PostItem.eventBusEventType, {
         'postId': widget.post.id,
         'likeCnt': widget.post.likeCnt,
@@ -379,22 +376,19 @@ class _PostFloorItem extends StatefulWidget {
 
 class __PostFloorItemState extends State<_PostFloorItem> {
   StreamController<int> _replyCntStreamController; // 回复按钮改变
-  StreamController<int> _likeStreamController; // 点赞按钮改变
-  StreamController<int> _dislikeStreamController; // 点踩按钮改变
+  StreamController<int> _likeStatusStreamController; // 点赞点踩按钮改变
 
   @override
   void initState() {
     _replyCntStreamController = StreamController();
-    _likeStreamController = StreamController();
-    _dislikeStreamController = StreamController();
+    _likeStatusStreamController = StreamController.broadcast();
     super.initState();
   }
 
   @override
   void dispose() {
     _replyCntStreamController.makeSureClosed();
-    _likeStreamController.makeSureClosed();
-    _dislikeStreamController.makeSureClosed();
+    _likeStatusStreamController.makeSureClosed();
     super.dispose();
   }
 
@@ -455,7 +449,7 @@ class __PostFloorItemState extends State<_PostFloorItem> {
     );
     // 点赞
     Widget like = StreamBuilder(
-      stream: _likeStreamController.stream,
+      stream: _likeStatusStreamController.stream,
       builder: (context, _) => ButtonWithIcon(
         color: widget.floor.myAttitude == 1 ? theme.primaryColor : Colors.black,
         icon: Iconfont.like,
@@ -465,7 +459,7 @@ class __PostFloorItemState extends State<_PostFloorItem> {
     );
     // 点踩
     Widget dislike = StreamBuilder(
-      stream: _dislikeStreamController.stream,
+      stream: _likeStatusStreamController.stream,
       builder: (context, _) => ButtonWithIcon(
         color:
             widget.floor.myAttitude == -1 ? theme.primaryColor : Colors.black,
@@ -478,7 +472,9 @@ class __PostFloorItemState extends State<_PostFloorItem> {
     Widget buttons = Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
-        Expanded(child: viewReplies),
+        Expanded(
+          child: Container(child: viewReplies, alignment: Alignment.centerLeft),
+        ),
         like,
         dislike,
       ],
@@ -523,7 +519,7 @@ class __PostFloorItemState extends State<_PostFloorItem> {
     if (result.isNotEmpty) {
       showToast(result);
     } else {
-      _likeStreamController.send(null);
+      _likeStatusStreamController.send(null);
     }
     return;
   }
@@ -535,7 +531,7 @@ class __PostFloorItemState extends State<_PostFloorItem> {
     if (result.isNotEmpty) {
       showToast(result);
     } else {
-      _dislikeStreamController.send(null);
+      _likeStatusStreamController.send(null);
     }
     return;
   }

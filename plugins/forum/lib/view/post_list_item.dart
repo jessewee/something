@@ -128,7 +128,9 @@ class _PostItemState extends State<PostItem> {
     }
     // 结果
     return InkWell(
-      onTap: () => _onClick(PostClickType.VIEW_POST),
+      onTap: widget.onClick == null
+          ? null
+          : () => widget.onClick(widget.post.id, PostClickType.VIEW_POST),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(15.0, 15.0, 15.0, 0.0),
         child: Column(

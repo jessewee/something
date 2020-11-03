@@ -23,19 +23,20 @@ extension PostBaseExt on PostBase {
         : like
             ? 1
             : -1;
+    myAttitude = na;
     if (oa == na) return '';
-    if (oa == 0) {
+    if (oa == 1) {
+      likeCnt--;
+      if (na == -1) dislikeCnt++;
+    } else if (oa == -1) {
+      dislikeCnt--;
+      if (na == 1) likeCnt++;
+    } else {
       if (na == 1) {
         likeCnt++;
       } else {
         dislikeCnt++;
       }
-    } else if (oa == -1) {
-      dislikeCnt--;
-      if (na == 1) likeCnt++;
-    } else {
-      likeCnt--;
-      if (na == -1) dislikeCnt++;
     }
     return '';
   }
