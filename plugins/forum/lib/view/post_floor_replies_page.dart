@@ -81,7 +81,10 @@ class _PostFloorRepliesPageState extends State<PostFloorRepliesPage> {
               controller: _scrollController,
               itemCount: len + 1,
               itemBuilder: (context, index) => index < len
-                  ? _PostInnerFloorItem(widget._vm.innerFloors[index])
+                  ? _PostInnerFloorItem(
+                      widget._vm.innerFloors[index],
+                      () => _replyTarget.add(widget._vm.innerFloors[index]),
+                    )
                   : LoadMore(noMore: _loading == null && widget._vm.noMoreData),
             ),
           ),
@@ -95,8 +98,19 @@ class _PostFloorRepliesPageState extends State<PostFloorRepliesPage> {
                     onReplied: _onReplied,
                   );
                 } else if (snapshot.data is InnerFloor) {
+                  String targetId, targetName;
+                  if (snapshot.data.posterId == widget._vm.floor.posterId) {
+                    // 回复层主时不显示目标名字
+                    targetId = '';
+                    targetName = '';
+                  } else {
+                    targetId = snapshot.data.posterId;
+                    targetName = snapshot.data.name;
+                  }
                   return BottomReplyBar(
                     innerFloorId: snapshot.data.id,
+                    targetId: targetId,
+                    targetName: targetName,
                     onReplied: _onReplied,
                   );
                 } else {
@@ -130,27 +144,25 @@ class _PostFloorRepliesPageState extends State<PostFloorRepliesPage> {
 /// 楼层内回复
 class _PostInnerFloorItem extends StatefulWidget {
   final InnerFloor innerFloor;
+  final Function() onReplyClick;
 
-  const _PostInnerFloorItem(this.innerFloor);
+  const _PostInnerFloorItem(this.innerFloor, this.onReplyClick);
 
   @override
   ___PostInnerFloorItemState createState() => ___PostInnerFloorItemState();
 }
 
 class ___PostInnerFloorItemState extends State<_PostInnerFloorItem> {
-  StreamController<int> _replyCntStreamController; // 回复按钮改变
   StreamController<int> _likeStatusStreamController; // 点赞点踩按钮改变
 
   @override
   void initState() {
-    _replyCntStreamController = StreamController();
     _likeStatusStreamController = StreamController.broadcast();
     super.initState();
   }
 
   @override
   void dispose() {
-    _replyCntStreamController.makeSureClosed();
     _likeStatusStreamController.makeSureClosed();
     super.dispose();
   }
@@ -206,7 +218,7 @@ class ___PostInnerFloorItemState extends State<_PostInnerFloorItem> {
           fontWeight: FontWeight.normal,
         ),
       ),
-      onPressed: _reply,
+      onPressed: widget.onReplyClick,
     );
     // 点赞
     Widget like = StreamBuilder(
@@ -257,11 +269,6 @@ class ___PostInnerFloorItemState extends State<_PostInnerFloorItem> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[top, bottom],
     );
-  }
-
-  // 回复
-  void _reply() async {
-    // TODO
   }
 
   // 点赞

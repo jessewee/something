@@ -193,13 +193,46 @@ Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
   );
 }
 
-/// 回复 [postId]表示回复楼主、[floorId]表示回复层主、[innerFloorId]表示层内回复
-Future<Result<String>> reply(
+/// 回复楼主，返回值floorId、floor
+Future<Result<Map<String, Object>>> replyPost(
   String postId,
-  String floorId,
-  String innerFloorId,
+  String content,
+  List<Media> medias,
 ) async {
   // TODO
   await Future.delayed(Duration(seconds: 3));
-  return Result.success(TestGenerator.generateId(10));
+  return Result.success({
+    'floorId': TestGenerator.generateId(10),
+    'floor': TestGenerator.generateNumber(9999),
+  });
+}
+
+/// 回复层主，返回值innerFloorId、innerFloor
+Future<Result<Map<String, Object>>> replyFloor(
+  String floorId,
+  String content,
+  List<Media> medias,
+) async {
+  // TODO
+  await Future.delayed(Duration(seconds: 3));
+  return Result.success({
+    'innerFloorId': TestGenerator.generateId(10),
+    'innerFloor': TestGenerator.generateNumber(9999),
+  });
+}
+
+/// 层内回复，返回值innerFloorId、innerFloor、targetId、targetName（如果target是层主的话这两个参数没有值）
+Future<Result<Map<String, Object>>> replyInnerFloor(
+  String innerFloorId,
+  String content,
+  List<Media> medias,
+) async {
+  // TODO
+  await Future.delayed(Duration(seconds: 3));
+  return Result.success({
+    'innerFloorId': TestGenerator.generateId(10),
+    'innerFloor': TestGenerator.generateNumber(9999),
+    'targetId': TestGenerator.generateId(10),
+    'targetName': TestGenerator.generateChinese(10),
+  });
 }

@@ -57,3 +57,15 @@ extension WidgetExt on Widget {
         left: left, top: top, right: right, bottom: bottom, child: this);
   }
 }
+
+/// 日期格式化
+extension DateExt on DateTime {
+  String format() {
+    return '$year'
+        '-${month.toStringWithTwoMinLength()}'
+        '-${day.toStringWithTwoMinLength()}'
+        ' ${hour.toStringWithTwoMinLength()}'
+        ':${minute.toStringWithTwoMinLength()}'
+        ':${second.toStringWithTwoMinLength()}';
+  }
+}

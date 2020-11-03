@@ -1,21 +1,22 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:base/base/extensions.dart';
 import 'package:base/base/play_video_page.dart';
 import 'package:base/base/pub.dart';
 import 'package:base/base/view_images.dart';
 import 'package:base/base/widgets.dart';
 import 'package:base/model/m.dart';
 import 'package:flutter/material.dart';
+import 'package:forum/api/api.dart' as api;
 import 'package:forum/model/m.dart';
 import 'package:forum/model/media.dart';
-import 'package:forum/repository/repository.dart';
+import 'package:forum/model/post.dart';
+import 'package:forum/repository/repository.dart' as repository;
 import 'package:forum/view/select_following_page.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:forum/model/post.dart';
-import 'package:base/base/extensions.dart';
+import 'package:provider/provider.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
-import 'package:forum/api/api.dart' as api;
 
 class BottomReplyBar extends StatefulWidget {
   /// 回复楼主时用这个参数
@@ -27,6 +28,12 @@ class BottomReplyBar extends StatefulWidget {
   /// 回复非层主时用这个参数
   final String innerFloorId;
 
+  /// 层内回复目标id
+  final String targetId;
+
+  /// 层内回复目标名字
+  final String targetName;
+
   /// 回复成功的回调，会把回复内容封装成Post、Floor、InnerFloor对象
   final void Function(PostBase) onReplied;
 
@@ -34,6 +41,8 @@ class BottomReplyBar extends StatefulWidget {
     this.postId,
     this.floorId,
     this.innerFloorId,
+    this.targetId,
+    this.targetName,
     this.onReplied,
   });
 
@@ -66,6 +75,11 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
     const iconSize = 24.0;
     const iconPadding = 7.0;
     const inputRadius = 19.0;
+    final hintText = widget.targetName?.isNotEmpty == true
+        ? '回复${widget.targetName}'
+        : widget.postId?.isNotEmpty == true
+            ? '回复楼主'
+            : '回复层主';
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -85,6 +99,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
               controller: _controller,
               textInputAction: TextInputAction.send,
               decoration: InputDecoration(
+                hintText: hintText,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 15.0,
                   vertical: 8.0,
@@ -146,9 +161,79 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
   }
 
   // 提交回复
-  void _onSubmit(String text, List<Media> medias) {
-    // TODO
-    final result = reply(widget.postId, widget.floorId, widget.innerFloorId);
+  Future<void> _onSubmit(String text, List<Media> medias) async {
+    // 回复楼主
+    if (widget.postId?.isNotEmpty == true) {
+      final result = await repository.replyPost(widget.postId, text, medias);
+      if (result.fail) {
+        showToast(result.msg);
+      } else {
+        final loginUser = context.read<User>();
+        final floorId = result.data['floorId'];
+        final floor = result.data['floor'];
+        widget.onReplied(Floor(
+          id: floorId,
+          posterId: loginUser.id,
+          avatar: loginUser.avatar,
+          avatarThumb: loginUser.avatarThumb,
+          name: loginUser.name,
+          date: DateTime.now().format(),
+          content: text,
+          medias: medias,
+          floor: floor,
+        ));
+      }
+      return;
+    }
+    // 回复层主
+    if (widget.floorId?.isNotEmpty == true) {
+      final result = await repository.replyFloor(widget.floorId, text, medias);
+      if (result.fail) {
+        showToast(result.msg);
+      } else {
+        final loginUser = context.read<User>();
+        final innerFloorId = result.data['innerFloorId'];
+        final innerFloor = result.data['innerFloor'];
+        widget.onReplied(InnerFloor(
+          id: innerFloorId,
+          posterId: loginUser.id,
+          avatar: loginUser.avatar,
+          avatarThumb: loginUser.avatarThumb,
+          name: loginUser.name,
+          date: DateTime.now().format(),
+          content: text,
+          medias: medias,
+          innerFloor: innerFloor,
+        ));
+      }
+      return;
+    }
+    // 层内回复
+    if (widget.innerFloorId?.isNotEmpty == true) {
+      final result =
+          await repository.replyInnerFloor(widget.innerFloorId, text, medias);
+      if (result.fail) {
+        showToast(result.msg);
+      } else {
+        final loginUser = context.read<User>();
+        final innerFloorId = result.data['innerFloorId'];
+        final innerFloor = result.data['innerFloor'];
+        widget.onReplied(InnerFloor(
+          id: innerFloorId,
+          posterId: loginUser.id,
+          avatar: loginUser.avatar,
+          avatarThumb: loginUser.avatarThumb,
+          name: loginUser.name,
+          date: DateTime.now().format(),
+          content: text,
+          medias: medias,
+          innerFloor: innerFloor,
+          targetId: widget.targetId ?? '',
+          targetName: widget.targetName ?? '',
+        ));
+      }
+      return;
+    }
   }
 }
 
@@ -192,9 +277,7 @@ class __LongReplyPageState extends State<_LongReplyPage> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery
-        .of(context)
-        .size;
+    final size = MediaQuery.of(context).size;
     final screenH = size.height;
     final screenW = size.width;
     // 顶行
