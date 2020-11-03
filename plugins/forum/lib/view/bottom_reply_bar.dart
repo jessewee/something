@@ -53,16 +53,19 @@ class BottomReplyBar extends StatefulWidget {
 class _BottomReplyBarState extends State<BottomReplyBar> {
   TextEditingController _controller;
   FocusNode _focusNode;
+  StreamControllerWithData<bool> _sending;
 
   @override
   void initState() {
     _controller = TextEditingController();
     _focusNode = FocusNode();
+    _sending = StreamControllerWithData(false);
     super.initState();
   }
 
   @override
   void dispose() {
+    _sending.dispose();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -92,6 +95,22 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
       ),
       child: Row(
         children: <Widget>[
+          // 发送中的loading
+          StreamBuilder(
+            stream: _sending.stream,
+            builder: (context, snapshot) => Visibility(
+              child: Container(
+                margin: const EdgeInsets.only(right: 5.0),
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(Colors.grey),
+                ),
+              ),
+              visible: snapshot.data == true,
+            ),
+          ),
           // 输入框
           Expanded(
             child: TextField(
@@ -126,6 +145,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
           ),
           // @好友
           FlatButton(
+            minWidth: 0,
             padding: const EdgeInsets.all(iconPadding),
             child: Icon(Icons.alternate_email, size: iconSize),
             onPressed: () => _onAtFriendClick(context),
@@ -136,7 +156,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
   }
 
   // 长回复
-  Future<void> _onLongReplyClick(BuildContext context) async {
+  void _onLongReplyClick(BuildContext context) async {
     _focusNode.unfocus();
     showModalBottomSheet(
       isScrollControlled: true,
@@ -144,16 +164,21 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
       context: context,
-      builder: (context) =>
-          _LongReplyPage(onSend: _onSubmit, defaultText: _controller.text),
+      builder: (context) => _LongReplyPage(
+        onSend: _onSubmit,
+        defaultText: _controller.text,
+      ),
     );
   }
 
   // @某人
-  Future<void> _onAtFriendClick(BuildContext context) async {
-    ForumUser user = await Navigator.of(context)
-        .pushNamed(SelectFollowingPage.routeName, arguments: true);
-    if (user != null) {
+  void _onAtFriendClick(BuildContext context) async {
+    dynamic user = await Navigator.pushNamed(
+      context,
+      SelectFollowingPage.routeName,
+      arguments: true,
+    );
+    if (user != null && user is ForumUser) {
       _controller.text = '${_controller.text} @${user.name} ';
       _controller.selection =
           TextSelection.collapsed(offset: _controller.text.length);
@@ -161,52 +186,61 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
   }
 
   // 提交回复
-  Future<void> _onSubmit(String text, List<Media> medias) async {
+  Future<bool> _onSubmit(String text, List<Media> medias) async {
+    _sending.add(true);
+    final result = await _doSubmit(text, medias);
+    _sending.add(false);
+    return result;
+  }
+
+  Future<bool> _doSubmit(String text, List<Media> medias) async {
     // 回复楼主
     if (widget.postId?.isNotEmpty == true) {
       final result = await repository.replyPost(widget.postId, text, medias);
       if (result.fail) {
         showToast(result.msg);
-      } else {
-        final loginUser = context.read<User>();
-        final floorId = result.data['floorId'];
-        final floor = result.data['floor'];
-        widget.onReplied(Floor(
-          id: floorId,
-          posterId: loginUser.id,
-          avatar: loginUser.avatar,
-          avatarThumb: loginUser.avatarThumb,
-          name: loginUser.name,
-          date: DateTime.now().format(),
-          content: text,
-          medias: medias,
-          floor: floor,
-        ));
+        return false;
       }
-      return;
+      final loginUser = context.read<User>();
+      final floorId = result.data['floorId'];
+      final floor = result.data['floor'];
+      widget.onReplied(Floor(
+        id: floorId,
+        posterId: loginUser.id,
+        avatar: loginUser.avatar,
+        avatarThumb: loginUser.avatarThumb,
+        name: loginUser.name,
+        date: DateTime.now().format(),
+        content: text,
+        medias: medias,
+        floor: floor,
+      ));
+      _controller.text = '';
+      return true;
     }
     // 回复层主
     if (widget.floorId?.isNotEmpty == true) {
       final result = await repository.replyFloor(widget.floorId, text, medias);
       if (result.fail) {
         showToast(result.msg);
-      } else {
-        final loginUser = context.read<User>();
-        final innerFloorId = result.data['innerFloorId'];
-        final innerFloor = result.data['innerFloor'];
-        widget.onReplied(InnerFloor(
-          id: innerFloorId,
-          posterId: loginUser.id,
-          avatar: loginUser.avatar,
-          avatarThumb: loginUser.avatarThumb,
-          name: loginUser.name,
-          date: DateTime.now().format(),
-          content: text,
-          medias: medias,
-          innerFloor: innerFloor,
-        ));
+        return false;
       }
-      return;
+      final loginUser = context.read<User>();
+      final innerFloorId = result.data['innerFloorId'];
+      final innerFloor = result.data['innerFloor'];
+      widget.onReplied(InnerFloor(
+        id: innerFloorId,
+        posterId: loginUser.id,
+        avatar: loginUser.avatar,
+        avatarThumb: loginUser.avatarThumb,
+        name: loginUser.name,
+        date: DateTime.now().format(),
+        content: text,
+        medias: medias,
+        innerFloor: innerFloor,
+      ));
+      _controller.text = '';
+      return true;
     }
     // 层内回复
     if (widget.innerFloorId?.isNotEmpty == true) {
@@ -214,26 +248,28 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
           await repository.replyInnerFloor(widget.innerFloorId, text, medias);
       if (result.fail) {
         showToast(result.msg);
-      } else {
-        final loginUser = context.read<User>();
-        final innerFloorId = result.data['innerFloorId'];
-        final innerFloor = result.data['innerFloor'];
-        widget.onReplied(InnerFloor(
-          id: innerFloorId,
-          posterId: loginUser.id,
-          avatar: loginUser.avatar,
-          avatarThumb: loginUser.avatarThumb,
-          name: loginUser.name,
-          date: DateTime.now().format(),
-          content: text,
-          medias: medias,
-          innerFloor: innerFloor,
-          targetId: widget.targetId ?? '',
-          targetName: widget.targetName ?? '',
-        ));
+        return false;
       }
-      return;
+      final loginUser = context.read<User>();
+      final innerFloorId = result.data['innerFloorId'];
+      final innerFloor = result.data['innerFloor'];
+      widget.onReplied(InnerFloor(
+        id: innerFloorId,
+        posterId: loginUser.id,
+        avatar: loginUser.avatar,
+        avatarThumb: loginUser.avatarThumb,
+        name: loginUser.name,
+        date: DateTime.now().format(),
+        content: text,
+        medias: medias,
+        innerFloor: innerFloor,
+        targetId: widget.targetId ?? '',
+        targetName: widget.targetName ?? '',
+      ));
+      _controller.text = '';
+      return true;
     }
+    return false;
   }
 }
 
@@ -511,6 +547,8 @@ class __LongReplyPageState extends State<_LongReplyPage> {
       }
       medias.add(VideoMedia(result.data['thumbUrl'], result.data['url']));
     }
-    return widget.onSend(_controller.text, medias);
+    final sendResult = await widget.onSend(_controller.text, medias);
+    if (sendResult) Navigator.pop(context);
+    return;
   }
 }

@@ -181,7 +181,7 @@ class _PostItem extends StatefulWidget {
 }
 
 class __PostItemState extends State<_PostItem> {
-  StreamController<bool> _followStreamController; // 关注按钮改变
+  StreamController<bool> _followStreamController1; // 关注按钮改变
   StreamController<int> _likeStatusStreamController; // 点赞点踩按钮改变
 
   @override

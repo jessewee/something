@@ -71,7 +71,7 @@ class _PostFloorRepliesPageState extends State<PostFloorRepliesPage> {
                 IconButton(
                   icon: Icon(Icons.close),
                   onPressed: () => Navigator.pop(context, widget._vm.totalCnt),
-                ).positioned(left: null),
+                ).positioned(right: null),
                 Divider(height: 1.0, thickness: 1.0).positioned(top: null),
               ],
             ),
