@@ -1,22 +1,25 @@
 import 'dart:async';
+import 'dart:math';
 
+import 'package:base/base/play_video_page.dart';
 import 'package:base/base/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:forum/model/media.dart';
 import 'package:forum/model/post.dart';
 import 'package:base/base/extensions.dart';
 import 'package:base/base/pub.dart';
 import 'package:base/base/view_images.dart';
 import 'package:forum/other/iconfont.dart';
+import 'package:forum/view/post_floor_replies_page.dart';
 import 'package:forum/view/user_page.dart';
 import 'package:forum/vm/extensions.dart';
-import 'post_detail_page.dart';
 
 /// 帖子里的楼层和层内的内容
 class PostBaseItemContent extends StatefulWidget {
   final PostBase postBase;
   final Function() onReplyClick;
 
-  const PostBaseItemContent(this.postBase, this.onReplyClick);
+  const PostBaseItemContent(this.postBase, [this.onReplyClick]);
 
   @override
   _PostBaseItemContentState createState() => _PostBaseItemContentState();
@@ -25,18 +28,22 @@ class PostBaseItemContent extends StatefulWidget {
 class _PostBaseItemContentState extends State<PostBaseItemContent> {
   StreamController<int> _likeStatusStreamController; // 点赞点踩按钮改变
   StreamController<bool> _followStreamController; // 关注按钮改变
+  StreamController<int> _replyCntStreamController; // 回复按钮改变
 
   @override
   void initState() {
     _likeStatusStreamController = StreamController.broadcast();
     if (widget.postBase is Post) {
       _followStreamController = StreamController();
+    } else if (widget.postBase is Floor) {
+      _replyCntStreamController = StreamController();
     }
     super.initState();
   }
 
   @override
   void dispose() {
+    _replyCntStreamController?.makeSureClosed();
     _followStreamController?.makeSureClosed();
     _likeStatusStreamController.makeSureClosed();
     super.dispose();
@@ -94,27 +101,23 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     // 文本
     Widget content = Text(widget.postBase.content);
     // 图片和视频
-    Widget media = buildMedias(context, widget.postBase.medias);
+    Widget media = _buildMedias(context, widget.postBase.medias);
     // 回复
     Widget viewReplies;
     if (widget.postBase is! Post) {
-      var replyText = '';
       if (widget.postBase is InnerFloor) {
-        replyText = '回复';
+        viewReplies = _buildReplyBtn('回复');
       } else if (widget.postBase is Floor) {
         final floor = widget.postBase as Floor;
-        replyText = floor.replyCnt > 0 ? '查看${floor.replyCnt}条回复>>' : '回复';
+        viewReplies = StreamBuilder(
+          stream: _replyCntStreamController.stream,
+          builder: (context, snapshot) {
+            final replyText =
+                floor.replyCnt > 0 ? '查看${floor.replyCnt}条回复>>' : '回复';
+            return _buildReplyBtn(replyText);
+          },
+        );
       }
-      viewReplies = TextButton(
-        child: Text(
-          replyText,
-          style: TextStyle(
-            color: Colors.grey[500],
-            fontWeight: FontWeight.normal,
-          ),
-        ),
-        onPressed: widget.onReplyClick,
-      );
     }
     // 点赞
     Widget like = StreamBuilder(
@@ -169,6 +172,40 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     );
   }
 
+  // 回复按钮
+  Widget _buildReplyBtn(String replyText) {
+    return TextButton(
+      child: Text(
+        replyText,
+        style: TextStyle(
+          color: Colors.grey[500],
+          fontWeight: FontWeight.normal,
+        ),
+      ),
+      onPressed: widget.postBase is Floor
+          // 查看回复按钮，有可能会返回新数量
+          ? () async {
+              final floor = widget.postBase as Floor;
+              final result = await showModalBottomSheet(
+                isScrollControlled: true,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(20.0),
+                  ),
+                ),
+                context: context,
+                builder: (context) => PostFloorRepliesPage(floor),
+              );
+              if (result != null && result is int) {
+                floor.replyCnt = result;
+                _replyCntStreamController.send(null);
+              }
+            }
+          // 回复按钮
+          : widget.onReplyClick,
+    );
+  }
+
   // 点赞
   Future _onLikeClick() async {
     final target = widget.postBase.myAttitude == 1 ? null : true;
@@ -216,5 +253,56 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
       _followStreamController.send(null);
     }
     return;
+  }
+
+  // 图片和视频显示
+  Widget _buildMedias(BuildContext context, List<Media> medias) {
+    if (medias.isEmpty) return null;
+    final list = <Widget>[];
+    for (final m in medias) {
+      if (m is ImageMedia) {
+        list.add(AspectRatio(
+          aspectRatio: m.width / m.height,
+          child: ImageWithUrl(
+            m.thumbUrl,
+            fit: BoxFit.cover,
+            onPressed: () => _viewMediaImages(context, m, medias),
+          ),
+        ));
+      } else if (m is VideoMedia) {
+        list.add(AspectRatio(
+          aspectRatio: 1.75,
+          child: Stack(
+            alignment: Alignment.center,
+            children: <Widget>[
+              ImageWithUrl(m.coverUrl, fit: BoxFit.cover).positioned(),
+              IconButton(
+                icon: Icon(Icons.play_circle_outline),
+                color: Colors.white,
+                iconSize: 50.0,
+                onPressed: () => playVideo(context, m.url),
+              ),
+            ],
+          ),
+        ));
+      }
+    }
+    if (list.isEmpty) return null;
+    return Column(
+      children: list,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+    );
+  }
+
+// 查看图片
+  void _viewMediaImages(
+    BuildContext context,
+    ImageMedia cur,
+    List<Media> medias,
+  ) {
+    final images = medias.whereType<ImageMedia>().toList();
+    final idx = images.indexOf(cur);
+    viewImages(context, images.map((e) => e.url).toList(), max(0, idx));
   }
 }
