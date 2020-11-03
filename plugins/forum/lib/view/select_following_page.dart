@@ -1,4 +1,5 @@
 import 'package:base/base/pub.dart';
+import 'package:base/base/view_images.dart';
 import 'package:base/base/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/model/m.dart';
@@ -7,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SelectFollowingPage extends StatefulWidget {
   static const routeName = 'select_following_page';
+  final bool singleSelect;
+  const SelectFollowingPage({this.singleSelect = false});
   @override
   _SelectFollowingPageState createState() => _SelectFollowingPageState();
 }
@@ -36,21 +39,23 @@ class _SelectFollowingPageState extends State<SelectFollowingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: SearchAppBar(onConfirm: _onSearch),
-      body: Container(
-        padding: const EdgeInsets.fromLTRB(15.0, 15.0, 15.0, 0.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(child: _buildContentWidget()),
-            Container(
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: Colors.black38)),
+      body: widget.singleSelect
+          ? _buildContentWidget()
+          : Container(
+              padding: const EdgeInsets.fromLTRB(15.0, 15.0, 15.0, 0.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: _buildContentWidget()),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border(top: BorderSide(color: Colors.black38)),
+                    ),
+                    child: _buildBottomWidget(),
+                  ),
+                ],
               ),
-              child: _buildBottomWidget(),
             ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -98,8 +103,16 @@ class _SelectFollowingPageState extends State<SelectFollowingPage> {
   Widget _buildChip(ForumUser user, bool local) {
     return RawChip(
       label: Text(user.name),
+      avatar: ImageWithUrl(
+        user.avatarThumb,
+        onPressed: () => viewImages(context, [user.avatar]),
+      ),
       selected: _selected.contains(user),
       onSelected: (value) {
+        if (widget.singleSelect) {
+          Navigator.pop(context, user);
+          return;
+        }
         setState(() {
           if (value && !_selected.contains(user)) {
             _selected.add(user);
