@@ -7,88 +7,46 @@ enum Gender { unknown, male, female }
 enum FileType { image, video, other }
 
 /// 用户信息
-class User with ChangeNotifier {
+class User {
   /// 用户id
-  String _id = '';
-
-  /// 用户id
-  get id => _id;
-
-  /// 用户id
-  set id(value) {
-    _id = value;
-    notifyListeners();
-  }
+  String id;
 
   /// 用户名字
-  String _name = '';
-
-  /// 用户名字
-  get name => _name;
-
-  /// 用户名字
-  set name(value) {
-    _name = value;
-    notifyListeners();
-  }
+  String name;
 
   /// 用户头像
-  String _avatar = '';
-
-  /// 用户头像
-  get avatar => _avatar;
-
-  /// 用户头像
-  set avatar(value) {
-    _avatar = value;
-    notifyListeners();
-  }
+  String avatar;
 
   /// 用户头像缩略图
-  String _avatarThumb = '';
-
-  /// 用户头像缩略图
-  get avatarThumb => _avatarThumb;
-
-  /// 用户头像缩略图
-  set avatarThumb(value) {
-    _avatarThumb = value;
-    notifyListeners();
-  }
+  String avatarThumb;
 
   /// 用户性别
-  Gender _gender = Gender.unknown;
+  Gender gender;
 
-  /// 用户性别
-  get gender => _gender;
+  /// 用户生日
+  String birthday;
 
-  /// 用户性别
-  set gender(value) {
-    _gender = value;
+  /// 用户注册日期
+  String registerDate;
+
+  User({
+    this.id = '',
+    this.name = '',
+    this.avatar = '',
+    this.avatarThumb = '',
+    this.gender = Gender.unknown,
+    this.birthday = '',
+    this.registerDate = '',
+  });
+}
+
+class UserVM with ChangeNotifier {
+  User _user;
+  get user => _user;
+  set user(value) {
+    _user = value;
     notifyListeners();
   }
 
-  /// 用户生日
-  String _birthday = '';
-
-  /// 用户生日
-  get birthday => _birthday;
-
-  /// 用户生日
-  set birthday(value) {
-    _birthday = value;
-    notifyListeners();
-  }
-
-  /// 用户注册日期
-  String _registerDate = '';
-
-  /// 用户注册日期
-  get registerDate => _registerDate;
-
-  /// 用户注册日期
-  set registerDate(value) {
-    _registerDate = value;
-    notifyListeners();
-  }
+  UserVM({User user}) : _user = user ?? User();
 }

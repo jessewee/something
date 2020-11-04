@@ -201,15 +201,15 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         showToast(result.msg);
         return false;
       }
-      final loginUser = context.read<User>();
+      final loginUser = context.read<UserVM>();
       final floorId = result.data['floorId'];
       final floor = result.data['floor'];
       widget.onReplied(Floor(
         id: floorId,
-        posterId: loginUser.id,
-        avatar: loginUser.avatar,
-        avatarThumb: loginUser.avatarThumb,
-        name: loginUser.name,
+        posterId: loginUser.user.id,
+        avatar: loginUser.user.avatar,
+        avatarThumb: loginUser.user.avatarThumb,
+        name: loginUser.user.name,
         date: DateTime.now().format(),
         content: text,
         medias: medias,
@@ -225,15 +225,15 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         showToast(result.msg);
         return false;
       }
-      final loginUser = context.read<User>();
+      final loginUser = context.read<UserVM>();
       final innerFloorId = result.data['innerFloorId'];
       final innerFloor = result.data['innerFloor'];
       widget.onReplied(InnerFloor(
         id: innerFloorId,
-        posterId: loginUser.id,
-        avatar: loginUser.avatar,
-        avatarThumb: loginUser.avatarThumb,
-        name: loginUser.name,
+        posterId: loginUser.user.id,
+        avatar: loginUser.user.avatar,
+        avatarThumb: loginUser.user.avatarThumb,
+        name: loginUser.user.name,
         date: DateTime.now().format(),
         content: text,
         medias: medias,
@@ -250,15 +250,15 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         showToast(result.msg);
         return false;
       }
-      final loginUser = context.read<User>();
+      final loginUser = context.read<UserVM>();
       final innerFloorId = result.data['innerFloorId'];
       final innerFloor = result.data['innerFloor'];
       widget.onReplied(InnerFloor(
         id: innerFloorId,
-        posterId: loginUser.id,
-        avatar: loginUser.avatar,
-        avatarThumb: loginUser.avatarThumb,
-        name: loginUser.name,
+        posterId: loginUser.user.id,
+        avatar: loginUser.user.avatar,
+        avatarThumb: loginUser.user.avatarThumb,
+        name: loginUser.user.name,
         date: DateTime.now().format(),
         content: text,
         medias: medias,

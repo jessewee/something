@@ -1,6 +1,9 @@
 library base;
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'model/m.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
@@ -28,18 +31,21 @@ class BaseApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      initialRoute: initialRoute,
-      routes: _routes,
-      onGenerateRoute: onGenerateRoute,
-      navigatorKey: navigatorKey,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        inputDecorationTheme: InputDecorationTheme(
-          isDense: true,
-          isCollapsed: true,
-          border: InputBorder.none,
+    return MultiProvider(
+      providers: [ChangeNotifierProvider<UserVM>(create: (_) => UserVM())],
+      child: MaterialApp(
+        initialRoute: initialRoute,
+        routes: _routes,
+        onGenerateRoute: onGenerateRoute,
+        navigatorKey: navigatorKey,
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          inputDecorationTheme: InputDecorationTheme(
+            isDense: true,
+            isCollapsed: true,
+            border: InputBorder.none,
+          ),
         ),
       ),
     );
