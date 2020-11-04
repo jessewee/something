@@ -18,18 +18,6 @@
             "args": [
                 "--profile"
             ]
-        },
-        {
-            "name": "base",
-            "cwd": "plugins\\base",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "forum",
-            "cwd": "plugins\\forum",
-            "request": "launch",
-            "type": "dart"
         }
     ]
 }
