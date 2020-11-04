@@ -62,6 +62,11 @@ class StreamControllerWithData<T> {
     _controller.add(value);
   }
 
+  void reAdd() {
+    if (_controller.isPaused || _controller.isClosed) return;
+    _controller.add(_value);
+  }
+
   void setValueWithoutNotify(T value) {
     _value = value;
   }

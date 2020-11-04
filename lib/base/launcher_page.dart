@@ -16,10 +16,9 @@ class LauncherPage extends StatefulWidget {
 class _LauncherPageState extends State<LauncherPage> {
   @override
   void initState() {
-    final userVM = context.read<UserVM>();
     api.getUserInfo().then((result) {
       if (result.success) {
-        userVM.user = result.data;
+        context.read<UserVM>().user = result.data;
         Navigator.of(context).pushReplacementNamed(HomePage.routeName);
       } else {
         Navigator.of(context).pushReplacementNamed(LoginPage.routeName);

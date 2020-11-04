@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:something/forum/forum.dart';
 
 import 'base/home_page.dart';
 import 'base/launcher_page.dart';
 import 'base/login_page.dart';
 import 'base/register_page.dart';
 import 'base/retrieve_pwd_page.dart';
+import 'forum/forum.dart';
+
 import 'common/models.dart';
 import 'common/widgets.dart';
 
@@ -14,9 +15,9 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
 class MyApp extends StatelessWidget {
   final Map<String, WidgetBuilder> _routes = {
+    RegisterPage.routeName: (_) => RegisterPage(),
     LauncherPage.routeName: (_) => LauncherPage(),
     LoginPage.routeName: (_) => LoginPage(),
-    RegisterPage.routeName: (_) => RegisterPage(),
     RetrievePwdPage.routeName: (_) => RetrievePwdPage(),
     HomePage.routeName: (_) => HomePage()
   };

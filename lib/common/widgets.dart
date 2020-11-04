@@ -189,20 +189,24 @@ class ImageWithUrl extends StatelessWidget {
 
 /// 带图标的按钮
 class ButtonWithIcon extends StatefulWidget {
+  final Color backgroundColor;
   final Color color;
   final IconData icon;
   final String text;
   final bool loading;
   final bool disabled;
+  final EdgeInsetsGeometry padding;
 
   final Function() onPressed;
 
   const ButtonWithIcon({
+    this.backgroundColor,
     this.color,
     this.icon,
     this.text,
     this.loading = false,
     this.disabled = false,
+    this.padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
     this.onPressed,
   });
 
@@ -217,14 +221,21 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     Color color;
+    Color backgroundColor;
     final loadingSize = theme.textTheme.bodyText1.fontSize * 0.75;
     if (widget.onPressed == null ||
         _loading ||
         widget.loading ||
         widget.disabled) {
       color = Colors.grey;
+      if (widget.backgroundColor != null)
+        backgroundColor = widget.backgroundColor.withAlpha(150);
     } else {
-      color = widget.color ?? theme.primaryColor;
+      if (widget.backgroundColor != null)
+        backgroundColor = widget.backgroundColor;
+      color = backgroundColor == null
+          ? (widget.color ?? theme.primaryColor)
+          : Colors.white;
     }
     Widget child = Row(
       mainAxisSize: MainAxisSize.min,
@@ -246,27 +257,35 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
           ),
       ],
     );
-    child = Padding(
+    child = Container(
+      alignment: Alignment.center,
       child: child,
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
+      padding: widget.padding,
     );
-    return InkWell(
-      child: child,
-      onTap: widget.onPressed == null ||
-              _loading ||
-              widget.loading ||
-              widget.disabled
-          ? null
-          : () {
-              final result = widget.onPressed();
-              if (result is Future) {
-                if (!mounted) return;
-                setState(() => _loading = true);
-                result.then((_) {
-                  if (mounted) setState(() => _loading = false);
-                });
-              }
-            },
+    return Material(
+      borderRadius: BorderRadius.circular(2.0),
+      clipBehavior: Clip.hardEdge,
+      color: backgroundColor,
+      child: InkWell(
+        child: child,
+        highlightColor: Colors.black26,
+        splashColor: Colors.black26,
+        onTap: widget.onPressed == null ||
+                _loading ||
+                widget.loading ||
+                widget.disabled
+            ? null
+            : () {
+                final result = widget.onPressed();
+                if (result is Future) {
+                  if (!mounted) return;
+                  setState(() => _loading = true);
+                  result.then((_) {
+                    if (mounted) setState(() => _loading = false);
+                  });
+                }
+              },
+      ),
     );
   }
 }

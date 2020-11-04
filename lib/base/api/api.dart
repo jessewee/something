@@ -1,6 +1,32 @@
 import '../../common/pub.dart';
 import '../../common/models.dart';
 
+/// 获取邮箱验证码
+Future<Result> getEmailVfCode(String email) async {
+  // TODO
+  await Future.delayed(Duration(seconds: 1));
+  return Future.value(Result.success());
+}
+
+/// 注册
+Future<Result> register(
+  String account,
+  String pwd,
+  String email,
+  String vfCode,
+) async {
+  // TODO
+  await Future.delayed(Duration(seconds: 1));
+  return Future.value(Result.success());
+}
+
+/// 重置密码
+Future<Result> retrievePwd(String account, String vfCode, String newPwd) async {
+  // TODO
+  await Future.delayed(Duration(seconds: 1));
+  return Future.value(Result.success());
+}
+
 /// 登录
 Future<Result> login(String account, String pwd) async {
   // TODO

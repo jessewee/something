@@ -8,6 +8,8 @@ import '../common/widgets.dart';
 import '../common/pub.dart';
 import '../common/models.dart';
 import 'api/api.dart' as api;
+import 'register_page.dart';
+import 'retrieve_pwd_page.dart';
 
 /// 登录页
 class LoginPage extends StatefulWidget {
@@ -37,7 +39,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(50.0, 150.0, 50.0, 100.0),
+        padding: const EdgeInsets.fromLTRB(50.0, 100.0, 50.0, 50.0),
         child: FocusScope(
           node: _focusScopeNode,
           child: Column(
@@ -66,12 +68,12 @@ class _LoginPageState extends State<LoginPage> {
                   FlatButton(
                     child: Text('注册账号'),
                     onPressed: () =>
-                        Navigator.of(context).pushNamed('register'),
+                        Navigator.of(context).pushNamed(RegisterPage.routeName),
                   ),
                   FlatButton(
                     child: Text('找回密码'),
-                    onPressed: () =>
-                        Navigator.of(context).pushNamed('retrievePwd'),
+                    onPressed: () => Navigator.of(context)
+                        .pushNamed(RetrievePwdPage.routeName),
                   ),
                 ],
               ),
@@ -84,6 +86,8 @@ class _LoginPageState extends State<LoginPage> {
                     builder: (context, snapshot) {
                       return ButtonWithIcon(
                         text: '登录',
+                        backgroundColor: Theme.of(context).primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 15.0),
                         onPressed: snapshot.data ? _onLoginClick : null,
                       );
                     }),
@@ -143,6 +147,7 @@ class _InputWidget extends StatelessWidget {
           // 输入框
           Expanded(
             child: TextField(
+              autofocus: false,
               textInputAction:
                   flag ? TextInputAction.next : TextInputAction.done,
               onSubmitted: (value) => onSubmitted?.call(),
