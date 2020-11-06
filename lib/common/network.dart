@@ -62,7 +62,8 @@ class Network {
       },
       onResponse: (e) {
         // 需要重新登录
-        if (e.data != null && e.data['code'] == 10000) {
+        if (e.data != null &&
+            (e.data['code'] == 10000 || e.data['code'] == 10001)) {
           eventBus.sendEvent('base_login_invalid');
         } else {
           // 保存服务器返回的token
