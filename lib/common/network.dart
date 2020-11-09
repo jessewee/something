@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:cookie_jar/cookie_jar.dart';
@@ -34,7 +36,7 @@ class Network {
         .then((sp) => sp.setString('login_solid_token', value));
   }
 
-  get _refreshToken async {
+  Future<String> get _refreshToken async {
     if (__refreshToken.isEmpty) {
       var sp = await SharedPreferences.getInstance();
       __refreshToken = sp.getString('login_refresh_token') ?? '';
@@ -53,29 +55,25 @@ class Network {
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options) async {
         // 给header赋值token，或者发送refreshToken来刷新token
-        if (_token.isEmpty) {
-          options.headers['refreshToken'] = _refreshToken;
-        } else {
+        if (_token.isNotEmpty) {
           options.headers['token'] = _token;
+        } else {
+          final tmp = await _refreshToken;
+          if (tmp.isNotEmpty) options.headers['refresh_token'] = tmp;
         }
         return options;
       },
-      onResponse: (e) {
-        // 需要重新登录
-        if (e.data != null &&
-            (e.data['code'] == 10000 || e.data['code'] == 10001)) {
-          eventBus.sendEvent('base_login_invalid');
-        } else {
-          // 保存服务器返回的token
-          _token = e.headers.value('token') ?? '';
-          final tmp = e.headers.value('refreshToken') ?? '';
-          if (tmp.isNotEmpty) _refreshToken = tmp;
-        }
+      onResponse: (e) async {
+        // 保存服务器返回的token
+        final token = e.headers?.value('token') ?? '';
+        if (token.isNotEmpty) _token = token;
+        final refreshToken = e.headers?.value('refresh_token') ?? '';
+        if (refreshToken.isNotEmpty) _refreshToken = refreshToken;
         return e;
       },
       onError: (e) {
         showToast('网络出错：${e.message}');
-        return e;
+        return Response();
       },
     ));
     eventBus.on('base_leave_page', (arg) {
@@ -89,11 +87,17 @@ class Network {
   }
 
   /// GET请求 [tag]用来标记请求，取消时用到，比如离开页面时取消网络请求
-  Future<Result> get(String path,
-      {Map<String, dynamic> params = const {}, String tag}) async {
-    Response<Result> response = await _dio.get(path,
-        queryParameters: params, cancelToken: _getCancelTokenByTag(tag));
-    var result = response.toResult();
+  Future<Result> get(
+    String path, {
+    Map<String, dynamic> params = const {},
+    String tag,
+  }) async {
+    Response<String> response = await _dio.get(
+      path,
+      queryParameters: params,
+      cancelToken: _getCancelTokenByTag(tag),
+    );
+    var result = toResult(response);
     // null表示需要重新请求接口
     if (result == null) {
       return get(path, params: params, tag: tag);
@@ -103,9 +107,12 @@ class Network {
 
   /// POST请求
   Future<Result> post(String path, {var params = const {}, String tag}) async {
-    Response response = await _dio.post(path,
-        data: params, cancelToken: _getCancelTokenByTag(tag));
-    var result = response.toResult();
+    Response response = await _dio.post(
+      path,
+      data: params,
+      cancelToken: _getCancelTokenByTag(tag),
+    );
+    var result = toResult(response);
     // null表示需要重新请求接口
     if (result == null) {
       return post(path, params: params, tag: tag);
@@ -115,9 +122,12 @@ class Network {
 
   /// PUT请求
   Future<Result> put(String path, {var params = const {}, String tag}) async {
-    Response response = await _dio.put(path,
-        data: params, cancelToken: _getCancelTokenByTag(tag));
-    var result = response.toResult();
+    Response response = await _dio.put(
+      path,
+      data: params,
+      cancelToken: _getCancelTokenByTag(tag),
+    );
+    var result = toResult(response);
     // null表示需要重新请求接口
     if (result == null) {
       return put(path, params: params, tag: tag);
@@ -128,9 +138,12 @@ class Network {
   /// DELETE请求
   Future<Result> delete(String path,
       {Map<String, dynamic> params = const {}, String tag}) async {
-    Response response = await _dio.delete(path,
-        queryParameters: params, cancelToken: _getCancelTokenByTag(tag));
-    var result = response.toResult();
+    Response response = await _dio.delete(
+      path,
+      queryParameters: params,
+      cancelToken: _getCancelTokenByTag(tag),
+    );
+    var result = toResult(response);
     // null表示需要重新请求接口
     if (result == null) {
       return delete(path, params: params, tag: tag);
@@ -150,22 +163,29 @@ class Network {
     }
     return cancelToken;
   }
-}
 
-/// 请求返回结果转为Result对象
-extension _ResponseExt on Response {
   // null表示需要重新请求接口
-  Result toResult() {
-    if (this.data == null) return const Result();
-    var resp = this.data;
+  Future<Result> toResult(Response response) async {
+    if (response.data == null || response.data is! String)
+      return const Result();
+    var resp = json.decode(response.data);
     if (resp["code"] == null) return const Result();
-    var result =
-        Result(code: resp["code"], msg: resp["message"], data: resp["data"]);
-    var token = this.headers.value('token') ?? '';
-    // 服务器不返回token说明token失效，需要用refreshToken刷新，重新调用一遍接口就可以。如果refreshToken失效的话会返回code=10000，这时token也不会返
-    if (token.isNotEmpty || result.code == 10000) {
+    var result = Result(
+      code: resp["code"],
+      msg: resp["message"],
+      data: resp["data"],
+    );
+    // 需要重新登录
+    if (result.code == 10000 ||
+        (result.code == 10001 && (await _refreshToken).isEmpty)) {
+      eventBus.sendEvent('base_login_invalid');
       return result;
     }
-    return null;
+    // token失效，refreshToken存在，需要重新请求
+    if (result.code == 10001) {
+      _token = '';
+      return null;
+    }
+    return result;
   }
 }

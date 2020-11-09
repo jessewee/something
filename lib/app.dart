@@ -15,8 +15,8 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
 class MyApp extends StatelessWidget {
   final Map<String, WidgetBuilder> _routes = {
-    RegisterPage.routeName: (_) => RegisterPage(),
     LauncherPage.routeName: (_) => LauncherPage(),
+    RegisterPage.routeName: (_) => RegisterPage(),
     LoginPage.routeName: (_) => LoginPage(),
     RetrievePwdPage.routeName: (_) => RetrievePwdPage(),
     HomePage.routeName: (_) => HomePage()

@@ -24,7 +24,7 @@ Future<Result> register(
 
 /// 重置密码
 Future<Result> retrievePwd(String account, String vfCode, String newPwd) async {
-  return await network.post('/reset_pwd', params: {
+  return await network.put('/reset_pwd', params: {
     'account': account,
     'pwd': newPwd,
     'vfcode': vfCode,
@@ -33,27 +33,21 @@ Future<Result> retrievePwd(String account, String vfCode, String newPwd) async {
 
 /// 登录
 Future<Result> login(String account, String pwd) async {
-  return await network.post('/login', params: {'account': account, 'pwd': pwd});
+  return await network.get('/login', params: {'account': account, 'pwd': pwd});
 }
 
 /// 获取用户数据
 Future<Result<User>> getUserInfo() async {
-  // TODO
-  await Future.delayed(Duration(seconds: 1));
-  // if (Random.secure().nextBool()) {
-  //   return Future.value(Result(msg: "获取用户信息失败"));
-  // } else {
-  return Future.value(
-    Result.success(
-      User(
-        id: '0',
-        name: '名字',
-        avatar: '',
-        gender: Gender.male,
-        birthday: '',
-        registerDate: '',
-      ),
-    ),
-  );
-  // }
+  final tmp = await network.get('/get_user_info');
+  if (tmp.fail) return Result(code: tmp.code, msg: tmp.msg);
+  final map = tmp.data;
+  return Result.success(User(
+    id: map['id'],
+    name: map['name'],
+    avatar: map['avatar'],
+    avatarThumb: map['avatarThumb'],
+    // gender: map['gender'],
+    birthday: map['birthday'],
+    registerDate: map['registerDate'],
+  ));
 }
