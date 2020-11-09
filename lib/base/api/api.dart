@@ -1,11 +1,10 @@
 import '../../common/pub.dart';
 import '../../common/models.dart';
+import '../../common/network.dart';
 
 /// 获取邮箱验证码
 Future<Result> getEmailVfCode(String email) async {
-  // TODO
-  await Future.delayed(Duration(seconds: 1));
-  return Future.value(Result.success());
+  return await network.post('/get_vf_code', params: {'email': email});
 }
 
 /// 注册
@@ -15,24 +14,26 @@ Future<Result> register(
   String email,
   String vfCode,
 ) async {
-  // TODO
-  await Future.delayed(Duration(seconds: 1));
-  return Future.value(Result.success());
+  return await network.post('/register', params: {
+    'account': account,
+    'pwd': pwd,
+    'email': email,
+    'vfcode': vfCode
+  });
 }
 
 /// 重置密码
 Future<Result> retrievePwd(String account, String vfCode, String newPwd) async {
-  // TODO
-  await Future.delayed(Duration(seconds: 1));
-  return Future.value(Result.success());
+  return await network.post('/reset_pwd', params: {
+    'account': account,
+    'pwd': newPwd,
+    'vfcode': vfCode,
+  });
 }
 
 /// 登录
 Future<Result> login(String account, String pwd) async {
-  // TODO
-  await Future.delayed(Duration(seconds: 1));
-  return Future.value(Result
-      .success()); // 登录成功应该在header里返回refreshToken和token，然后通过token调用接口获取用户信息
+  return await network.post('/login', params: {'account': account, 'pwd': pwd});
 }
 
 /// 获取用户数据
