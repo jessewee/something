@@ -30,7 +30,7 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts(
   int dataPageSize,
   PostsFilter filter,
 ) async {
-  final result = await network.post('/forum/get_posts', params: {
+  final result = await network.get('/forum/get_posts', params: {
     'data_idx': dataIdx,
     'data_count': dataPageSize,
     'sort_by': filter.sortBy,
@@ -40,7 +40,7 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts(
   });
   if (result.fail) return result;
   final list = result.data['list']
-      .map((e) => Post(
+      .map<Post>((e) => Post(
             id: e['id'] ?? '',
             posterId: e['poster_id'] ?? '',
             avatar: e['avatar'] ?? '',
@@ -55,7 +55,7 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts(
             myAttitude: e['attitude'] ?? 0,
             posterFollowed: e['poster_followed'] == true,
             medias: e['medias']
-                .map((m) {
+                .map<Media>((m) {
                   if (m['type'] == 'image') {
                     return ImageMedia(
                             thumbUrl: m['thumb_url'] ?? '',
@@ -74,7 +74,7 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts(
       .toList();
   return Result.success(DataWidthPageInfo(
       list,
-      result.data['total_count'] ?? list.size,
+      result.data['total_count'] ?? list.length,
       result.data['last_data_index'],
-      list.size));
+      list.length));
 }

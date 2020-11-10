@@ -8,6 +8,7 @@ import '../model/m.dart';
 import '../model/media.dart';
 import '../model/post.dart';
 import '../vm/others.dart';
+import '../api/api.dart' as api;
 
 /// 数据仓库
 
@@ -50,39 +51,7 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts({
   int dataPageSize = 100,
   PostsFilter filter,
 }) async {
-  // TODO
-  await Future.delayed(Duration(seconds: 3));
-  return Result.success(
-    DataWidthPageInfo(
-      List.generate(
-        dataPageSize,
-        (index) => Post(
-          id: (dataIdx + index).toString(),
-          label: TestGenerator.generateChinese(5),
-          posterId: TestGenerator.generateId(12),
-          avatar: TestGenerator.generateImg(),
-          avatarThumb: TestGenerator.generateImg(),
-          name: TestGenerator.generateChinese(20),
-          date: TestGenerator.generateDate(),
-          content: TestGenerator.generateChinese(500),
-          replyCnt: TestGenerator.generateNumber(9999),
-          likeCnt: TestGenerator.generateNumber(9999),
-          myAttitude: TestGenerator.generateNumber(1, -1),
-          medias: TestGenerator.generateImgs()
-              .map((e) => ImageMedia(
-                    thumbUrl: e,
-                    url: TestGenerator.generateImg(),
-                    width: TestGenerator.generateNumber(100, 50),
-                    height: TestGenerator.generateNumber(100, 50),
-                  ))
-              .toList(),
-        ),
-      ),
-      TestGenerator.generateNumber(9999),
-      dataIdx,
-      dataPageSize,
-    ),
-  );
+  return await api.getPosts(dataIdx, dataPageSize, filter);
 }
 
 /// 关注用户
