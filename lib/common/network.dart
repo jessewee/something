@@ -33,7 +33,7 @@ class Network {
   set _refreshToken(value) {
     __refreshToken = value;
     SharedPreferences.getInstance()
-        .then((sp) => sp.setString('login_solid_token', value));
+        .then((sp) => sp.setString('login_refresh_token', value));
   }
 
   Future<String> get _refreshToken async {
