@@ -97,7 +97,7 @@ class Network {
       queryParameters: params,
       cancelToken: _getCancelTokenByTag(tag),
     );
-    var result = toResult(response);
+    var result = await toResult(response);
     // null表示需要重新请求接口
     if (result == null) {
       return get(path, params: params, tag: tag);
@@ -109,10 +109,10 @@ class Network {
   Future<Result> post(String path, {var params = const {}, String tag}) async {
     Response response = await _dio.post(
       path,
-      data: params,
+      data: FormData.fromMap(params),
       cancelToken: _getCancelTokenByTag(tag),
     );
-    var result = toResult(response);
+    var result = await toResult(response);
     // null表示需要重新请求接口
     if (result == null) {
       return post(path, params: params, tag: tag);
@@ -124,10 +124,10 @@ class Network {
   Future<Result> put(String path, {var params = const {}, String tag}) async {
     Response response = await _dio.put(
       path,
-      data: params,
+      data: FormData.fromMap(params),
       cancelToken: _getCancelTokenByTag(tag),
     );
-    var result = toResult(response);
+    var result = await toResult(response);
     // null表示需要重新请求接口
     if (result == null) {
       return put(path, params: params, tag: tag);
@@ -143,7 +143,7 @@ class Network {
       queryParameters: params,
       cancelToken: _getCancelTokenByTag(tag),
     );
-    var result = toResult(response);
+    var result = await toResult(response);
     // null表示需要重新请求接口
     if (result == null) {
       return delete(path, params: params, tag: tag);
@@ -169,10 +169,11 @@ class Network {
     if (response.data == null || response.data is! String)
       return const Result();
     var resp = json.decode(response.data);
-    if (resp["code"] == null) return const Result();
+    final code = resp['code'];
+    if (code == null) return const Result();
     var result = Result(
-      code: resp["code"],
-      msg: resp["message"],
+      code: code,
+      msg: errorCodes[code] ?? '未知错误',
       data: resp["data"],
     );
     // 需要重新登录
@@ -189,3 +190,42 @@ class Network {
     return result;
   }
 }
+
+/// 服务器返回的错误码对应的文字
+const errorCodes = {
+  /// 失败
+  -1: '操作失败',
+
+  /// 成功
+  0: '操作成功',
+
+  /// refreshToken失效
+  10000: 'token失效，请重新登录',
+
+  /// token失效
+  10001: 'token失效，请重新登录',
+
+  /// 账号不能为空
+  10010: '账号不能为空',
+
+  /// 账号不存在
+  10011: '账号不存在',
+
+  /// 账号已存在
+  10012: '账号已存在',
+
+  /// 密码不能为空
+  10013: '密码不能为空',
+
+  /// 密码不正确
+  10014: '密码不正确',
+
+  /// 邮箱不能为空
+  10015: '邮箱不能为空',
+
+  /// 验证码不能为空
+  10016: '验证码不能为空',
+
+  /// 验证码不正确
+  10017: '验证码不正确'
+};

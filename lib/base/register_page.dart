@@ -114,7 +114,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 TextFormField(
                   decoration: InputDecoration(labelText: '验证码'),
                   maxLength: 6,
-                  onChanged: (text) => _account = text,
+                  onChanged: (text) => _vfCode = text,
                   validator: (text) => text.trim().isEmpty && _email.isNotEmpty
                       ? '请输入验证码'
                       : null,
@@ -167,6 +167,7 @@ class _RegisterPageState extends State<RegisterPage> {
         showToast(result.msg);
         return;
       }
+      showToast('注册成功');
       Navigator.pop(context);
     }
     return;

@@ -56,27 +56,6 @@ class _RetrievePwdPageState extends State<RetrievePwdPage> {
                   onChanged: (text) => _account = text,
                   validator: (text) => text.trim().isEmpty ? '请输入账号' : null,
                 ),
-                // 密码
-                TextFormField(
-                  obscureText: true,
-                  decoration: InputDecoration(labelText: '密码'),
-                  maxLength: 20,
-                  textInputAction: TextInputAction.next,
-                  onChanged: (text) => _pwd = text,
-                  validator: (text) => text.trim().isEmpty ? '请输入密码' : null,
-                ),
-                // 确认密码
-                TextFormField(
-                  obscureText: true,
-                  decoration: InputDecoration(labelText: '确认密码'),
-                  maxLength: 20,
-                  textInputAction: TextInputAction.next,
-                  validator: (text) {
-                    if (text.trim().isEmpty) return '请确认密码';
-                    if (text != _pwd) return '两次密码输入不一致';
-                    return null;
-                  },
-                ),
                 // 邮箱，发送验证码按钮
                 Row(
                   children: [
@@ -109,8 +88,29 @@ class _RetrievePwdPageState extends State<RetrievePwdPage> {
                 TextFormField(
                   decoration: InputDecoration(labelText: '验证码'),
                   maxLength: 6,
-                  onChanged: (text) => _account = text,
+                  onChanged: (text) => _vfCode = text,
                   validator: (text) => text.trim().isEmpty ? '请输入验证码' : null,
+                ),
+                // 密码
+                TextFormField(
+                  obscureText: true,
+                  decoration: InputDecoration(labelText: '新密码'),
+                  maxLength: 20,
+                  textInputAction: TextInputAction.next,
+                  onChanged: (text) => _pwd = text,
+                  validator: (text) => text.trim().isEmpty ? '请输入新密码' : null,
+                ),
+                // 确认密码
+                TextFormField(
+                  obscureText: true,
+                  decoration: InputDecoration(labelText: '确认新密码'),
+                  maxLength: 20,
+                  textInputAction: TextInputAction.next,
+                  validator: (text) {
+                    if (text.trim().isEmpty) return '请确认新密码';
+                    if (text != _pwd) return '两次密码输入不一致';
+                    return null;
+                  },
                 ),
                 // 确定按钮
                 Builder(
@@ -155,6 +155,7 @@ class _RetrievePwdPageState extends State<RetrievePwdPage> {
         showToast(result.msg);
         return;
       }
+      showToast('密码重置成功');
       Navigator.pop(context);
     }
     return;

@@ -7,7 +7,9 @@ import 'package:provider/provider.dart';
 import '../common/widgets.dart';
 import '../common/pub.dart';
 import '../common/models.dart';
+import '../common/extensions.dart';
 import 'api/api.dart' as api;
+import 'home_page.dart';
 import 'register_page.dart';
 import 'retrieve_pwd_page.dart';
 
@@ -20,7 +22,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   StreamController<bool> _loginBtnSc;
-  FocusScopeNode _focusScopeNode;
   String _account;
   String _pwd;
 
@@ -31,8 +32,13 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     _loginBtnSc = StreamController();
-    _focusScopeNode = FocusScopeNode();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _loginBtnSc.makeSureClosed();
+    super.dispose();
   }
 
   @override
@@ -40,60 +46,54 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(50.0, 100.0, 50.0, 50.0),
-        child: FocusScope(
-          node: _focusScopeNode,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              // logo
-              Padding(
-                padding: const EdgeInsets.only(bottom: 50.0),
-                child: FlutterLogo(size: 100.0),
-              ),
-              // 账号输入框
-              _InputWidget(
-                onChanged: (text) => _onTextChanged(account: text),
-                onSubmitted: () => _focusScopeNode.nextFocus(),
-              ),
-              // 密码输入框
-              _InputWidget(
-                onChanged: (text) => _onTextChanged(pwd: text),
-                flag: false,
-              ),
-              // 注册账号和找回密码
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  FlatButton(
-                    child: Text('注册账号'),
-                    onPressed: () =>
-                        Navigator.of(context).pushNamed(RegisterPage.routeName),
-                  ),
-                  FlatButton(
-                    child: Text('找回密码'),
-                    onPressed: () => Navigator.of(context)
-                        .pushNamed(RetrievePwdPage.routeName),
-                  ),
-                ],
-              ),
-              // 登录按钮
-              Padding(
-                padding: const EdgeInsets.only(top: 15.0),
-                child: StreamBuilder<bool>(
-                    initialData: false,
-                    stream: _loginBtnSc.stream,
-                    builder: (context, snapshot) {
-                      return ButtonWithIcon(
-                        text: '登录',
-                        backgroundColor: Theme.of(context).primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 15.0),
-                        onPressed: snapshot.data ? _onLoginClick : null,
-                      );
-                    }),
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            // logo
+            Padding(
+              padding: const EdgeInsets.only(bottom: 50.0),
+              child: FlutterLogo(size: 100.0),
+            ),
+            // 账号输入框
+            _InputWidget(onChanged: (text) => _onTextChanged(account: text)),
+            // 密码输入框
+            _InputWidget(
+              onChanged: (text) => _onTextChanged(pwd: text),
+              flag: false,
+            ),
+            // 注册账号和找回密码
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                FlatButton(
+                  child: Text('注册账号'),
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed(RegisterPage.routeName),
+                ),
+                FlatButton(
+                  child: Text('找回密码'),
+                  onPressed: () => Navigator.of(context)
+                      .pushNamed(RetrievePwdPage.routeName),
+                ),
+              ],
+            ),
+            // 登录按钮
+            Padding(
+              padding: const EdgeInsets.only(top: 15.0),
+              child: StreamBuilder<bool>(
+                  initialData: false,
+                  stream: _loginBtnSc.stream,
+                  builder: (context, snapshot) {
+                    return ButtonWithIcon(
+                      text: '登录',
+                      backgroundColor: Theme.of(context).primaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 15.0),
+                      onPressed: snapshot.data ? _onLoginClick : null,
+                    );
+                  }),
+            ),
+          ],
         ),
       ),
     );
@@ -120,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
     context.read<UserVM>().user = result.data;
-    Navigator.of(context).pushReplacementNamed('home');
+    Navigator.of(context).pushReplacementNamed(HomePage.routeName);
     return;
   }
 }

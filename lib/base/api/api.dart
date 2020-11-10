@@ -4,7 +4,7 @@ import '../../common/network.dart';
 
 /// 获取邮箱验证码
 Future<Result> getEmailVfCode(String email) async {
-  return await network.post('/get_vf_code', params: {'email': email});
+  return await network.get('/get_vf_code', params: {'email': email});
 }
 
 /// 注册
