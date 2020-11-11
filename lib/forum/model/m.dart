@@ -46,6 +46,19 @@ extension MediaTypeExt on MediaType {
         return 'unknow';
     }
   }
+
+  static MediaType fromName(String name) {
+    switch (name) {
+      case 'image':
+        return MediaType.image;
+      case 'video':
+        return MediaType.video;
+      case 'voice':
+        return MediaType.voice;
+      default:
+        return null;
+    }
+  }
 }
 
 /// 媒体对象

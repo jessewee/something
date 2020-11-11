@@ -201,20 +201,13 @@ List<Media> _mapMedias(data) {
   if (data is! Iterable) return [];
   return data
       .map<Media>((m) {
-        if (m['type'] == 'image') {
-          return Media(
-            type: MediaType.image,
-            url: m['url'] ?? '',
-            thumbUrl: m['thumb_url'] ?? '',
-          );
-        } else if (m['type' == 'video']) {
-          return Media(
-            type: MediaType.video,
-            url: m['url'] ?? '',
-            thumbUrl: m['thumb_url'] ?? '',
-          );
-        }
-        return null;
+        final type = MediaTypeExt.fromName(m['type']);
+        if (type == null) return null;
+        return Media(
+          type: type,
+          url: m['url'] ?? '',
+          thumbUrl: m['thumb_url'] ?? '',
+        );
       })
       .where((e) => e != null)
       .toList();
