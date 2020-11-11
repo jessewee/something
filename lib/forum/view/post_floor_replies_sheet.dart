@@ -8,20 +8,33 @@ import '../../common/pub.dart';
 import '../../common/widgets.dart';
 
 import '../model/post.dart';
-import '../view/post_base_item_content.dart';
+import 'post_base_item_content.dart';
 import '../vm/floor_vm.dart';
 import 'bottom_reply_bar.dart';
 
 /// 楼层回复列表页面，这个用showModalBottomSheet显示，不注册在页面路由里
-class PostFloorRepliesPage extends StatefulWidget {
+class PostFloorRepliesSheet extends StatefulWidget {
+  static Future show(BuildContext context, Floor floor) {
+    return showModalBottomSheet(
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(20.0),
+        ),
+      ),
+      context: context,
+      builder: (context) => PostFloorRepliesSheet(floor),
+    );
+  }
+
   final Floor floor;
-  PostFloorRepliesPage(this.floor);
+  PostFloorRepliesSheet(this.floor);
 
   @override
-  _PostFloorRepliesPageState createState() => _PostFloorRepliesPageState();
+  _PostFloorRepliesSheetState createState() => _PostFloorRepliesSheetState();
 }
 
-class _PostFloorRepliesPageState extends State<PostFloorRepliesPage> {
+class _PostFloorRepliesSheetState extends State<PostFloorRepliesSheet> {
   StreamControllerWithData<InnerFloor> _replyTarget;
   ScrollController _scrollController;
   bool _loading; // true:刷新、false:加载更多、null:不在加载状态

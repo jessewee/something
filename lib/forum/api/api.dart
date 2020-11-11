@@ -256,3 +256,16 @@ Future<Result<ReplyResultData>> reply({
     innerFloor: result.data['inner_floor'] ?? '',
   ));
 }
+
+/// 发帖，返回post_id
+Future<Result<ReplyResultData>> post({
+  String label,
+  String content,
+  List<String> mediaIds,
+}) async {
+  return await network.post('/forum/post', params: {
+    'label': label,
+    'text': content,
+    'medias': mediaIds,
+  });
+}

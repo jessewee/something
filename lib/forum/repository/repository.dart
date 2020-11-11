@@ -112,3 +112,12 @@ Future<Result<ReplyResultData>> reply({
     mediaIds: mediaIds,
   );
 }
+
+/// 发帖，返回post_id
+Future<Result<ReplyResultData>> post({
+  String label,
+  String content,
+  List<String> mediaIds,
+}) async {
+  return await api.post(label: label, content: content, mediaIds: mediaIds);
+}

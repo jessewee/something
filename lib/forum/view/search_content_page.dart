@@ -6,7 +6,7 @@ import '../../common/widgets.dart';
 /// 返回搜索内容，在上一页根据返回的搜索内容调用接口获取帖子列表
 /// 这一页主要是显示搜索历史
 class SearchContentPage extends StatefulWidget {
-  static const routeName = 'search_content_page';
+  static const routeName = '/forum/search_content_page';
 
   @override
   _SearchContentPageState createState() => _SearchContentPageState();

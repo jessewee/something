@@ -9,7 +9,7 @@ import '../model/m.dart';
 import '../repository/repository.dart' as repository;
 
 class SelectFollowingPage extends StatefulWidget {
-  static const routeName = 'select_following_page';
+  static const routeName = '/forum/select_following_page';
   final bool singleSelect;
   const SelectFollowingPage({this.singleSelect = false});
   @override

@@ -12,7 +12,7 @@ import '../../common/view_images.dart';
 import '../model/m.dart';
 import '../model/post.dart';
 import '../other/iconfont.dart';
-import '../view/post_floor_replies_page.dart';
+import 'post_floor_replies_sheet.dart';
 import '../view/user_page.dart';
 import '../vm/extensions.dart';
 
@@ -186,16 +186,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
           // 查看回复按钮，有可能会返回新数量
           ? () async {
               final floor = widget.postBase as Floor;
-              final result = await showModalBottomSheet(
-                isScrollControlled: true,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(20.0),
-                  ),
-                ),
-                context: context,
-                builder: (context) => PostFloorRepliesPage(floor),
-              );
+              final result = await PostFloorRepliesSheet.show(context, floor);
               if (result != null && result is int) {
                 floor.replyCnt = result;
                 _replyCntStreamController?.send(null);
