@@ -9,7 +9,7 @@ import '../../common/play_video_page.dart';
 import '../../common/view_images.dart';
 import '../../common/widgets.dart';
 
-import '../model/media.dart';
+import '../model/m.dart';
 import '../model/post.dart';
 import '../other/iconfont.dart';
 import '../view/post_detail_page.dart';
@@ -172,7 +172,7 @@ class _PostItemState extends State<PostItem> {
   // 构建图片或者视频Widget
   Widget _buildMedia(Media media, int cnt) {
     Widget w;
-    if (media is ImageMedia) {
+    if (media.type == MediaType.image) {
       w = AspectRatio(
         aspectRatio: 1,
         child: ImageWithUrl(
@@ -181,13 +181,13 @@ class _PostItemState extends State<PostItem> {
           onPressed: () => _viewMediaImages(media),
         ),
       );
-    } else if (media is VideoMedia) {
+    } else if (media.type == MediaType.video) {
       w = AspectRatio(
         aspectRatio: 1.75,
         child: Stack(
           alignment: Alignment.center,
           children: <Widget>[
-            ImageWithUrl(media.coverUrl, fit: BoxFit.cover).positioned(),
+            ImageWithUrl(media.thumbUrl, fit: BoxFit.cover).positioned(),
             IconButton(
               icon: Icon(Icons.play_circle_outline),
               color: Colors.white,
@@ -212,8 +212,9 @@ class _PostItemState extends State<PostItem> {
   }
 
   // 查看图片
-  void _viewMediaImages(ImageMedia cur) {
-    final images = widget.post.medias.whereType<ImageMedia>().toList();
+  void _viewMediaImages(Media cur) {
+    final images =
+        widget.post.medias.where((m) => m.type == MediaType.image).toList();
     final idx = images.indexOf(cur);
     viewImages(context, images.map((e) => e.url).toList(), max(0, idx));
   }

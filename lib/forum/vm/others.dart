@@ -19,6 +19,7 @@ class PostsFilter {
 
 /// 楼层返回数据
 class FloorResultData extends DataWidthPageInfo<Floor> {
+  /// 楼层数量和数据数量不一样，因为有楼层删除的情况
   final int totalFloorCnt;
 
   FloorResultData(

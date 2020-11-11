@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../common/models.dart';
 
 /// 社区用户信息
@@ -26,4 +28,33 @@ class ForumUser extends User {
           birthday: birthday,
           registerDate: registerDate,
         );
+}
+
+/// 类型
+enum MediaType { image, video, voice }
+
+extension MediaTypeExt on MediaType {
+  String get name {
+    switch (index) {
+      case 0:
+        return 'image';
+      case 1:
+        return 'video';
+      case 2:
+        return 'voice';
+      default:
+        return 'unknow';
+    }
+  }
+}
+
+/// 媒体对象
+class Media {
+  final MediaType type;
+  final String url;
+
+  /// 图片缩略图或者视频封面
+  final String thumbUrl;
+
+  const Media({@required this.type, @required this.url, this.thumbUrl = ''});
 }

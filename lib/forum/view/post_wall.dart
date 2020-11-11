@@ -5,7 +5,6 @@ import '../../common/post_wall_widget.dart';
 import '../../common/pub.dart';
 import '../../common/widgets.dart';
 
-import '../model/media.dart';
 import '../model/post.dart';
 import '../view/post_detail_page.dart';
 import '../vm/extensions.dart';
@@ -49,17 +48,11 @@ class PostWall extends StatelessWidget {
   // 墙上的内容显示
   Widget _buildPostWallWidget(BuildContext context) {
     final items = posts.map((post) {
-      var imgUrl = '';
       final tmp = post.medias.isNotEmpty ? post.medias.first : null;
-      if (tmp is ImageMedia) {
-        imgUrl = tmp.thumbUrl;
-      } else if (tmp is VideoMedia) {
-        imgUrl = tmp.coverUrl;
-      }
       return PostWallItem(
         id: post.id,
         content: post.content,
-        imgUrl: imgUrl,
+        imgUrl: tmp?.thumbUrl ?? '',
       );
     }).toList();
     final menus = [

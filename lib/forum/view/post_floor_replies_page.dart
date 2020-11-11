@@ -66,6 +66,7 @@ class _PostFloorRepliesPageState extends State<PostFloorRepliesPage> {
             child: Stack(
               alignment: Alignment.center,
               children: <Widget>[
+                // ignore: unnecessary_brace_in_string_interps
                 Text('${_vm.floor.floor}楼的${titlePart}回复'),
                 IconButton(
                   icon: Icon(Icons.close),

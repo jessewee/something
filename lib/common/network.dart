@@ -89,7 +89,7 @@ class Network {
   /// GET请求 [tag]用来标记请求，取消时用到，比如离开页面时取消网络请求
   Future<Result> get(
     String path, {
-    Map<String, dynamic> params = const {},
+    Map params = const {},
     String tag,
   }) async {
     Response<String> response = await _dio.get(
@@ -106,10 +106,21 @@ class Network {
   }
 
   /// POST请求
-  Future<Result> post(String path, {var params = const {}, String tag}) async {
+  Future<Result> post(
+    String path, {
+    Map params = const {},
+    List<String> filePaths = const [],
+    String tag,
+  }) async {
+    final formData = FormData.fromMap(params);
+    for (int i = 0; i < filePaths.length; i++) {
+      formData.files.add(
+        MapEntry(i.toString(), await MultipartFile.fromFile(filePaths[i])),
+      );
+    }
     Response response = await _dio.post(
       path,
-      data: FormData.fromMap(params),
+      data: formData,
       cancelToken: _getCancelTokenByTag(tag),
     );
     var result = await toResult(response);
@@ -121,7 +132,11 @@ class Network {
   }
 
   /// PUT请求
-  Future<Result> put(String path, {var params = const {}, String tag}) async {
+  Future<Result> put(
+    String path, {
+    Map params = const {},
+    String tag,
+  }) async {
     Response response = await _dio.put(
       path,
       data: FormData.fromMap(params),
@@ -136,8 +151,11 @@ class Network {
   }
 
   /// DELETE请求
-  Future<Result> delete(String path,
-      {Map<String, dynamic> params = const {}, String tag}) async {
+  Future<Result> delete(
+    String path, {
+    Map params = const {},
+    String tag,
+  }) async {
     Response response = await _dio.delete(
       path,
       queryParameters: params,

@@ -9,7 +9,7 @@ import '../../common/extensions.dart';
 import '../../common/pub.dart';
 import '../../common/view_images.dart';
 
-import '../model/media.dart';
+import '../model/m.dart';
 import '../model/post.dart';
 import '../other/iconfont.dart';
 import '../view/post_floor_replies_page.dart';
@@ -260,22 +260,21 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     if (medias.isEmpty) return null;
     final list = <Widget>[];
     for (final m in medias) {
-      if (m is ImageMedia) {
-        list.add(AspectRatio(
-          aspectRatio: m.width / m.height,
-          child: ImageWithUrl(
+      if (m.type == MediaType.image) {
+        list.add(
+          ImageWithUrl(
             m.thumbUrl,
             fit: BoxFit.cover,
             onPressed: () => _viewMediaImages(context, m, medias),
           ),
-        ));
-      } else if (m is VideoMedia) {
+        );
+      } else if (m.type == MediaType.video) {
         list.add(AspectRatio(
           aspectRatio: 1.75,
           child: Stack(
             alignment: Alignment.center,
             children: <Widget>[
-              ImageWithUrl(m.coverUrl, fit: BoxFit.cover).positioned(),
+              ImageWithUrl(m.thumbUrl, fit: BoxFit.cover).positioned(),
               IconButton(
                 icon: Icon(Icons.play_circle_outline),
                 color: Colors.white,
@@ -298,10 +297,10 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
 // 查看图片
   void _viewMediaImages(
     BuildContext context,
-    ImageMedia cur,
+    Media cur,
     List<Media> medias,
   ) {
-    final images = medias.whereType<ImageMedia>().toList();
+    final images = medias.where((m) => m.type == MediaType.image).toList();
     final idx = images.indexOf(cur);
     viewImages(context, images.map((e) => e.url).toList(), max(0, idx));
   }

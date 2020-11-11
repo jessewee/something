@@ -1,27 +1,80 @@
-import 'package:something/forum/model/media.dart';
-
 import '../../common/network.dart';
-import '../../common/models.dart';
 import '../../common/pub.dart';
-import '../../test_generator.dart';
 import '../model/post.dart';
+import '../model/m.dart';
 import '../vm/others.dart';
 
 /// 上传文件
 Future<Result> upload(
   String path,
-  FileType type, {
-  Function(double) onProgress,
+  MediaType type, {
   String tag,
 }) async {
-  // TODO
-  await Future.delayed(Duration(seconds: 1));
-  return Future.value(Result.success({
-    'url': TestGenerator.generateImg(),
-    'thumbUrl': TestGenerator.generateImg(),
-    'width': TestGenerator.generateNumber(100),
-    'height': TestGenerator.generateNumber(100),
-  }));
+  return await network.post(
+    '/upload',
+    params: {'type': type.name},
+    filePaths: [path],
+    tag: tag,
+  );
+}
+
+/// 获取关注人列表
+Future<Result<List<ForumUser>>> getFollowings(String searchContent) async {
+  final result = await network.get(
+    '/forum/get_followings',
+    params: {'search_content': searchContent},
+  );
+  if (result.fail) return result;
+  return Result.success(result.data
+      .map<ForumUser>((e) => ForumUser(
+            id: e['id'] ?? '',
+            name: e['name'] ?? '',
+            avatar: e['avatar'] ?? '',
+            avatarThumb: e['avatar_thumb'] ?? '',
+            gender: e['gender'] ?? '',
+            birthday: e['birthday'] ?? '',
+            registerDate: e['register_date'] ?? '',
+            followerCount: e['follower_count'] ?? 0,
+            followingCount: e['following_count'] ?? 0,
+            followed: true,
+          ))
+      .toList());
+}
+
+/// 关注用户
+Future<Result> follow(String userId, bool follow) async {
+  return await network.put(
+    '/forum/follow',
+    params: {'user_id': userId, 'follow': follow},
+  );
+}
+
+/// 获取帖子标签列表
+Future<Result<List<String>>> getPostLabels(String searchContent) async {
+  final result = await network.get(
+    '/forum/get_post_labels',
+    params: {'search_content': searchContent},
+  );
+  if (result.fail) return result;
+  return Result.success(result.data.toList());
+}
+
+/// 帖子点赞
+Future<Result> changeLikeState({
+  String postId,
+  String floorId,
+  String innerFloorId,
+  bool like,
+}) async {
+  return await network.put(
+    '/forum/change_like_state',
+    params: {
+      'post_id': postId,
+      'floor_id': floorId,
+      'inner_floor_id': innerFloorId,
+      'like': like
+    },
+  );
 }
 
 /// 获取帖子列表
@@ -30,14 +83,17 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts(
   int dataPageSize,
   PostsFilter filter,
 ) async {
-  final result = await network.get('/forum/get_posts', params: {
-    'data_idx': dataIdx,
-    'data_count': dataPageSize,
-    'sort_by': filter.sortBy,
-    'search_content': filter.searchContent,
-    'labels': filter.labels.join(','),
-    'users': filter.users.map((u) => u.id).join(',')
-  });
+  final result = await network.get(
+    '/forum/get_posts',
+    params: {
+      'data_idx': dataIdx,
+      'data_count': dataPageSize,
+      'sort_by': filter.sortBy,
+      'search_content': filter.searchContent,
+      'labels': filter.labels.join(','),
+      'users': filter.users.map((u) => u.id).join(',')
+    },
+  );
   if (result.fail) return result;
   final list = result.data['list']
       .map<Post>((e) => Post(
@@ -54,22 +110,7 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts(
             replyCnt: e['reply_count'] ?? 0,
             myAttitude: e['attitude'] ?? 0,
             posterFollowed: e['poster_followed'] == true,
-            medias: e['medias']
-                .map<Media>((m) {
-                  if (m['type'] == 'image') {
-                    return ImageMedia(
-                            thumbUrl: m['thumb_url'] ?? '',
-                            url: m['url'] ?? '',
-                            width: m['width'] ?? 50,
-                            height: m['height']) ??
-                        50;
-                  } else if (m['type' == 'video']) {
-                    return VideoMedia(m['thumb_url'] ?? '', m['url'] ?? '');
-                  }
-                  return null;
-                })
-                .where((e) => e != null)
-                .toList(),
+            medias: _mapMedias(e['medias']),
           ))
       .toList();
   return Result.success(DataWidthPageInfo(
@@ -77,4 +118,132 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts(
       result.data['total_count'] ?? list.length,
       result.data['last_data_index'],
       list.length));
+}
+
+/// 获取帖子内的楼层列表，dataIdx和floorStartIdx不是一个意思，因为有可能有的楼层被删了，这时dataIdx和floorStartIdx的值不一样
+Future<Result<FloorResultData>> getFloors({
+  int dataIdx,
+  int dataPageSize = 100,
+  int floorStartIdx,
+  int floorEndIdx,
+}) async {
+  final result = await network.get(
+    '/forum/get_floors',
+    params: {
+      'data_idx': dataIdx,
+      'data_count': dataPageSize,
+      'floor_start_idx': floorStartIdx,
+      'floor_end_idx': floorEndIdx,
+    },
+  );
+  if (result.fail) return result;
+  final list = result.data['list']
+      .map<Floor>((e) => Floor(
+            id: e['id'] ?? '',
+            posterId: e['poster_id'] ?? '',
+            avatar: e['avatar'] ?? '',
+            avatarThumb: e['avatar_thumb'] ?? '',
+            name: e['name'] ?? '',
+            date: e['date'] ?? '',
+            content: e['content'] ?? '',
+            replyCnt: e['reply_count'] ?? 0,
+            likeCnt: e['like_count'] ?? 0,
+            myAttitude: e['attitude'] ?? 0,
+            medias: _mapMedias(e['medias']),
+            floor: e['floor'],
+          ))
+      .toList();
+  return Result.success(FloorResultData(
+      list,
+      result.data['total_count'] ?? list.length,
+      result.data['last_data_index'],
+      list.length,
+      // 楼层数量和数据数量不一样，因为有楼层删除的情况
+      result.data['total_floor_count'] ?? list.length));
+}
+
+/// 获取层内回复列表
+Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
+  int dataIdx,
+  int dataPageSize = 100,
+}) async {
+  final result = await network.get(
+    '/forum/get_innser_floors',
+    params: {'data_idx': dataIdx, 'data_count': dataPageSize},
+  );
+  if (result.fail) return result;
+  final list = result.data['list']
+      .map<InnerFloor>((e) => InnerFloor(
+            id: e['id'] ?? '',
+            posterId: e['poster_id'] ?? '',
+            avatar: e['avatar'] ?? '',
+            avatarThumb: e['avatar_thumb'] ?? '',
+            name: e['name'] ?? '',
+            date: e['date'] ?? '',
+            content: e['content'] ?? '',
+            likeCnt: e['like_count'] ?? 0,
+            myAttitude: e['attitude'] ?? 0,
+            medias: _mapMedias(e['medias']),
+            innerFloor: e['innser_floor'],
+            targetId: e['target_id'],
+            targetName: e['target_name'],
+          ))
+      .toList();
+  return Result.success(DataWidthPageInfo<InnerFloor>(
+      list,
+      result.data['total_count'] ?? list.length,
+      result.data['last_data_index'],
+      list.length));
+}
+
+// 转换Media
+List<Media> _mapMedias(data) {
+  if (data is! Iterable) return [];
+  return data
+      .map<Media>((m) {
+        if (m['type'] == 'image') {
+          return Media(
+            type: MediaType.image,
+            url: m['url'] ?? '',
+            thumbUrl: m['thumb_url'] ?? '',
+          );
+        } else if (m['type' == 'video']) {
+          return Media(
+            type: MediaType.video,
+            url: m['url'] ?? '',
+            thumbUrl: m['thumb_url'] ?? '',
+          );
+        }
+        return null;
+      })
+      .where((e) => e != null)
+      .toList();
+}
+
+/// 回复
+/// 回复楼主，返回值floorId、floor
+/// 回复层主，返回值innerFloorId、innerFloor
+/// 层内回复，返回值innerFloorId、innerFloor、targetId、targetName（如果target是层主的话这两个参数没有值）
+Future<Result> reply({
+  String postId,
+  String floorId,
+  String innerFloorId,
+  String content,
+  List<Media> medias,
+}) async {
+  return await network.post('/forum/reply', params: {
+    'post_id': postId,
+    'floor_id': floorId,
+    'inner_floor_id': innerFloorId,
+    'content': content,
+    'medias': medias
+        .map(
+          (e) => {
+            'type': e.type.name,
+            'url': e.url,
+            'thumb_url': e.thumbUrl,
+          },
+        )
+        .toList(),
+  });
 }

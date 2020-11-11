@@ -3,8 +3,18 @@ import 'package:flutter/foundation.dart';
 /// 性别
 enum Gender { unknown, male, female }
 
-/// 上传文件的类型
-enum FileType { image, video, other }
+extension GenderExt on Gender {
+  String get name {
+    switch (index) {
+      case 1:
+        return 'male';
+      case 2:
+        return 'female';
+      default:
+        return 'unknow';
+    }
+  }
+}
 
 /// 用户信息
 class User {

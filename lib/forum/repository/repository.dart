@@ -1,11 +1,5 @@
-import 'dart:math';
-
-import '../../common/models.dart';
 import '../../common/pub.dart';
-import '../../test_generator.dart';
-
 import '../model/m.dart';
-import '../model/media.dart';
 import '../model/post.dart';
 import '../vm/others.dart';
 import '../api/api.dart' as api;
@@ -14,35 +8,12 @@ import '../api/api.dart' as api;
 
 /// 获取关注人列表
 Future<Result<List<ForumUser>>> getFollowings(String searchContent) async {
-  // TODO
-  return Result.success(
-    List.generate(
-      TestGenerator.generateNumber(100),
-      (index) => ForumUser(
-        id: TestGenerator.generateId(10),
-        name: TestGenerator.generateChinese(20),
-        avatar: TestGenerator.generateImg(),
-        avatarThumb: TestGenerator.generateImg(),
-        gender: Random.secure().nextBool() ? Gender.male : Gender.female,
-        birthday: TestGenerator.generateDate(),
-        registerDate: TestGenerator.generateDate(),
-        followerCount: TestGenerator.generateNumber(9999),
-        followingCount: TestGenerator.generateNumber(9999),
-        followed: Random.secure().nextBool(),
-      ),
-    ),
-  );
+  return await api.getFollowings(searchContent);
 }
 
 /// 获取帖子标签列表
 Future<Result<List<String>>> getPostLabels(String searchContent) async {
-  // TODO
-  return Result.success(
-    List.generate(
-      TestGenerator.generateNumber(100),
-      (index) => TestGenerator.generateChinese(10),
-    ),
-  );
+  return await api.getPostLabels(searchContent);
 }
 
 /// 获取帖子列表
@@ -56,10 +27,7 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts({
 
 /// 关注用户
 Future<Result> follow(String userId, bool follow) async {
-  // TODO
-  await Future.delayed(Duration(seconds: 1));
-//    return Random.secure().nextBool() ? Result.success() : Result(msg: '随便出错');
-  return Result.success();
+  return await api.follow(userId, follow);
 }
 
 /// 点赞 [like] null 表示中立
@@ -69,13 +37,19 @@ Future<Result> changeLikeState({
   String innerFloorId,
   bool like,
 }) async {
-  // TODO
-  await Future.delayed(Duration(seconds: 1));
-//    return Random.secure().nextBool() ? Result.success() : Result(msg: '随便出错');
-  return Result.success();
+  assert(
+    postId != null || floorId != null || innerFloorId != null,
+    'changeLikeState---postId、floorId和innerFloorId必须传一个',
+  );
+  return await api.changeLikeState(
+    postId: postId,
+    floorId: floorId,
+    innerFloorId: innerFloorId,
+    like: like,
+  );
 }
 
-/// 获取帖子内的楼层列表
+/// 获取帖子内的楼层列表，dataIdx和floorStartIdx不是一个意思，因为有可能有的楼层被删了，这时dataIdx和floorStartIdx的值不一样
 Future<Result<FloorResultData>> getFloors({
   int dataIdx,
   int dataPageSize = 100,
@@ -84,41 +58,13 @@ Future<Result<FloorResultData>> getFloors({
 }) async {
   assert(
     dataIdx != null || (floorStartIdx != null && floorEndIdx != null),
-    'getFloors---dataIdx和floorIdx必须传其中一个',
+    'getFloors---dataIdx和floorIdx必须传一个',
   );
-  // TODO
-  await Future.delayed(Duration(seconds: 3));
-  return Result.success(
-    FloorResultData(
-      List.generate(
-        dataPageSize,
-        (index) => Floor(
-          id: (dataIdx + index).toString(),
-          posterId: TestGenerator.generateId(12),
-          avatar: TestGenerator.generateImg(),
-          avatarThumb: TestGenerator.generateImg(),
-          name: TestGenerator.generateChinese(20),
-          date: TestGenerator.generateDate(),
-          content: TestGenerator.generateChinese(500),
-          replyCnt: TestGenerator.generateNumber(9999),
-          likeCnt: TestGenerator.generateNumber(9999),
-          myAttitude: TestGenerator.generateNumber(1, -1),
-          medias: TestGenerator.generateImgs()
-              .map((e) => ImageMedia(
-                    thumbUrl: e,
-                    url: TestGenerator.generateImg(),
-                    width: TestGenerator.generateNumber(100, 50),
-                    height: TestGenerator.generateNumber(100, 50),
-                  ))
-              .toList(),
-          floor: index,
-        ),
-      ),
-      TestGenerator.generateNumber(9999),
-      dataIdx,
-      dataPageSize,
-      TestGenerator.generateNumber(9999),
-    ),
+  return await api.getFloors(
+    dataIdx: dataIdx,
+    dataPageSize: dataPageSize,
+    floorStartIdx: floorStartIdx,
+    floorEndIdx: floorEndIdx,
   );
 }
 
@@ -127,82 +73,33 @@ Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
   int dataIdx,
   int dataPageSize = 100,
 }) async {
-  // TODO
-  await Future.delayed(Duration(seconds: 3));
-  return Result.success(
-    DataWidthPageInfo<InnerFloor>(
-      List.generate(
-        dataPageSize,
-        (index) => InnerFloor(
-          id: (dataIdx + index).toString(),
-          posterId: TestGenerator.generateId(12),
-          avatar: TestGenerator.generateImg(),
-          avatarThumb: TestGenerator.generateImg(),
-          name: TestGenerator.generateChinese(20),
-          date: TestGenerator.generateDate(),
-          content: TestGenerator.generateChinese(500),
-          likeCnt: TestGenerator.generateNumber(9999),
-          myAttitude: TestGenerator.generateNumber(1, -1),
-          medias: TestGenerator.generateImgs()
-              .map((e) => ImageMedia(
-                    thumbUrl: e,
-                    url: TestGenerator.generateImg(),
-                    width: TestGenerator.generateNumber(100, 50),
-                    height: TestGenerator.generateNumber(100, 50),
-                  ))
-              .toList(),
-          innerFloor: index,
-          targetId: TestGenerator.generateChinese(20),
-          targetName: TestGenerator.generateChinese(20),
-        ),
-      ),
-      TestGenerator.generateNumber(9999),
-      dataIdx,
-      dataPageSize,
-    ),
-  );
+  return await api.getInnerFloors(dataIdx: dataIdx, dataPageSize: dataPageSize);
 }
 
+/// 回复
 /// 回复楼主，返回值floorId、floor
-Future<Result<Map<String, Object>>> replyPost(
-  String postId,
-  String content,
-  List<Media> medias,
-) async {
-  // TODO
-  await Future.delayed(Duration(seconds: 3));
-  return Result.success({
-    'floorId': TestGenerator.generateId(10),
-    'floor': TestGenerator.generateNumber(9999),
-  });
-}
-
 /// 回复层主，返回值innerFloorId、innerFloor
-Future<Result<Map<String, Object>>> replyFloor(
-  String floorId,
-  String content,
-  List<Media> medias,
-) async {
-  // TODO
-  await Future.delayed(Duration(seconds: 3));
-  return Result.success({
-    'innerFloorId': TestGenerator.generateId(10),
-    'innerFloor': TestGenerator.generateNumber(9999),
-  });
-}
-
 /// 层内回复，返回值innerFloorId、innerFloor、targetId、targetName（如果target是层主的话这两个参数没有值）
-Future<Result<Map<String, Object>>> replyInnerFloor(
+Future<Result> reply({
+  String postId,
+  String floorId,
   String innerFloorId,
   String content,
   List<Media> medias,
-) async {
-  // TODO
-  await Future.delayed(Duration(seconds: 3));
-  return Result.success({
-    'innerFloorId': TestGenerator.generateId(10),
-    'innerFloor': TestGenerator.generateNumber(9999),
-    'targetId': TestGenerator.generateId(10),
-    'targetName': TestGenerator.generateChinese(10),
-  });
+}) async {
+  assert(
+    postId != null || floorId != null || innerFloorId != null,
+    'reply---postId、floorId和innerFloorId必须传一个',
+  );
+  assert(
+    content?.isNotEmpty == true || medias?.isNotEmpty == true,
+    'reply---content和medias必须传一个',
+  );
+  return await api.reply(
+    postId: postId,
+    floorId: floorId,
+    innerFloorId: innerFloorId,
+    content: content,
+    medias: medias,
+  );
 }

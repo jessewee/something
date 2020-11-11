@@ -15,7 +15,6 @@ import '../../common/extensions.dart';
 
 import '../api/api.dart' as api;
 import '../model/m.dart';
-import '../model/media.dart';
 import '../model/post.dart';
 import '../repository/repository.dart' as repository;
 import '../view/select_following_page.dart';
@@ -198,7 +197,11 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
   Future<bool> _doSubmit(String text, List<Media> medias) async {
     // 回复楼主
     if (widget.postId?.isNotEmpty == true) {
-      final result = await repository.replyPost(widget.postId, text, medias);
+      final result = await repository.reply(
+        postId: widget.postId,
+        content: text,
+        medias: medias,
+      );
       if (result.fail) {
         showToast(result.msg);
         return false;
@@ -222,7 +225,11 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
     }
     // 回复层主
     if (widget.floorId?.isNotEmpty == true) {
-      final result = await repository.replyFloor(widget.floorId, text, medias);
+      final result = await repository.reply(
+        floorId: widget.floorId,
+        content: text,
+        medias: medias,
+      );
       if (result.fail) {
         showToast(result.msg);
         return false;
@@ -246,8 +253,11 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
     }
     // 层内回复
     if (widget.innerFloorId?.isNotEmpty == true) {
-      final result =
-          await repository.replyInnerFloor(widget.innerFloorId, text, medias);
+      final result = await repository.reply(
+        innerFloorId: widget.innerFloorId,
+        content: text,
+        medias: medias,
+      );
       if (result.fail) {
         showToast(result.msg);
         return false;
@@ -527,27 +537,30 @@ class __LongReplyPageState extends State<_LongReplyPage> {
     // 图片
     if (imgPaths?.isNotEmpty == true) {
       for (int i = 0; i < imgPaths.length; i++) {
-        Result result = await api.upload(imgPaths[i], FileType.image);
+        Result result = await api.upload(imgPaths[i], MediaType.image);
         if (result.fail) {
           showToast('第${i + 1}张图片上传失败');
           return;
         }
-        medias.add(ImageMedia(
-          thumbUrl: result.data['thumbUrl'],
+        medias.add(Media(
+          type: MediaType.image,
           url: result.data['url'],
-          width: result.data['width'],
-          height: result.data['height'],
+          thumbUrl: result.data['thumbUrl'],
         ));
       }
     }
     // 视频
     if (videoPath?.isNotEmpty == true) {
-      Result result = await api.upload(videoPath, FileType.video);
+      Result result = await api.upload(videoPath, MediaType.video);
       if (result.fail) {
         showToast('视频上传失败');
         return;
       }
-      medias.add(VideoMedia(result.data['thumbUrl'], result.data['url']));
+      medias.add(Media(
+        type: MediaType.video,
+        url: result.data['url'],
+        thumbUrl: result.data['thumbUrl'],
+      ));
     }
     final sendResult = await widget.onSend(_controller.text, medias);
     if (sendResult) Navigator.pop(context);

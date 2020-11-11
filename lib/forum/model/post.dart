@@ -1,4 +1,4 @@
-import 'media.dart';
+import 'm.dart';
 
 /// 帖子、动态、回复的基类
 class PostBase {
