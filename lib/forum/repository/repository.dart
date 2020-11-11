@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../common/pub.dart';
 import '../model/m.dart';
 import '../model/post.dart';
@@ -51,6 +53,7 @@ Future<Result> changeLikeState({
 
 /// 获取帖子内的楼层列表，dataIdx和floorStartIdx不是一个意思，因为有可能有的楼层被删了，这时dataIdx和floorStartIdx的值不一样
 Future<Result<FloorResultData>> getFloors({
+  @required String postId,
   int dataIdx,
   int dataPageSize = 100,
   int floorStartIdx,
@@ -61,6 +64,7 @@ Future<Result<FloorResultData>> getFloors({
     'getFloors---dataIdx和floorIdx必须传一个',
   );
   return await api.getFloors(
+    postId: postId,
     dataIdx: dataIdx,
     dataPageSize: dataPageSize,
     floorStartIdx: floorStartIdx,
@@ -70,29 +74,34 @@ Future<Result<FloorResultData>> getFloors({
 
 /// 获取楼层内的回复列表
 Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
+  @required String floorId,
   int dataIdx,
   int dataPageSize = 100,
 }) async {
-  return await api.getInnerFloors(dataIdx: dataIdx, dataPageSize: dataPageSize);
+  return await api.getInnerFloors(
+    floorId: floorId,
+    dataIdx: dataIdx,
+    dataPageSize: dataPageSize,
+  );
 }
 
 /// 回复
-/// 回复楼主，返回值floorId、floor
-/// 回复层主，返回值innerFloorId、innerFloor
-/// 层内回复，返回值innerFloorId、innerFloor、targetId、targetName（如果target是层主的话这两个参数没有值）
-Future<Result> reply({
+/// 回复楼主，返回值floor_id、floor
+/// 回复层主，返回值inner_floor_id、inner_floor
+/// 层内回复，返回值inner_floor_id、inner_floor、target_id、target_name（如果target是层主的话这两个参数没有值）
+Future<Result<ReplyResultData>> reply({
   String postId,
   String floorId,
   String innerFloorId,
   String content,
-  List<Media> medias,
+  List<String> mediaIds,
 }) async {
   assert(
     postId != null || floorId != null || innerFloorId != null,
     'reply---postId、floorId和innerFloorId必须传一个',
   );
   assert(
-    content?.isNotEmpty == true || medias?.isNotEmpty == true,
+    content?.isNotEmpty == true || mediaIds?.isNotEmpty == true,
     'reply---content和medias必须传一个',
   );
   return await api.reply(
@@ -100,6 +109,6 @@ Future<Result> reply({
     floorId: floorId,
     innerFloorId: innerFloorId,
     content: content,
-    medias: medias,
+    mediaIds: mediaIds,
   );
 }

@@ -200,17 +200,15 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
       final result = await repository.reply(
         postId: widget.postId,
         content: text,
-        medias: medias,
+        mediaIds: medias.map((e) => e.id).toList(),
       );
       if (result.fail) {
         showToast(result.msg);
         return false;
       }
       final loginUser = context.read<UserVM>();
-      final floorId = result.data['floorId'];
-      final floor = result.data['floor'];
       widget.onReplied(Floor(
-        id: floorId,
+        id: result.data.floorId,
         posterId: loginUser.user.id,
         avatar: loginUser.user.avatar,
         avatarThumb: loginUser.user.avatarThumb,
@@ -218,7 +216,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         date: DateTime.now().format(),
         content: text,
         medias: medias,
-        floor: floor,
+        floor: result.data.floor,
       ));
       _controller.text = '';
       return true;
@@ -228,17 +226,15 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
       final result = await repository.reply(
         floorId: widget.floorId,
         content: text,
-        medias: medias,
+        mediaIds: medias.map((e) => e.id).toList(),
       );
       if (result.fail) {
         showToast(result.msg);
         return false;
       }
       final loginUser = context.read<UserVM>();
-      final innerFloorId = result.data['innerFloorId'];
-      final innerFloor = result.data['innerFloor'];
       widget.onReplied(InnerFloor(
-        id: innerFloorId,
+        id: result.data.innerFloorId,
         posterId: loginUser.user.id,
         avatar: loginUser.user.avatar,
         avatarThumb: loginUser.user.avatarThumb,
@@ -246,7 +242,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         date: DateTime.now().format(),
         content: text,
         medias: medias,
-        innerFloor: innerFloor,
+        innerFloor: result.data.innerFloor,
       ));
       _controller.text = '';
       return true;
@@ -256,17 +252,15 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
       final result = await repository.reply(
         innerFloorId: widget.innerFloorId,
         content: text,
-        medias: medias,
+        mediaIds: medias.map((e) => e.id).toList(),
       );
       if (result.fail) {
         showToast(result.msg);
         return false;
       }
       final loginUser = context.read<UserVM>();
-      final innerFloorId = result.data['innerFloorId'];
-      final innerFloor = result.data['innerFloor'];
       widget.onReplied(InnerFloor(
-        id: innerFloorId,
+        id: result.data.innerFloorId,
         posterId: loginUser.user.id,
         avatar: loginUser.user.avatar,
         avatarThumb: loginUser.user.avatarThumb,
@@ -274,7 +268,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         date: DateTime.now().format(),
         content: text,
         medias: medias,
-        innerFloor: innerFloor,
+        innerFloor: result.data.innerFloor,
         targetId: widget.targetId ?? '',
         targetName: widget.targetName ?? '',
       ));
@@ -289,7 +283,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
 class _LongReplyPage extends StatefulWidget {
   final String defaultText;
 
-  /// 发送
+  /// 发送，参数是文字内容和图片视频列表
   final Future<bool> Function(String, List<Media>) onSend;
 
   const _LongReplyPage({this.defaultText, this.onSend});
@@ -537,30 +531,22 @@ class __LongReplyPageState extends State<_LongReplyPage> {
     // 图片
     if (imgPaths?.isNotEmpty == true) {
       for (int i = 0; i < imgPaths.length; i++) {
-        Result result = await api.upload(imgPaths[i], MediaType.image);
+        final result = await api.upload(imgPaths[i], MediaType.image);
         if (result.fail) {
           showToast('第${i + 1}张图片上传失败');
           return;
         }
-        medias.add(Media(
-          type: MediaType.image,
-          url: result.data['url'],
-          thumbUrl: result.data['thumbUrl'],
-        ));
+        medias.add(result.data);
       }
     }
     // 视频
     if (videoPath?.isNotEmpty == true) {
-      Result result = await api.upload(videoPath, MediaType.video);
+      final result = await api.upload(videoPath, MediaType.video);
       if (result.fail) {
         showToast('视频上传失败');
         return;
       }
-      medias.add(Media(
-        type: MediaType.video,
-        url: result.data['url'],
-        thumbUrl: result.data['thumbUrl'],
-      ));
+      medias.add(result.data);
     }
     final sendResult = await widget.onSend(_controller.text, medias);
     if (sendResult) Navigator.pop(context);

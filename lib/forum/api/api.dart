@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../common/network.dart';
 import '../../common/pub.dart';
 import '../model/post.dart';
@@ -5,17 +7,23 @@ import '../model/m.dart';
 import '../vm/others.dart';
 
 /// 上传文件
-Future<Result> upload(
+Future<Result<Media>> upload(
   String path,
   MediaType type, {
   String tag,
 }) async {
-  return await network.post(
+  final result = await network.post(
     '/upload',
     params: {'type': type.name},
     filePaths: [path],
     tag: tag,
   );
+  if (result.fail) return result;
+  return Result.success(Media(
+      id: result.data['id'],
+      type: MediaTypeExt.fromName(result.data['type']),
+      url: result.data['url'],
+      thumbUrl: result.data['thumb_url']));
 }
 
 /// 获取关注人列表
@@ -56,7 +64,7 @@ Future<Result<List<String>>> getPostLabels(String searchContent) async {
     params: {'search_content': searchContent},
   );
   if (result.fail) return result;
-  return Result.success(result.data.toList());
+  return Result.success(result.data.map<String>((e) => e['label']).toList());
 }
 
 /// 帖子点赞
@@ -122,6 +130,7 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts(
 
 /// 获取帖子内的楼层列表，dataIdx和floorStartIdx不是一个意思，因为有可能有的楼层被删了，这时dataIdx和floorStartIdx的值不一样
 Future<Result<FloorResultData>> getFloors({
+  @required String postId,
   int dataIdx,
   int dataPageSize = 100,
   int floorStartIdx,
@@ -130,6 +139,7 @@ Future<Result<FloorResultData>> getFloors({
   final result = await network.get(
     '/forum/get_floors',
     params: {
+      'post_id': postId,
       'data_idx': dataIdx,
       'data_count': dataPageSize,
       'floor_start_idx': floorStartIdx,
@@ -145,9 +155,10 @@ Future<Result<FloorResultData>> getFloors({
             avatarThumb: e['avatar_thumb'] ?? '',
             name: e['name'] ?? '',
             date: e['date'] ?? '',
-            content: e['content'] ?? '',
+            content: e['text'] ?? '',
             replyCnt: e['reply_count'] ?? 0,
             likeCnt: e['like_count'] ?? 0,
+            dislikeCnt: e['dislike_count'] ?? 0,
             myAttitude: e['attitude'] ?? 0,
             medias: _mapMedias(e['medias']),
             floor: e['floor'],
@@ -164,12 +175,17 @@ Future<Result<FloorResultData>> getFloors({
 
 /// 获取层内回复列表
 Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
+  @required String floorId,
   int dataIdx,
   int dataPageSize = 100,
 }) async {
   final result = await network.get(
     '/forum/get_innser_floors',
-    params: {'data_idx': dataIdx, 'data_count': dataPageSize},
+    params: {
+      'floor_id': floorId,
+      'data_idx': dataIdx,
+      'data_count': dataPageSize,
+    },
   );
   if (result.fail) return result;
   final list = result.data['list']
@@ -180,8 +196,9 @@ Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
             avatarThumb: e['avatar_thumb'] ?? '',
             name: e['name'] ?? '',
             date: e['date'] ?? '',
-            content: e['content'] ?? '',
+            content: e['text'] ?? '',
             likeCnt: e['like_count'] ?? 0,
+            dislikeCnt: e['dislike_count'] ?? 0,
             myAttitude: e['attitude'] ?? 0,
             medias: _mapMedias(e['medias']),
             innerFloor: e['innser_floor'],
@@ -214,29 +231,28 @@ List<Media> _mapMedias(data) {
 }
 
 /// 回复
-/// 回复楼主，返回值floorId、floor
-/// 回复层主，返回值innerFloorId、innerFloor
-/// 层内回复，返回值innerFloorId、innerFloor、targetId、targetName（如果target是层主的话这两个参数没有值）
-Future<Result> reply({
+/// 回复楼主，返回值floor_id、floor
+/// 回复层主，返回值inner_floor_id、inner_floor
+/// 层内回复，返回值inner_floor_id、inner_floor、target_id、target_name（如果target是层主的话这两个参数没有值）
+Future<Result<ReplyResultData>> reply({
   String postId,
   String floorId,
   String innerFloorId,
   String content,
-  List<Media> medias,
+  List<String> mediaIds,
 }) async {
-  return await network.post('/forum/reply', params: {
+  final result = await network.post('/forum/reply', params: {
     'post_id': postId,
     'floor_id': floorId,
     'inner_floor_id': innerFloorId,
-    'content': content,
-    'medias': medias
-        .map(
-          (e) => {
-            'type': e.type.name,
-            'url': e.url,
-            'thumb_url': e.thumbUrl,
-          },
-        )
-        .toList(),
+    'text': content,
+    'medias': mediaIds,
   });
+  if (result.fail) return Result(code: result.code, msg: result.msg);
+  return Result.success(ReplyResultData(
+    floorId: result.data['floor_id'] ?? '',
+    floor: result.data['floor'] ?? '',
+    innerFloorId: result.data['inner_floor_id'] ?? '',
+    innerFloor: result.data['inner_floor'] ?? '',
+  ));
 }

@@ -25,6 +25,7 @@ class FloorVM {
       _dataIdx += dataSize;
     }
     final result = await repository.getInnerFloors(
+      floorId: floor.id,
       dataIdx: _dataIdx,
       dataPageSize: dataSize,
     );

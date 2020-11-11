@@ -37,6 +37,7 @@ class PostVM {
       _dataIdx += dataSize;
     }
     final result = await repository.getFloors(
+      postId: post.id,
       dataIdx: floorStartIdx == null ? _dataIdx : null,
       dataPageSize: dataSize,
       floorStartIdx: floorStartIdx,

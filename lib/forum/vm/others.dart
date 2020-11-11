@@ -35,3 +35,17 @@ class FloorResultData extends DataWidthPageInfo<Floor> {
           pageSize,
         );
 }
+
+/// 回复post、floor、inner_floor的返回数据
+class ReplyResultData {
+  final String floorId;
+  final int floor;
+  final String innerFloorId;
+  final int innerFloor;
+  const ReplyResultData({
+    this.floorId,
+    this.floor,
+    this.innerFloorId,
+    this.innerFloor,
+  });
+}
