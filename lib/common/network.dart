@@ -76,14 +76,6 @@ class Network {
         return Response();
       },
     ));
-    eventBus.on('base_leave_page', (arg) {
-      if (arg == null || !(arg is String)) return;
-      CancelToken ct = _cancelTokens[arg];
-      if (ct != null) {
-        _cancelTokens.remove(arg);
-        ct.cancel('离开页面：$arg');
-      }
-    });
   }
 
   /// GET请求 [tag]用来标记请求，取消时用到，比如离开页面时取消网络请求
@@ -197,7 +189,7 @@ class Network {
     // 需要重新登录
     if (result.code == 10000 ||
         (result.code == 10001 && (await _refreshToken).isEmpty)) {
-      eventBus.sendEvent('base_login_invalid');
+      eventBus.sendEvent(EventBusType.loginInvalid);
       return result;
     }
     // token失效，refreshToken存在，需要重新请求

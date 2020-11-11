@@ -13,6 +13,7 @@ import 'common/widgets.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
+/// 应用入口
 class MyApp extends StatelessWidget {
   final Map<String, WidgetBuilder> _routes = {
     LauncherPage.routeName: (_) => LauncherPage(),

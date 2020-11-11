@@ -1,4 +1,5 @@
 import '../../common/pub.dart';
+import '../../common/event_bus.dart';
 import '../model/post.dart';
 import '../repository/repository.dart' as repository;
 
@@ -38,6 +39,7 @@ extension PostBaseExt on PostBase {
         dislikeCnt++;
       }
     }
+    if (this is Post) eventBus.sendEvent(EventBusType.forumPostItemChanged);
     return '';
   }
 }

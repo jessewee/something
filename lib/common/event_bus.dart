@@ -26,7 +26,7 @@ class EventBus {
   final callbacks = List<_Callback>();
 
   /// 监听事件
-  void on(String type, EventBusCallback cb, [tag = 'all']) {
+  void on(EventBusType type, EventBusCallback cb, [tag = 'all']) {
     assert(type != null && cb != null, 'EventBug监听必须传入type和cb');
     callbacks.add(_Callback(type, tag, cb));
   }
@@ -39,23 +39,31 @@ class EventBus {
   }
 
   /// 发送事件
-  void sendEvent(String type, [dynamic arg]) {
+  void sendEvent(EventBusType type, [dynamic arg]) {
     assert(type != null, 'EventBug发送事件必须传入type');
     _controller.add(_Event(type, arg));
   }
 }
 
 class _Event {
-  final String type;
+  final EventBusType type;
   final dynamic arg;
 
   _Event(this.type, [this.arg]);
 }
 
 class _Callback {
-  final String type;
+  final EventBusType type;
   final String tag;
   final EventBusCallback cb;
 
   _Callback(this.type, this.tag, this.cb);
+}
+
+enum EventBusType {
+  /// 登录失效
+  loginInvalid,
+
+  /// 帖子列表里的信息改变
+  forumPostItemChanged
 }

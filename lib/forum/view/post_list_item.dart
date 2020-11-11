@@ -34,7 +34,7 @@ class _PostItemState extends State<PostItem> {
   @override
   void initState() {
     eventBus.on(
-      PostItem.eventBusEventType,
+      EventBusType.forumPostItemChanged,
       (arg) {
         if (!mounted || arg is! Map<String, dynamic>) return;
         final map = arg as Map<String, dynamic>;
