@@ -10,7 +10,7 @@ import '../../common/view_images.dart';
 import '../../common/extensions.dart';
 
 import '../model/m.dart';
-import '../other/iconfont.dart';
+import '../../base/iconfont.dart';
 import '../repository/repository.dart' as repository;
 import 'user_follow_page.dart';
 import 'user_post_page.dart';
@@ -142,6 +142,9 @@ class _UserPageState extends State<UserPage> {
           ),
         ),
         divider,
+        // 备注
+        _buildItem('备注', content: user.remark),
+        divider,
         // 关注按钮
         if (_myself != true)
           StreamBuilder<bool>(
@@ -164,6 +167,7 @@ class _UserPageState extends State<UserPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),

@@ -1,4 +1,4 @@
-import 'm.dart';
+import '../../common/models.dart';
 
 /// 帖子、动态、回复的基类
 class PostBase {
@@ -22,7 +22,7 @@ class PostBase {
   final String content;
 
   /// 图片音视频
-  final List<Media> medias;
+  final List<UploadedFile> medias;
 
   /// 点赞数
   int likeCnt;
@@ -67,7 +67,7 @@ class Post extends PostBase {
     String name = '',
     String date = '',
     String content = '',
-    List<Media> medias = const [],
+    List<UploadedFile> medias = const [],
     int likeCnt = 0,
     int dislikeCnt = 0,
     int myAttitude = 0,
@@ -105,7 +105,7 @@ class Floor extends PostBase {
     String name = '',
     String date = '',
     String content = '',
-    List<Media> medias = const [],
+    List<UploadedFile> medias = const [],
     int likeCnt = 0,
     int dislikeCnt = 0,
     int myAttitude = 0,
@@ -145,7 +145,7 @@ class InnerFloor extends PostBase {
     String name = '',
     String date = '',
     String content = '',
-    List<Media> medias = const [],
+    List<UploadedFile> medias = const [],
     int likeCnt = 0,
     int dislikeCnt = 0,
     int myAttitude = 0,

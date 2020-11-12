@@ -32,8 +32,12 @@ class EventBus {
   }
 
   /// 取消监听
-  void off({String tag, EventBusCallback cb}) {
-    assert(tag != null || cb != null, '取消EventBug监听必须传入tag或者cb');
+  void off({EventBusType type, String tag, EventBusCallback cb}) {
+    assert(
+      type != null || tag != null || cb != null,
+      '取消EventBug监听必须传入type、tag或者cb',
+    );
+    if (type != null) callbacks.removeWhere((c) => c.type == type);
     if (tag != null) callbacks.removeWhere((c) => c.tag == tag);
     if (cb != null) callbacks.removeWhere((c) => c.cb == cb);
   }

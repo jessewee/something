@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
+import '../../common/models.dart';
 import '../../common/extensions.dart';
 import '../../common/widgets.dart';
 import '../../common/view_images.dart';
@@ -19,7 +20,7 @@ class PostLongContentSheet extends StatefulWidget {
   static Future show(
     BuildContext context,
     String defaultText,
-    Future<bool> Function(String, List<Media>) onSend,
+    Future<bool> Function(String, List<UploadedFile>) onSend,
   ) {
     return showModalBottomSheet(
       isScrollControlled: true,
@@ -37,7 +38,7 @@ class PostLongContentSheet extends StatefulWidget {
   final String defaultText;
 
   /// 发送，参数是文字内容和图片视频列表
-  final Future<bool> Function(String, List<Media>) onSend;
+  final Future<bool> Function(String, List<UploadedFile>) onSend;
 
   const PostLongContentSheet({this.defaultText = '', this.onSend});
 
@@ -280,11 +281,11 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
 
   // 点发送按钮
   Future _onSendPressed() async {
-    final medias = List<Media>();
+    final medias = List<UploadedFile>();
     // 图片
     if (imgPaths?.isNotEmpty == true) {
       for (int i = 0; i < imgPaths.length; i++) {
-        final result = await repository.upload(imgPaths[i], MediaType.image);
+        final result = await repository.upload(imgPaths[i], FileType.image);
         if (result.fail) {
           showToast('第${i + 1}张图片上传失败');
           return;
@@ -294,7 +295,7 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
     }
     // 视频
     if (videoPath?.isNotEmpty == true) {
-      final result = await repository.upload(videoPath, MediaType.video);
+      final result = await repository.upload(videoPath, FileType.video);
       if (result.fail) {
         showToast('视频上传失败');
         return;

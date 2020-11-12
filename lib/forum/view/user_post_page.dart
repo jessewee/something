@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
-import 'package:something/common/models.dart';
-import 'package:something/common/widgets.dart';
-import 'package:something/forum/vm/others.dart';
 
+import '../../common/models.dart';
+import '../../common/widgets.dart';
 import '../../common/pub.dart';
 import '../../configs.dart';
+import '../vm/others.dart';
 import '../model/post.dart';
 import '../vm/forum_vm.dart';
 import 'post_list.dart';

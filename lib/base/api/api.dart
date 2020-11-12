@@ -49,5 +49,45 @@ Future<Result<User>> getUserInfo() async {
     gender: GenderExt.fromName(map['gender']),
     birthday: map['birthday'] ?? '',
     registerDate: map['register_date'] ?? '',
+    remark: map['remark'] ?? '',
   ));
+}
+
+/// 更改用户信息
+Future<Result> updateUserInfo({
+  String name,
+  String avatar,
+  String avatarThumb,
+  Gender gender,
+  String birthday,
+  String remark,
+}) async {
+  final params = {};
+  if (name?.isNotEmpty == true) params['name'] = name;
+  if (avatar?.isNotEmpty == true) params['avatar'] = avatar;
+  if (avatarThumb?.isNotEmpty == true) params['avatarThumb'] = avatarThumb;
+  if (gender != null) params['gender'] = gender.name;
+  if (birthday?.isNotEmpty == true) params['birthday'] = birthday;
+  if (remark?.isNotEmpty == true) params['remark'] = remark;
+  return await network.put('/update_user_info', params: params);
+}
+
+/// 上传文件
+Future<Result<UploadedFile>> upload(
+  String path,
+  FileType type, {
+  String tag,
+}) async {
+  final result = await network.post(
+    '/upload',
+    params: {'type': type.name},
+    filePaths: [path],
+    tag: tag,
+  );
+  if (result.fail) return result;
+  return Result.success(UploadedFile(
+      id: result.data['id'],
+      type: FileTypeExt.fromName(result.data['type']),
+      url: result.data['url'],
+      thumbUrl: result.data['thumb_url']));
 }

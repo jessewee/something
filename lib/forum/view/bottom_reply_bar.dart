@@ -171,14 +171,14 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
   }
 
   // 提交回复
-  Future<bool> _onSubmit(String text, List<Media> medias) async {
+  Future<bool> _onSubmit(String text, List<UploadedFile> medias) async {
     _sending.add(true);
     final result = await _doSubmit(text, medias);
     _sending.add(false);
     return result;
   }
 
-  Future<bool> _doSubmit(String text, List<Media> medias) async {
+  Future<bool> _doSubmit(String text, List<UploadedFile> medias) async {
     // 回复楼主
     if (widget.postId?.isNotEmpty == true) {
       final result = await repository.reply(

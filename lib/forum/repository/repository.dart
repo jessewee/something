@@ -1,18 +1,20 @@
 import 'package:flutter/foundation.dart';
 
+import '../../common/models.dart';
 import '../../common/pub.dart';
 import '../model/m.dart';
 import '../model/post.dart';
 import '../vm/others.dart';
 import '../api/api.dart' as api;
+import '../../base/api/api.dart' as baseApi;
 
 /// 上传
-Future<Result<Media>> upload(
+Future<Result<UploadedFile>> upload(
   String path,
-  MediaType type, {
+  FileType type, {
   String tag,
 }) async {
-  return await api.upload(path, type, tag: tag);
+  return await baseApi.upload(path, type, tag: tag);
 }
 
 /// 获取用户信息

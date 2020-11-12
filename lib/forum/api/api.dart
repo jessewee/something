@@ -7,26 +7,6 @@ import '../model/post.dart';
 import '../model/m.dart';
 import '../vm/others.dart';
 
-/// 上传文件
-Future<Result<Media>> upload(
-  String path,
-  MediaType type, {
-  String tag,
-}) async {
-  final result = await network.post(
-    '/upload',
-    params: {'type': type.name},
-    filePaths: [path],
-    tag: tag,
-  );
-  if (result.fail) return result;
-  return Result.success(Media(
-      id: result.data['id'],
-      type: MediaTypeExt.fromName(result.data['type']),
-      url: result.data['url'],
-      thumbUrl: result.data['thumb_url']));
-}
-
 /// 获取关注人列表 [targetUserId]查看的是谁的关注人列表，null表示登陆人
 Future<Result<List<ForumUser>>> getFollowings(
   String searchContent, [
@@ -234,13 +214,13 @@ Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
 }
 
 // 转换Media
-List<Media> _mapMedias(data) {
+List<UploadedFile> _mapMedias(data) {
   if (data is! Iterable) return [];
   return data
-      .map<Media>((m) {
-        final type = MediaTypeExt.fromName(m['type']);
+      .map<UploadedFile>((m) {
+        final type = FileTypeExt.fromName(m['type']);
         if (type == null) return null;
-        return Media(
+        return UploadedFile(
           type: type,
           url: m['url'] ?? '',
           thumbUrl: m['thumb_url'] ?? '',

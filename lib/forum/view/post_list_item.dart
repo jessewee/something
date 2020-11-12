@@ -3,15 +3,15 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../common/models.dart';
 import '../../common/event_bus.dart';
 import '../../common/extensions.dart';
 import '../../common/play_video_page.dart';
 import '../../common/view_images.dart';
 import '../../common/widgets.dart';
 
-import '../model/m.dart';
 import '../model/post.dart';
-import '../other/iconfont.dart';
+import '../../base/iconfont.dart';
 import '../view/post_detail_page.dart';
 import '../view/user_page.dart';
 import '../vm/extensions.dart';
@@ -170,9 +170,9 @@ class _PostItemState extends State<PostItem> {
   }
 
   // 构建图片或者视频Widget
-  Widget _buildMedia(Media media, int cnt) {
+  Widget _buildMedia(UploadedFile media, int cnt) {
     Widget w;
-    if (media.type == MediaType.image) {
+    if (media.type == FileType.image) {
       w = AspectRatio(
         aspectRatio: 1,
         child: ImageWithUrl(
@@ -181,7 +181,7 @@ class _PostItemState extends State<PostItem> {
           onPressed: () => _viewMediaImages(media),
         ),
       );
-    } else if (media.type == MediaType.video) {
+    } else if (media.type == FileType.video) {
       w = AspectRatio(
         aspectRatio: 1.75,
         child: Stack(
@@ -212,9 +212,9 @@ class _PostItemState extends State<PostItem> {
   }
 
   // 查看图片
-  void _viewMediaImages(Media cur) {
+  void _viewMediaImages(UploadedFile cur) {
     final images =
-        widget.post.medias.where((m) => m.type == MediaType.image).toList();
+        widget.post.medias.where((m) => m.type == FileType.image).toList();
     final idx = images.indexOf(cur);
     viewImages(context, images.map((e) => e.url).toList(), max(0, idx));
   }

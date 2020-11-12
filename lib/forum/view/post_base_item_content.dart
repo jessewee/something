@@ -3,15 +3,15 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../common/models.dart';
 import '../../common/play_video_page.dart';
 import '../../common/widgets.dart';
 import '../../common/extensions.dart';
 import '../../common/pub.dart';
 import '../../common/view_images.dart';
 
-import '../model/m.dart';
 import '../model/post.dart';
-import '../other/iconfont.dart';
+import '../../base/iconfont.dart';
 import 'post_floor_replies_sheet.dart';
 import '../view/user_page.dart';
 import '../vm/extensions.dart';
@@ -247,11 +247,11 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
   }
 
   // 图片和视频显示
-  Widget _buildMedias(BuildContext context, List<Media> medias) {
+  Widget _buildMedias(BuildContext context, List<UploadedFile> medias) {
     if (medias.isEmpty) return null;
     final list = <Widget>[];
     for (final m in medias) {
-      if (m.type == MediaType.image) {
+      if (m.type == FileType.image) {
         list.add(
           ImageWithUrl(
             m.thumbUrl,
@@ -259,7 +259,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
             onPressed: () => _viewMediaImages(context, m, medias),
           ),
         );
-      } else if (m.type == MediaType.video) {
+      } else if (m.type == FileType.video) {
         list.add(AspectRatio(
           aspectRatio: 1.75,
           child: Stack(
@@ -288,10 +288,10 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
 // 查看图片
   void _viewMediaImages(
     BuildContext context,
-    Media cur,
-    List<Media> medias,
+    UploadedFile cur,
+    List<UploadedFile> medias,
   ) {
-    final images = medias.where((m) => m.type == MediaType.image).toList();
+    final images = medias.where((m) => m.type == FileType.image).toList();
     final idx = images.indexOf(cur);
     viewImages(context, images.map((e) => e.url).toList(), max(0, idx));
   }

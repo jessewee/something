@@ -10,7 +10,7 @@ import '../../common/widgets.dart';
 import '../../common/extensions.dart';
 import '../model/m.dart';
 import '../vm/user_follow_vm.dart';
-import '../other/iconfont.dart';
+import '../../base/iconfont.dart';
 
 /// 用户关注和粉丝列表页
 class UserFollowPage extends StatefulWidget {

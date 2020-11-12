@@ -30,7 +30,7 @@ extension GenderExt on Gender {
 /// 用户信息
 class User {
   /// 用户id
-  String id;
+  final String id;
 
   /// 用户名字
   String name;
@@ -48,7 +48,10 @@ class User {
   String birthday;
 
   /// 用户注册日期
-  String registerDate;
+  final String registerDate;
+
+  /// 备注
+  String remark;
 
   User({
     this.id = '',
@@ -58,6 +61,7 @@ class User {
     this.gender = Gender.unknown,
     this.birthday = '',
     this.registerDate = '',
+    this.remark = '',
   });
 }
 
@@ -76,4 +80,52 @@ class UserVM with ChangeNotifier {
   }
 
   UserVM({User user}) : _user = user ?? User();
+}
+
+/// 文件类型
+enum FileType { image, video, voice, unknown }
+
+extension FileTypeExt on FileType {
+  String get name {
+    switch (index) {
+      case 0:
+        return 'image';
+      case 1:
+        return 'video';
+      case 2:
+        return 'voice';
+      default:
+        return 'unknow';
+    }
+  }
+
+  static FileType fromName(String name) {
+    switch (name) {
+      case 'image':
+        return FileType.image;
+      case 'video':
+        return FileType.video;
+      case 'voice':
+        return FileType.voice;
+      default:
+        return FileType.unknown;
+    }
+  }
+}
+
+/// 上传的文件对象
+class UploadedFile {
+  final String id;
+  final FileType type;
+  final String url;
+
+  /// 图片缩略图或者视频封面
+  final String thumbUrl;
+
+  const UploadedFile({
+    this.id = '',
+    @required this.type,
+    @required this.url,
+    this.thumbUrl = '',
+  });
 }

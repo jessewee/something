@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import 'pub.dart';
+import 'extensions.dart';
 
 /// loading提示
 class Loading extends StatelessWidget {
@@ -454,6 +457,139 @@ class ParamErrorPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text('参数错误')),
       body: Center(child: Text('$arg')),
+    );
+  }
+}
+
+/// 带输入框的sheet
+class TextFileSheet extends StatefulWidget {
+  static Future show(
+    BuildContext context,
+    String defaultText,
+    Function(String) onConfirmClick,
+  ) {
+    return showModalBottomSheet(
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      context: context,
+      builder: (context) => TextFileSheet(
+        onConfirmClick,
+        defaultText: defaultText,
+      ),
+    );
+  }
+
+  final String defaultText;
+  final Function(String) onConfirmClick;
+
+  TextFileSheet(this.onConfirmClick, {this.defaultText = ''});
+
+  @override
+  _TextFileSheetState createState() => _TextFileSheetState();
+}
+
+class _TextFileSheetState extends State<TextFileSheet> {
+  TextEditingController _controller;
+  StreamControllerWithData<bool> _btnStreamController;
+
+  @override
+  void initState() {
+    _controller = TextEditingController(text: widget.defaultText);
+    _btnStreamController = StreamControllerWithData(false);
+    _controller.addListener(() {
+      if (_controller.text.isEmpty && _btnStreamController.value) {
+        _btnStreamController.add(false);
+      } else if (_controller.text.isNotEmpty && !_btnStreamController.value) {
+        _btnStreamController.add(true);
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _btnStreamController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 顶行
+    Widget top = Stack(
+      children: <Widget>[
+        // 取消按钮
+        ButtonWithIcon(
+          text: '取消',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        // 确定按钮
+        StreamBuilder<Object>(
+          initialData: _btnStreamController.value,
+          stream: _btnStreamController.stream,
+          builder: (context, snapshot) => ButtonWithIcon(
+            text: '确定',
+            disabled: snapshot.data != true,
+            onPressed: () async {
+              final result = widget.onConfirmClick(_controller.text);
+              if (result is Future) {
+                final tmp = await result;
+                if (tmp == false) return;
+              }
+              Navigator.pop(context);
+            },
+          ).positioned(left: null),
+        ),
+        // 分割线
+        Divider().positioned(top: null),
+      ],
+    );
+    // 输入框
+    Widget input = TextField(
+      controller: _controller,
+      minLines: 5,
+      maxLines: 10,
+      maxLength: 500,
+      buildCounter: (context, {currentLength, isFocused, maxLength}) =>
+          Text('$currentLength/$maxLength'),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 15.0,
+          vertical: 8.0,
+        ),
+        fillColor: Colors.grey[100],
+        filled: true,
+        enabledBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(5.0)),
+          borderSide: BorderSide(color: Colors.transparent),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(5.0)),
+          borderSide: BorderSide(color: Colors.transparent),
+        ),
+      ),
+    );
+    // 结果
+    final screenH = MediaQuery.of(context).size.height;
+    return Container(
+      height: screenH / 2,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            top,
+            Flexible(
+              child: Container(
+                padding: const EdgeInsets.all(12.0),
+                child: input,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
