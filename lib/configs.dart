@@ -2,7 +2,7 @@
 const release = false;
 
 /// 接口地址
-const apiServer = 'http://www.weey.top:8080/';
+const apiServer = 'http://www.weey.top:21210/';
 
 /// 动画时长
 const animDuration = const Duration(milliseconds: 250);
