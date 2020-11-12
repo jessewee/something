@@ -42,12 +42,12 @@ Future<Result<User>> getUserInfo() async {
   if (tmp.fail) return Result(code: tmp.code, msg: tmp.msg);
   final map = tmp.data;
   return Result.success(User(
-    id: map['id'],
-    name: map['name'],
-    avatar: map['avatar'],
-    avatarThumb: map['avatarThumb'],
-    // gender: map['gender'],
-    birthday: map['birthday'],
-    registerDate: map['registerDate'],
+    id: map['id'] ?? '',
+    name: map['name'] ?? '',
+    avatar: map['avatar'] ?? '',
+    avatarThumb: map['avatar_thumb'] ?? '',
+    gender: GenderExt.fromName(map['gender']),
+    birthday: map['birthday'] ?? '',
+    registerDate: map['register_date'] ?? '',
   ));
 }

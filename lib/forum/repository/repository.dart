@@ -6,11 +6,41 @@ import '../model/post.dart';
 import '../vm/others.dart';
 import '../api/api.dart' as api;
 
-/// 数据仓库
+/// 上传
+Future<Result<Media>> upload(
+  String path,
+  MediaType type, {
+  String tag,
+}) async {
+  return await api.upload(path, type, tag: tag);
+}
 
-/// 获取关注人列表
-Future<Result<List<ForumUser>>> getFollowings(String searchContent) async {
-  return await api.getFollowings(searchContent);
+/// 获取用户信息
+Future<Result<ForumUser>> getUserInfo(String userId) async {
+  return await api.getUserInfo(userId);
+}
+
+/// 获取关注人列表 [targetUserId]查看的是谁的粉丝列表，null表示登陆人
+Future<Result<List<ForumUser>>> getFollowings(
+  String searchContent, [
+  String targetUserId,
+]) async {
+  return await api.getFollowings(searchContent, targetUserId);
+}
+
+/// 获取粉丝列表 [targetUserId]查看的是谁的粉丝列表，null表示登陆人
+Future<Result<DataWidthPageInfo<ForumUser>>> getFollowers(
+  String searchContent,
+  int dataIdx,
+  int dataPageSize, [
+  String targetUserId,
+]) async {
+  return await api.getFollowers(
+    searchContent,
+    dataIdx,
+    dataPageSize,
+    targetUserId,
+  );
 }
 
 /// 获取帖子标签列表

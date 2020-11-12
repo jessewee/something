@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../common/network.dart';
 import '../../common/pub.dart';
+import '../../common/models.dart';
 import '../model/post.dart';
 import '../model/m.dart';
 import '../vm/others.dart';
@@ -26,27 +27,46 @@ Future<Result<Media>> upload(
       thumbUrl: result.data['thumb_url']));
 }
 
-/// 获取关注人列表
-Future<Result<List<ForumUser>>> getFollowings(String searchContent) async {
+/// 获取关注人列表 [targetUserId]查看的是谁的关注人列表，null表示登陆人
+Future<Result<List<ForumUser>>> getFollowings(
+  String searchContent, [
+  String targetUserId,
+]) async {
   final result = await network.get(
     '/forum/get_followings',
-    params: {'search_content': searchContent},
+    params: {'search_content': searchContent, 'target_user_id': targetUserId},
   );
   if (result.fail) return result;
-  return Result.success(result.data
-      .map<ForumUser>((e) => ForumUser(
-            id: e['id'] ?? '',
-            name: e['name'] ?? '',
-            avatar: e['avatar'] ?? '',
-            avatarThumb: e['avatar_thumb'] ?? '',
-            gender: e['gender'] ?? '',
-            birthday: e['birthday'] ?? '',
-            registerDate: e['register_date'] ?? '',
-            followerCount: e['follower_count'] ?? 0,
-            followingCount: e['following_count'] ?? 0,
-            followed: true,
-          ))
-      .toList());
+  return Result.success(
+    result.data.map<ForumUser>((e) => ForumUserExt.fromApiData(e)).toList(),
+  );
+}
+
+/// 获取粉丝列表 [targetUserId]查看的是谁的粉丝列表，null表示登陆人
+Future<Result<DataWidthPageInfo<ForumUser>>> getFollowers(
+  String searchContent,
+  int dataIdx,
+  int dataPageSize, [
+  String targetUserId,
+]) async {
+  final result = await network.get(
+    '/forum/get_followers',
+    params: {
+      'search_content': searchContent,
+      'data_idx': dataIdx,
+      'data_count': dataPageSize,
+      'target_user_id': targetUserId,
+    },
+  );
+  if (result.fail) return result;
+  final list = result.data['list']
+      .map<ForumUser>((u) => ForumUserExt.fromApiData(u))
+      .toList();
+  return Result.success(DataWidthPageInfo(
+      list,
+      result.data['total_count'] ?? list.length,
+      result.data['last_data_index'],
+      list.length));
 }
 
 /// 关注用户
@@ -268,4 +288,28 @@ Future<Result<ReplyResultData>> post({
     'text': content,
     'medias': mediaIds,
   });
+}
+
+/// 获取社区用户数据
+Future<Result<ForumUser>> getUserInfo(String userId) async {
+  final tmp = await network.get(
+    '/forum/get_user_info',
+    params: {'user_id': userId},
+  );
+  if (tmp.fail) return Result(code: tmp.code, msg: tmp.msg);
+  final map = tmp.data;
+  return Result.success(ForumUser(
+    id: map['id'] ?? '',
+    name: map['name'] ?? '',
+    avatar: map['avatar'] ?? '',
+    avatarThumb: map['avatar_thumb'] ?? '',
+    gender: GenderExt.fromName(map['gender']),
+    birthday: map['birthday'] ?? '',
+    registerDate: map['register_date'] ?? '',
+    followerCount: map['follower_count'] ?? 0,
+    followingCount: map['following_count'] ?? 0,
+    followed: map['followed'] == true,
+    postCount: map['post_count'] ?? 0,
+    replyCount: map['reply_count'] ?? 0,
+  ));
 }

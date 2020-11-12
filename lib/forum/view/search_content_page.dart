@@ -58,8 +58,11 @@ class _SearchContentPageState extends State<SearchContentPage> {
 
   Future<void> _onConfirm(String text) async {
     Navigator.pop(context, text);
-    if (text.isEmpty || _records.contains(text)) return;
-    _records.add(text);
+    if (text.isEmpty) return;
+    if (_records.contains(text)) {
+      _records.remove(text);
+    }
+    _records.insert(0, text);
     SharedPreferences.getInstance().then((sp) {
       sp.setStringList('forum_search_content_page', _records);
     });

@@ -14,6 +14,17 @@ extension GenderExt on Gender {
         return 'unknow';
     }
   }
+
+  static Gender fromName(String name) {
+    switch (name) {
+      case 'male':
+        return Gender.male;
+      case 'female':
+        return Gender.female;
+      default:
+        return Gender.unknown;
+    }
+  }
 }
 
 /// 用户信息
@@ -48,6 +59,12 @@ class User {
     this.birthday = '',
     this.registerDate = '',
   });
+}
+
+extension UserExt on User {
+  bool get isMale => gender == Gender.male;
+  bool get isFemale => gender == Gender.female;
+  bool get isGenderClear => gender == Gender.male || gender == Gender.female;
 }
 
 class UserVM with ChangeNotifier {

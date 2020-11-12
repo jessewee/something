@@ -12,7 +12,7 @@ import '../../common/play_video_page.dart';
 import '../../common/pub.dart';
 import 'select_following_page.dart';
 import '../model/m.dart';
-import '../api/api.dart' as api;
+import '../repository/repository.dart' as repository;
 
 /// 发帖或发长回复的页面，这个用showModalBottomSheet显示，不注册在页面路由里
 class PostLongContentSheet extends StatefulWidget {
@@ -284,7 +284,7 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
     // 图片
     if (imgPaths?.isNotEmpty == true) {
       for (int i = 0; i < imgPaths.length; i++) {
-        final result = await api.upload(imgPaths[i], MediaType.image);
+        final result = await repository.upload(imgPaths[i], MediaType.image);
         if (result.fail) {
           showToast('第${i + 1}张图片上传失败');
           return;
@@ -294,7 +294,7 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
     }
     // 视频
     if (videoPath?.isNotEmpty == true) {
-      final result = await api.upload(videoPath, MediaType.video);
+      final result = await repository.upload(videoPath, MediaType.video);
       if (result.fail) {
         showToast('视频上传失败');
         return;
