@@ -81,7 +81,7 @@ class Network {
   /// GET请求 [tag]用来标记请求，取消时用到，比如离开页面时取消网络请求
   Future<Result> get(
     String path, {
-    Map params = const {},
+    Map<String, dynamic> params = const {},
     String tag,
   }) async {
     Response<String> response = await _dio.get(
@@ -100,7 +100,7 @@ class Network {
   /// POST请求
   Future<Result> post(
     String path, {
-    Map params = const {},
+    Map<String, dynamic> params = const {},
     List<String> filePaths = const [],
     String tag,
   }) async {
@@ -126,7 +126,7 @@ class Network {
   /// PUT请求
   Future<Result> put(
     String path, {
-    Map params = const {},
+    Map<String, dynamic> params = const {},
     String tag,
   }) async {
     Response response = await _dio.put(
@@ -145,7 +145,7 @@ class Network {
   /// DELETE请求
   Future<Result> delete(
     String path, {
-    Map params = const {},
+    Map<String, dynamic> params = const {},
     String tag,
   }) async {
     Response response = await _dio.delete(

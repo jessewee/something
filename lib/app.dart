@@ -20,11 +20,11 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 class MyApp extends StatefulWidget {
   final Map<String, WidgetBuilder> _mappedRoutes;
   final List<RouteInfo> _routes = [
+    RouteInfo(HomePage.routeName, false, (_) => HomePage()),
     RouteInfo(LauncherPage.routeName, false, (_) => LauncherPage()),
     RouteInfo(RegisterPage.routeName, false, (_) => RegisterPage()),
     RouteInfo(LoginPage.routeName, false, (_) => LoginPage()),
     RouteInfo(RetrievePwdPage.routeName, false, (_) => RetrievePwdPage()),
-    RouteInfo(HomePage.routeName, false, (_) => HomePage()),
     RouteInfo(MePage.routeName, true, (_) => MePage()),
   ];
 
