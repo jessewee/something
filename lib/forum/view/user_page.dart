@@ -133,7 +133,7 @@ class _UserPageState extends State<UserPage> {
           () => Navigator.pushNamed(
             context,
             UserPostPage.routeName,
-            arguments: user.id,
+            arguments: UserPostPageArg(user.id, user.name),
           ),
           () => Navigator.pushNamed(
             context,

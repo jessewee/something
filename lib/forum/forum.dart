@@ -60,7 +60,7 @@ final List<RouteInfo> forumRoutes = [
     false,
     (context) {
       final arg = ModalRoute.of(context).settings.arguments;
-      if (arg == null || arg is! String) return ParamErrorPage(arg);
+      if (arg == null || arg is! UserPostPageArg) return ParamErrorPage(arg);
       return UserPostPage(arg);
     },
   ),

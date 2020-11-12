@@ -119,7 +119,7 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts(
       'sort_by': filter.sortBy,
       'search_content': filter.searchContent,
       'labels': filter.labels.join(','),
-      'users': filter.users.map((u) => u.id).join(',')
+      'users': filter.userIds.join(',')
     },
   );
   if (result.fail) return result;

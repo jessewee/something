@@ -1,5 +1,4 @@
 import '../../common/pub.dart';
-import '../model/m.dart';
 import '../model/post.dart';
 
 /// 帖子列表筛选条件
@@ -8,7 +7,7 @@ class PostsFilter {
   List<String> labels = [];
 
   /// 关注人
-  List<ForumUser> users = [];
+  List<String> userIds = [];
 
   /// 搜索
   String searchContent = '';

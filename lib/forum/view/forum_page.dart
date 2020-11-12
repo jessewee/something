@@ -163,7 +163,7 @@ class _FilterAreaState extends State<_FilterArea> {
     final textPrimaryCaptionStyle =
         textCaptionStyle.copyWith(color: theme.primaryColor);
     final label = widget.filter.labels.join(',');
-    final following = widget.filter.users.map((e) => e.name).join(',');
+    final following = widget.filter.userIds.join(',');
     // 标签
     Widget labelWidget = _buildLabelOrFollowing(
       label,
@@ -301,9 +301,9 @@ class _FilterAreaState extends State<_FilterArea> {
   void _onFollowingClick() async {
     final result =
         await Navigator.pushNamed(context, SelectFollowingPage.routeName);
-    if (result == null || !mounted) return;
+    if (!mounted || result == null || result is! List) return;
     setState(() {
-      widget.filter.users = result;
+      widget.filter.userIds = (result as List).map((e) => e.userId);
       widget.onFilterChanged();
     });
   }

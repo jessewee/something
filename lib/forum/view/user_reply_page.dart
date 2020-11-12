@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:something/common/widgets.dart';
 
 /// 用户回复记录页
 class UserReplyPage extends StatelessWidget {
@@ -8,6 +9,6 @@ class UserReplyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO
-    return Container();
+    return CenterInfoText('暂未完成');
   }
 }
