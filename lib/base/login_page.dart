@@ -9,7 +9,6 @@ import '../common/pub.dart';
 import '../common/models.dart';
 import '../common/extensions.dart';
 import 'api/api.dart' as api;
-import 'home_page.dart';
 import 'register_page.dart';
 import 'retrieve_pwd_page.dart';
 
@@ -120,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
     context.read<UserVM>().user = result.data;
-    Navigator.pop(context);
+    Navigator.pop(context, true);
     return;
   }
 }
