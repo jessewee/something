@@ -19,9 +19,9 @@ import '../repository/repository.dart' as repository;
 class PostLongContentSheet extends StatefulWidget {
   static Future show(
     BuildContext context,
-    String defaultText,
-    Future<bool> Function(String, List<UploadedFile>) onSend,
-  ) {
+    Future<bool> Function(String, List<UploadedFile>) onSend, {
+    String defaultText = '',
+  }) {
     return showModalBottomSheet(
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(

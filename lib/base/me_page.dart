@@ -51,9 +51,9 @@ class _MePageState extends State<MePage> {
           onTap: () async {
             await TextFileSheet.show(
               context,
-              _changeName,
               defaultText: _user.name,
               maxLength: 20,
+              onConfirmClick: _changeName,
             );
           },
         ),
@@ -97,8 +97,8 @@ class _MePageState extends State<MePage> {
           onTap: () async {
             await TextFileSheet.show(
               context,
-              _changeRemark,
               defaultText: _user.remark,
+              onConfirmClick: _changeRemark,
             );
           },
         ),

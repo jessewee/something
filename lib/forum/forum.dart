@@ -19,7 +19,18 @@ import 'view/user_reply_page.dart';
 final List<RouteInfo> forumRoutes = [
   RouteInfo(ForumPage.routeName, false, (_) => ForumPage()),
   RouteInfo(SearchContentPage.routeName, false, (_) => SearchContentPage()),
-  RouteInfo(SelectPostLabelPage.routeName, false, (_) => SelectPostLabelPage()),
+  RouteInfo(
+    SelectPostLabelPage.routeName,
+    false,
+    (context) {
+      final arg = ModalRoute.of(context).settings.arguments;
+      if (arg != null && arg is bool) {
+        return SelectPostLabelPage(singleSelect: arg);
+      } else {
+        return SelectPostLabelPage();
+      }
+    },
+  ),
   RouteInfo(
     SelectFollowingPage.routeName,
     true,

@@ -463,22 +463,22 @@ class ParamErrorPage extends StatelessWidget {
 
 /// 带输入框的sheet
 class TextFileSheet extends StatefulWidget {
-  static Future show(
-    BuildContext context,
-    Function(String) onConfirmClick, {
+  static Future<String> show(
+    BuildContext context, {
     String defaultText = '',
     int maxLength = 500,
+    Function(String) onConfirmClick,
   }) {
-    return showModalBottomSheet(
+    return showModalBottomSheet<String>(
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
       context: context,
       builder: (context) => TextFileSheet(
-        onConfirmClick,
         defaultText: defaultText,
         maxLength: maxLength,
+        onConfirmClick: onConfirmClick,
       ),
     );
   }
@@ -487,10 +487,10 @@ class TextFileSheet extends StatefulWidget {
   final String defaultText;
   final Function(String) onConfirmClick;
 
-  TextFileSheet(
-    this.onConfirmClick, {
+  TextFileSheet({
     this.defaultText = '',
     this.maxLength = 500,
+    this.onConfirmClick,
   });
 
   @override
@@ -540,12 +540,14 @@ class _TextFileSheetState extends State<TextFileSheet> {
             text: '确定',
             disabled: snapshot.data != true,
             onPressed: () async {
-              final result = widget.onConfirmClick(_controller.text);
-              if (result is Future) {
-                final tmp = await result;
-                if (tmp == false) return;
+              if (widget.onConfirmClick != null) {
+                final result = widget.onConfirmClick(_controller.text);
+                if (result is Future) {
+                  final tmp = await result;
+                  if (tmp == false) return;
+                }
               }
-              Navigator.pop(context);
+              Navigator.pop(context, _controller.text);
             },
           ).positioned(left: null),
         ),

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'follow_page.dart';
+import '../../common/pub.dart';
+import '../../common/widgets.dart';
+import '../../common/models.dart';
+
+import '../repository/repository.dart' as repository;
+import 'select_post_label_page.dart';
+import 'post_long_content_sheet.dart';
 import 'me_page.dart';
-import 'message_page.dart';
 import 'posts_page.dart';
 
 /// 社区页
@@ -31,16 +36,6 @@ class _ForumPageState extends State<ForumPage> {
           ),
           BottomNavigationBarItem(
             backgroundColor: primaryColor,
-            label: '关注',
-            icon: Icon(Icons.center_focus_strong),
-          ),
-          BottomNavigationBarItem(
-            backgroundColor: primaryColor,
-            label: '消息',
-            icon: Icon(Icons.notifications_none),
-          ),
-          BottomNavigationBarItem(
-            backgroundColor: primaryColor,
             label: '我的',
             icon: Icon(Icons.menu),
           ),
@@ -49,8 +44,45 @@ class _ForumPageState extends State<ForumPage> {
       ),
       body: IndexedStack(
         index: _curTabIdx,
-        children: <Widget>[PostsPage(), FollowPage(), MessagePage(), MePage()],
+        children: <Widget>[PostsPage(), MePage()],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: IconButton(
+        icon: Icon(Icons.add),
+        onPressed: () => PostLongContentSheet.show(context, _onPost),
       ),
     );
+  }
+
+  // 发帖
+  Future<bool> _onPost(String text, List<UploadedFile> medias) async {
+    final selected = await SelectionSheet.show(
+      context,
+      textSelections: ['选择', '输入'],
+    );
+    String text;
+    if (selected == 1) {
+      text = await Navigator.pushNamed(
+        context,
+        SelectPostLabelPage.routeName,
+        arguments: true,
+      );
+    } else {
+      text = await TextFileSheet.show(context, maxLength: 20);
+    }
+    if (text?.isNotEmpty != true) {
+      showToast('请选择或填写标签');
+      return false;
+    }
+    final result = await repository.post(
+      label: text,
+      content: text,
+      mediaIds: medias.map((e) => e.id).toList(),
+    );
+    if (result.fail) {
+      showToast(result.msg);
+      return false;
+    }
+    return true;
   }
 }

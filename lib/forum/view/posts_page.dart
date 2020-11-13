@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import '../../configs.dart';
 import '../../common/pub.dart';
 import '../../common/widgets.dart';
+import '../../common/extensions.dart';
 
 import 'post_list.dart';
 import 'post_wall.dart';
@@ -22,7 +23,8 @@ class PostsPage extends StatefulWidget {
   _PostsPageState createState() => _PostsPageState();
 }
 
-class _PostsPageState extends State<PostsPage> {
+class _PostsPageState extends State<PostsPage>
+    with AutomaticKeepAliveClientMixin {
   PostsVM _vm;
   StreamControllerWithData<bool> _displayType; // 显示方式，true:帖子墙、false:列表
   StreamControllerWithData<Result<List<Post>>> _dataChanged;
@@ -48,51 +50,62 @@ class _PostsPageState extends State<PostsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: StreamBuilder<bool>(
-            initialData: _loading.value,
-            stream: _loading.stream,
-            builder: (context, snapshot) {
-              return TextWithLoading('社区', snapshot.data == true);
-            }),
-        actions: [
-          /// 切换显示方式
-          StreamBuilder<bool>(
-            initialData: _displayType.value,
-            stream: _displayType.stream,
-            builder: (context, snapshot) => AnimatedSwitcher(
-              duration: animDuration,
-              transitionBuilder: (child, animation) => ScaleTransition(
-                child: child,
-                scale: animation,
+    super.build(context);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Column(
+          children: [
+            // 筛选条件
+            _FilterArea(_vm.filter, () => _loadData(true)),
+            // 列表显示
+            Expanded(
+              child: StreamBuilder<Result<List<Post>>>(
+                initialData: _dataChanged.value,
+                stream: _dataChanged.stream,
+                builder: (context, snapshot) => _buildContent(snapshot.data),
               ),
-              child: IconButton(
-                key: ValueKey(_displayType),
-                color: Colors.white,
-                icon: Icon(
-                  snapshot.data ? Icons.auto_awesome_motion : Icons.list,
-                ),
-                onPressed: () => _displayType.add(!snapshot.data),
+            ),
+          ],
+        ),
+        // 切换显示方式
+        StreamBuilder<bool>(
+          initialData: _displayType.value,
+          stream: _displayType.stream,
+          builder: (context, snapshot) => AnimatedSwitcher(
+            duration: animDuration,
+            transitionBuilder: (child, animation) => ScaleTransition(
+              child: child,
+              scale: animation,
+            ),
+            child: IconButton(
+              key: ValueKey(_displayType),
+              color: Colors.white,
+              icon: Icon(
+                snapshot.data ? Icons.auto_awesome_motion : Icons.list,
+              ),
+              onPressed: () => _displayType.add(!snapshot.data),
+            ),
+          ),
+        ).positioned(left: null, bottom: null),
+        // 加载中
+        StreamBuilder(
+          initialData: _loading.value,
+          stream: _loading.stream,
+          builder: (context, snapshot) => Visibility(
+            visible: snapshot.data == true,
+            child: Container(
+              margin: const EdgeInsets.only(left: 5.0),
+              width: 15.0,
+              height: 15.0,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation(Colors.grey),
               ),
             ),
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // 筛选条件
-          _FilterArea(_vm.filter, () => _loadData(true)),
-          // 列表显示
-          Expanded(
-            child: StreamBuilder<Result<List<Post>>>(
-              initialData: _dataChanged.value,
-              stream: _dataChanged.stream,
-              builder: (context, snapshot) => _buildContent(snapshot.data),
-            ),
-          ),
-        ],
-      ),
+        ).positioned(right: null, bottom: null),
+      ],
     );
   }
 
@@ -139,6 +152,9 @@ class _PostsPageState extends State<PostsPage> {
       showToast(result.msg);
     }
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 /// 筛选条件区域

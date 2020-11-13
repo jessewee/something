@@ -9,6 +9,8 @@ import '../repository/repository.dart' as repository;
 /// 选择标签给上一页，可多选
 class SelectPostLabelPage extends StatefulWidget {
   static const routeName = '/forum/select_post_label_page';
+  final bool singleSelect;
+  const SelectPostLabelPage({this.singleSelect = false});
   @override
   _SelectPostLabelState createState() => _SelectPostLabelState();
 }
@@ -36,21 +38,23 @@ class _SelectPostLabelState extends State<SelectPostLabelPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: SearchAppBar(onConfirm: _onSearch),
-      body: Container(
-        padding: const EdgeInsets.fromLTRB(15.0, 15.0, 15.0, 0.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(child: _buildContentWidget()),
-            Container(
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: Colors.black38)),
+      body: widget.singleSelect
+          ? _buildContentWidget()
+          : Container(
+              padding: const EdgeInsets.fromLTRB(15.0, 15.0, 15.0, 0.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: _buildContentWidget()),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border(top: BorderSide(color: Colors.black38)),
+                    ),
+                    child: _buildBottomWidget(),
+                  ),
+                ],
               ),
-              child: _buildBottomWidget(),
             ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -102,6 +106,10 @@ class _SelectPostLabelState extends State<SelectPostLabelPage> {
       label: Text(text),
       selected: _selected.contains(text),
       onSelected: (value) {
+        if (widget.singleSelect) {
+          Navigator.pop(context, text);
+          return;
+        }
         setState(() {
           if (value && !_selected.contains(text)) {
             _selected.add(text);

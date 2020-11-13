@@ -153,7 +153,11 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
   // 长回复
   void _onLongReplyClick(BuildContext context) async {
     _focusNode.unfocus();
-    PostLongContentSheet.show(context, _controller.text, _onSubmit);
+    PostLongContentSheet.show(
+      context,
+      _onSubmit,
+      defaultText: _controller.text,
+    );
   }
 
   // @某人
