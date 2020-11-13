@@ -49,7 +49,12 @@ class _MePageState extends State<MePage> {
           '名字',
           content: _user.name,
           onTap: () async {
-            await TextFileSheet.show(context, _user.name, _changeName);
+            await TextFileSheet.show(
+              context,
+              _changeName,
+              defaultText: _user.name,
+              maxLength: 20,
+            );
           },
         ),
         divider,
@@ -90,7 +95,11 @@ class _MePageState extends State<MePage> {
           '备注',
           content: _user.remark,
           onTap: () async {
-            await TextFileSheet.show(context, _user.remark, _changeRemark);
+            await TextFileSheet.show(
+              context,
+              _changeRemark,
+              defaultText: _user.remark,
+            );
           },
         ),
         divider,

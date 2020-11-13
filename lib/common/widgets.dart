@@ -465,9 +465,10 @@ class ParamErrorPage extends StatelessWidget {
 class TextFileSheet extends StatefulWidget {
   static Future show(
     BuildContext context,
-    String defaultText,
-    Function(String) onConfirmClick,
-  ) {
+    Function(String) onConfirmClick, {
+    String defaultText = '',
+    int maxLength = 500,
+  }) {
     return showModalBottomSheet(
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -477,14 +478,20 @@ class TextFileSheet extends StatefulWidget {
       builder: (context) => TextFileSheet(
         onConfirmClick,
         defaultText: defaultText,
+        maxLength: maxLength,
       ),
     );
   }
 
+  final int maxLength;
   final String defaultText;
   final Function(String) onConfirmClick;
 
-  TextFileSheet(this.onConfirmClick, {this.defaultText = ''});
+  TextFileSheet(
+    this.onConfirmClick, {
+    this.defaultText = '',
+    this.maxLength = 500,
+  });
 
   @override
   _TextFileSheetState createState() => _TextFileSheetState();
@@ -551,7 +558,7 @@ class _TextFileSheetState extends State<TextFileSheet> {
       controller: _controller,
       minLines: 5,
       maxLines: 10,
-      maxLength: 500,
+      maxLength: widget.maxLength,
       buildCounter: (context, {currentLength, isFocused, maxLength}) =>
           Text('$currentLength/$maxLength'),
       decoration: InputDecoration(
@@ -588,6 +595,90 @@ class _TextFileSheetState extends State<TextFileSheet> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 选项sheet
+class SelectionSheet extends StatelessWidget {
+  static Future<int> show(
+    BuildContext context, {
+    List<String> textSelections,
+    List<Widget> widgetSelections,
+  }) {
+    assert(textSelections?.isNotEmpty == true ||
+        widgetSelections?.isNotEmpty == true);
+    return showModalBottomSheet<int>(
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
+      context: context,
+      builder: (context) => SelectionSheet(
+        textSelections: textSelections,
+        widgetSelections: widgetSelections,
+      ),
+    );
+  }
+
+  final List<String> textSelections;
+  final List<Widget> widgetSelections;
+
+  SelectionSheet({
+    this.textSelections,
+    this.widgetSelections,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // 顶行
+    Widget top = Stack(
+      children: <Widget>[
+        // 取消按钮
+        ButtonWithIcon(
+          text: '取消',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        // 分割线
+        Divider().positioned(top: null),
+      ],
+    );
+    // 选项
+    Widget selections;
+    if (widgetSelections != null) {
+      List<Widget> children = [];
+      for (int i = 0; i < widgetSelections.length; i++) {
+        children.add(InkWell(
+          child: widgetSelections[i],
+          onTap: () => Navigator.pop(context, i),
+        ));
+      }
+      selections = ListView(children: children);
+    } else if (textSelections != null) {
+      List<Widget> children = [];
+      for (int i = 0; i < textSelections.length; i++) {
+        children.add(
+          TextButton(
+            onPressed: () => Navigator.pop(context, i),
+            child: Text(textSelections[i]),
+          ),
+        );
+      }
+      selections = ListView(children: children);
+    } else {
+      selections = CenterInfoText('没有选项');
+    }
+    // 结果
+    final screenH = MediaQuery.of(context).size.height;
+    return Container(
+      height: screenH / 2,
+      child: Container(
+        color: Colors.transparent,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[top, Expanded(child: selections)],
         ),
       ),
     );

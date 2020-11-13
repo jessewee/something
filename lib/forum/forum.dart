@@ -6,9 +6,9 @@ import '../app.dart';
 import '../common/widgets.dart';
 
 import 'model/post.dart';
+import 'view/forum_page.dart';
 import 'view/select_following_page.dart';
 import 'view/select_post_label_page.dart';
-import 'view/forum_page.dart';
 import 'view/search_content_page.dart';
 import 'view/post_detail_page.dart';
 import 'view/user_follow_page.dart';

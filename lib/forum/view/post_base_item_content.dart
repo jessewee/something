@@ -66,6 +66,26 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     Widget name = Text(widget.postBase.name, style: theme.textTheme.subtitle2);
     // 日期
     Widget date = Text(widget.postBase.date, style: theme.textTheme.caption);
+    // 标签
+    Widget label;
+    if (widget.postBase is Post) {
+      final post = widget.postBase as Post;
+      label = Text(
+        post.label,
+        style: theme.textTheme.caption.copyWith(color: Colors.white),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      );
+      label = Container(
+        child: label,
+        padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 2.0),
+        decoration: ShapeDecoration(
+          color: Colors.yellow[900],
+          shape: StadiumBorder(),
+        ),
+      );
+      label = Tooltip(message: post.label, child: label);
+    }
     // 关注按钮
     Widget follow;
     if (widget.postBase is Post) {
@@ -88,7 +108,18 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[name, date.withMargin(top: 8.0)],
+            children: <Widget>[
+              name,
+              label == null
+                  ? date.withMargin(top: 8.0)
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        date.withMargin(right: 8.0),
+                        Flexible(child: label),
+                      ],
+                    ).withMargin(top: 8.0),
+            ],
           ),
         ),
         if (follow != null) follow,

@@ -5,7 +5,7 @@ import 'extensions.dart';
 import 'others.dart';
 
 /// 社区帖子列表数据和逻辑处理
-class ForumVM {
+class PostsVM {
   /// 筛选条件
   ///
   PostsFilter filter = PostsFilter();

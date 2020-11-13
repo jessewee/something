@@ -84,6 +84,10 @@ class Network {
     Map<String, dynamic> params = const {},
     String tag,
   }) async {
+    if (await _needLogin(path)) {
+      eventBus.sendEvent(EventBusType.loginInvalid);
+      return Result(msg: '请先登录');
+    }
     Response<String> response = await _dio.get(
       path,
       queryParameters: params,
@@ -104,6 +108,10 @@ class Network {
     List<String> filePaths = const [],
     String tag,
   }) async {
+    if (await _needLogin(path)) {
+      eventBus.sendEvent(EventBusType.loginInvalid);
+      return Result(msg: '请先登录');
+    }
     final formData = FormData.fromMap(params);
     for (int i = 0; i < filePaths.length; i++) {
       formData.files.add(
@@ -129,6 +137,10 @@ class Network {
     Map<String, dynamic> params = const {},
     String tag,
   }) async {
+    if (await _needLogin(path)) {
+      eventBus.sendEvent(EventBusType.loginInvalid);
+      return Result(msg: '请先登录');
+    }
     Response response = await _dio.put(
       path,
       data: FormData.fromMap(params),
@@ -148,6 +160,10 @@ class Network {
     Map<String, dynamic> params = const {},
     String tag,
   }) async {
+    if (await _needLogin(path)) {
+      eventBus.sendEvent(EventBusType.loginInvalid);
+      return Result(msg: '请先登录');
+    }
     Response response = await _dio.delete(
       path,
       queryParameters: params,
@@ -172,6 +188,13 @@ class Network {
       }
     }
     return cancelToken;
+  }
+
+  /// 检查登录状态
+  Future<bool> _needLogin(String api) async {
+    return apisWithoutToken.contains(api) &&
+        _token.isEmpty &&
+        (await _refreshToken).isEmpty;
   }
 
   // null表示需要重新请求接口
@@ -200,6 +223,20 @@ class Network {
     return result;
   }
 }
+
+/// 不需要检查token的接口
+const apisWithoutToken = [
+  '/',
+  '/login',
+  '/get_vf_code',
+  '/register',
+  '/reset_pwd',
+  '/forum',
+  '/forum/get_posts',
+  '/forum/get_floors',
+  '/forum/get_inner_floors',
+  '/forum/get_post_labels'
+];
 
 /// 服务器返回的错误码对应的文字
 const errorCodes = {

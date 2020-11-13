@@ -1,46 +1,46 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:provider/provider.dart';
 
-import '../../common/models.dart';
-import '../../common/widgets.dart';
-import '../../common/pub.dart';
 import '../../configs.dart';
-import '../vm/others.dart';
+import '../../common/pub.dart';
+import '../../common/widgets.dart';
+
+import 'post_list.dart';
+import 'post_wall.dart';
+import 'search_content_page.dart';
+import 'select_following_page.dart';
+import 'select_post_label_page.dart';
 import '../model/post.dart';
 import '../vm/posts_vm.dart';
-import 'post_list.dart';
-import 'search_content_page.dart';
-import 'select_post_label_page.dart';
+import '../vm/others.dart';
 
-/// 用户发帖记录页
-class UserPostPage extends StatefulWidget {
-  static const routeName = '/forum/user_post_page';
-  final UserPostPageArg arg;
-  const UserPostPage(this.arg);
-
+/// 帖子列表页，在社区首页的标签上显示，不注册都路由
+class PostsPage extends StatefulWidget {
   @override
-  _UserPostPageState createState() => _UserPostPageState();
+  _PostsPageState createState() => _PostsPageState();
 }
 
-class _UserPostPageState extends State<UserPostPage> {
+class _PostsPageState extends State<PostsPage> {
   PostsVM _vm;
+  StreamControllerWithData<bool> _displayType; // 显示方式，true:帖子墙、false:列表
   StreamControllerWithData<Result<List<Post>>> _dataChanged;
   StreamControllerWithData<bool> _loading;
-  bool _myself;
 
   @override
   void initState() {
+    _displayType = StreamControllerWithData(true, broadcast: true);
     _dataChanged = StreamControllerWithData(null, broadcast: true);
     _loading = StreamControllerWithData(true);
     _vm = PostsVM();
-    _vm.filter.userIds = [widget.arg.userId];
     SchedulerBinding.instance.addPostFrameCallback((_) => _loadData(true));
     super.initState();
   }
 
   @override
   void dispose() {
+    _displayType.dispose();
     _dataChanged.dispose();
     _loading.dispose();
     super.dispose();
@@ -48,18 +48,36 @@ class _UserPostPageState extends State<UserPostPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_myself == null)
-      _myself = widget.arg.userId == context.read<UserVM>().user.id;
     return Scaffold(
       appBar: AppBar(
         title: StreamBuilder<bool>(
-          initialData: _loading.value,
-          stream: _loading.stream,
-          builder: (context, snapshot) => TextWithLoading(
-            _myself ? '我的发帖' : '${widget.arg.userName}的发帖',
-            snapshot.data == true,
+            initialData: _loading.value,
+            stream: _loading.stream,
+            builder: (context, snapshot) {
+              return TextWithLoading('社区', snapshot.data == true);
+            }),
+        actions: [
+          /// 切换显示方式
+          StreamBuilder<bool>(
+            initialData: _displayType.value,
+            stream: _displayType.stream,
+            builder: (context, snapshot) => AnimatedSwitcher(
+              duration: animDuration,
+              transitionBuilder: (child, animation) => ScaleTransition(
+                child: child,
+                scale: animation,
+              ),
+              child: IconButton(
+                key: ValueKey(_displayType),
+                color: Colors.white,
+                icon: Icon(
+                  snapshot.data ? Icons.auto_awesome_motion : Icons.list,
+                ),
+                onPressed: () => _displayType.add(!snapshot.data),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
       body: Column(
         children: [
@@ -70,17 +88,7 @@ class _UserPostPageState extends State<UserPostPage> {
             child: StreamBuilder<Result<List<Post>>>(
               initialData: _dataChanged.value,
               stream: _dataChanged.stream,
-              builder: (context, snapshot) {
-                final result = snapshot.data;
-                final posts = result?.data ?? [];
-                return PostList(
-                  posts: posts,
-                  loading: _dataChanged.value == null ? true : null,
-                  noMoreData: _vm.noMoreData,
-                  errorMsg: result?.fail == true ? result.msg : '',
-                  loadData: _loadData,
-                );
-              },
+              builder: (context, snapshot) => _buildContent(snapshot.data),
             ),
           ),
         ],
@@ -88,10 +96,42 @@ class _UserPostPageState extends State<UserPostPage> {
     );
   }
 
+  // 内容显示
+  Widget _buildContent(Result<List<Post>> result) {
+    final posts = result?.data ?? [];
+    return StreamBuilder<bool>(
+      initialData: _displayType.value,
+      stream: _displayType.stream,
+      builder: (context, dt) => AnimatedSwitcher(
+        duration: animDuration,
+        child: dt.data
+            ? PostWall(
+                posts: posts,
+                loading: _dataChanged.value == null ? true : null,
+                noMoreData: _vm.noMoreData,
+                errorMsg: result?.fail == true ? result.msg : '',
+                loadData: _loadData,
+              )
+            : PostList(
+                posts: posts,
+                loading: _dataChanged.value == null ? true : null,
+                noMoreData: _vm.noMoreData,
+                errorMsg: result?.fail == true ? result.msg : '',
+                loadData: _loadData,
+              ),
+      ),
+    );
+  }
+
   // 加载数据
   Future _loadData(bool refresh) async {
     _loading.add(true);
-    final result = await _vm.getPosts(refresh: refresh);
+    final result = await _vm.getPosts(
+      refresh: refresh,
+      // 列表比墙少的话会有问题，一般不会少
+      dataSize: _displayType.value ? 20 : 100,
+      onePageData: _displayType.value,
+    );
     _loading.add(false);
     if (result.success) {
       _dataChanged.add(result);
@@ -121,6 +161,7 @@ class _FilterAreaState extends State<_FilterArea> {
     final textPrimaryCaptionStyle =
         textCaptionStyle.copyWith(color: theme.primaryColor);
     final label = widget.filter.labels.join(',');
+    final following = widget.filter.userIds.join(',');
     // 标签
     Widget labelWidget = _buildLabelOrFollowing(
       label,
@@ -128,6 +169,14 @@ class _FilterAreaState extends State<_FilterArea> {
       textCaptionStyle,
       textPrimaryCaptionStyle,
       _onLabelClick,
+    );
+    // 关注人
+    Widget followingWidget = _buildLabelOrFollowing(
+      following,
+      '关注人',
+      textCaptionStyle,
+      textPrimaryCaptionStyle,
+      _onFollowingClick,
     );
     // 搜索
     Widget searchWidget = _buildSearchBtn(
@@ -152,6 +201,7 @@ class _FilterAreaState extends State<_FilterArea> {
       child: Row(
         children: [
           Expanded(child: labelWidget),
+          Expanded(child: followingWidget),
           Expanded(child: searchWidget),
           sortWidget,
         ],
@@ -245,6 +295,17 @@ class _FilterAreaState extends State<_FilterArea> {
     });
   }
 
+  // 点关注人
+  void _onFollowingClick() async {
+    final result =
+        await Navigator.pushNamed(context, SelectFollowingPage.routeName);
+    if (!mounted || result == null || result is! List) return;
+    setState(() {
+      widget.filter.userIds = (result as List).map((e) => e.userId);
+      widget.onFilterChanged();
+    });
+  }
+
   // 点击搜索
   void _onSearchClick() async {
     final result =
@@ -255,10 +316,4 @@ class _FilterAreaState extends State<_FilterArea> {
       widget.onFilterChanged();
     });
   }
-}
-
-class UserPostPageArg {
-  final String userId;
-  final String userName;
-  const UserPostPageArg(this.userId, this.userName);
 }
