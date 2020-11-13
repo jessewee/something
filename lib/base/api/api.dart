@@ -37,8 +37,8 @@ Future<Result> login(String account, String pwd) async {
 }
 
 /// 获取用户数据
-Future<Result<User>> getUserInfo() async {
-  final tmp = await network.get('/get_user_info');
+Future<Result<User>> getUserInfo({bool checkLogin = true}) async {
+  final tmp = await network.get('/get_user_info', checkLogin: checkLogin);
   if (tmp.fail) return Result(code: tmp.code, msg: tmp.msg);
   final map = tmp.data;
   return Result.success(User(
@@ -84,7 +84,8 @@ Future<Result<UploadedFile>> upload(
     filePaths: [path],
     tag: tag,
   );
-  if (result.fail) return result;
+  if (result.fail)
+    return Result<UploadedFile>(code: result.code, msg: result.msg);
   return Result.success(UploadedFile(
       id: result.data['id'],
       type: FileTypeExt.fromName(result.data['type']),

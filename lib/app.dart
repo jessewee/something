@@ -20,8 +20,8 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 class MyApp extends StatefulWidget {
   final Map<String, WidgetBuilder> _mappedRoutes;
   final List<RouteInfo> _routes = [
-    RouteInfo(HomePage.routeName, false, (_) => HomePage()),
     RouteInfo(LauncherPage.routeName, false, (_) => LauncherPage()),
+    RouteInfo(HomePage.routeName, false, (_) => HomePage()),
     RouteInfo(RegisterPage.routeName, false, (_) => RegisterPage()),
     RouteInfo(LoginPage.routeName, false, (_) => LoginPage()),
     RouteInfo(RetrievePwdPage.routeName, false, (_) => RetrievePwdPage()),
@@ -37,7 +37,7 @@ class MyApp extends StatefulWidget {
       // 进入页面要先登录的情况
       if (r.needLogin) {
         _mappedRoutes[r.name] = (context) {
-          final user = context.read<UserVM>().user;
+          final user = context.watch<UserVM>().user;
           if (user.id?.isNotEmpty == true) {
             return r.builder(context);
           } else {
@@ -60,7 +60,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     // 注册监听
     eventBus.on(EventBusType.loginInvalid, (_) {
-      Navigator.pushNamed(context, LoginPage.routeName);
+      Navigator.pushNamed(navigatorKey.currentContext, LoginPage.routeName);
     });
     super.initState();
   }

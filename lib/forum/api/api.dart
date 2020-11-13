@@ -16,7 +16,8 @@ Future<Result<List<ForumUser>>> getFollowings(
     '/forum/get_followings',
     params: {'search_content': searchContent, 'target_user_id': targetUserId},
   );
-  if (result.fail) return result;
+  if (result.fail)
+    return Result<List<ForumUser>>(code: result.code, msg: result.msg);
   return Result.success(
     result.data.map<ForumUser>((e) => ForumUserExt.fromApiData(e)).toList(),
   );
@@ -38,7 +39,11 @@ Future<Result<DataWidthPageInfo<ForumUser>>> getFollowers(
       'target_user_id': targetUserId,
     },
   );
-  if (result.fail) return result;
+  if (result.fail)
+    return Result<DataWidthPageInfo<ForumUser>>(
+      code: result.code,
+      msg: result.msg,
+    );
   final list = result.data['list']
       .map<ForumUser>((u) => ForumUserExt.fromApiData(u))
       .toList();
@@ -63,7 +68,8 @@ Future<Result<List<String>>> getPostLabels(String searchContent) async {
     '/forum/get_post_labels',
     params: {'search_content': searchContent},
   );
-  if (result.fail) return result;
+  if (result.fail)
+    return Result<List<String>>(code: result.code, msg: result.msg);
   return Result.success(result.data.map<String>((e) => e['label']).toList());
 }
 
@@ -102,7 +108,8 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts(
       'users': filter.userIds.join(',')
     },
   );
-  if (result.fail) return result;
+  if (result.fail)
+    return Result<DataWidthPageInfo<Post>>(code: result.code, msg: result.msg);
   final list = result.data['list']
       .map<Post>((e) => Post(
             id: e['id'] ?? '',
@@ -146,7 +153,8 @@ Future<Result<FloorResultData>> getFloors({
       'floor_end_idx': floorEndIdx,
     },
   );
-  if (result.fail) return result;
+  if (result.fail)
+    return Result<FloorResultData>(code: result.code, msg: result.msg);
   final list = result.data['list']
       .map<Floor>((e) => Floor(
             id: e['id'] ?? '',
@@ -187,7 +195,11 @@ Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
       'data_count': dataPageSize,
     },
   );
-  if (result.fail) return result;
+  if (result.fail)
+    return Result<DataWidthPageInfo<InnerFloor>>(
+      code: result.code,
+      msg: result.msg,
+    );
   final list = result.data['list']
       .map<InnerFloor>((e) => InnerFloor(
             id: e['id'] ?? '',

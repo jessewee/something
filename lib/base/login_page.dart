@@ -120,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
     context.read<UserVM>().user = result.data;
-    Navigator.of(context).pushReplacementNamed(HomePage.routeName);
+    Navigator.pop(context);
     return;
   }
 }

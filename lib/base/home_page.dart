@@ -49,7 +49,7 @@ class HomePage extends StatelessWidget {
           splashColor: Colors.black26,
           highlightColor: Colors.black12,
           borderRadius: borderRadius,
-          child: child,
+          child: Container(child: child, alignment: Alignment.center),
           onTap: onTap,
         ),
       ),
@@ -94,7 +94,14 @@ class HomePage extends StatelessWidget {
     return _buildItem(
       context: context,
       gradient: [Colors.green[100], Colors.green[800], Colors.green],
-      child: Text('我的'),
+      child: Text(
+        '我的',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 25.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       onTap: () => Navigator.pushNamed(context, MePage.routeName),
     );
   }

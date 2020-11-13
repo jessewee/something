@@ -83,8 +83,9 @@ class Network {
     String path, {
     Map<String, dynamic> params = const {},
     String tag,
+    bool checkLogin = true,
   }) async {
-    if (await _needLogin(path)) {
+    if (checkLogin && await _needLogin(path)) {
       eventBus.sendEvent(EventBusType.loginInvalid);
       return Result(msg: '请先登录');
     }
@@ -192,9 +193,13 @@ class Network {
 
   /// 检查登录状态
   Future<bool> _needLogin(String api) async {
-    return apisWithoutToken.contains(api) &&
-        _token.isEmpty &&
-        (await _refreshToken).isEmpty;
+    print('检查接口是否需要登录--$api');
+    if (apisWithoutToken.contains(api)) return false;
+    if (_token.isNotEmpty) return false;
+    final rt = await _refreshToken;
+    if (rt.isNotEmpty) return false;
+    print('需要登录');
+    return true;
   }
 
   // null表示需要重新请求接口

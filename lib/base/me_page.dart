@@ -34,7 +34,7 @@ class _MePageState extends State<MePage> {
   }
 
   Widget _buildContent(BuildContext context) {
-    _user = context.read<UserVM>().user;
+    _user = context.watch<UserVM>().user;
     final divider = const Divider(
       color: Colors.blueGrey,
       height: 1.0,

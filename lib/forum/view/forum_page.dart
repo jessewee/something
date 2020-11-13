@@ -24,32 +24,43 @@ class _ForumPageState extends State<ForumPage> {
   @override
   Widget build(BuildContext context) {
     final primaryColor = Theme.of(context).primaryColor;
+    final top = MediaQuery.of(context).padding.top;
     return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _curTabIdx,
-        type: BottomNavigationBarType.shifting,
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            backgroundColor: primaryColor,
-            label: '社区',
-            icon: Icon(Icons.mode_comment),
-          ),
-          BottomNavigationBarItem(
-            backgroundColor: primaryColor,
-            label: '我的',
-            icon: Icon(Icons.menu),
-          ),
-        ],
-        onTap: (index) => setState(() => _curTabIdx = index),
+      body: Padding(
+        padding: EdgeInsets.only(top: top),
+        child: IndexedStack(
+          index: _curTabIdx,
+          children: <Widget>[PostsPage(), MePage()],
+        ),
       ),
-      body: IndexedStack(
-        index: _curTabIdx,
-        children: <Widget>[PostsPage(), MePage()],
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.white,
+        shape: CircularNotchedRectangle(),
+        child: BottomNavigationBar(
+          currentIndex: _curTabIdx,
+          backgroundColor: Colors.transparent,
+          elevation: 0.0,
+          type: BottomNavigationBarType.fixed,
+          items: <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              backgroundColor: primaryColor,
+              label: '社区',
+              icon: Icon(Icons.mode_comment),
+            ),
+            BottomNavigationBarItem(
+              backgroundColor: primaryColor,
+              label: '我的',
+              icon: Icon(Icons.menu),
+            ),
+          ],
+          onTap: (index) => setState(() => _curTabIdx = index),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: IconButton(
-        icon: Icon(Icons.add),
+      floatingActionButton: FloatingActionButton(
         onPressed: () => PostLongContentSheet.show(context, _onPost),
+        child: Icon(Icons.add, color: Colors.white),
+        heroTag: 'forum_page_floating_action_button',
       ),
     );
   }

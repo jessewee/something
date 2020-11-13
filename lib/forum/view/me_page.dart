@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:something/common/event_bus.dart';
 
 import '../../common/widgets.dart';
 import '../../common/pub.dart';
@@ -26,24 +27,31 @@ class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final userId = context.read<UserVM>().user.id;
-    return SingleChildScrollView(
-      child: FutureBuilder<Result<ForumUser>>(
-        future: repository.getUserInfo(userId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return CenterInfoText('加载中...');
-          }
-          if (snapshot.data.fail) {
-            return CenterInfoText(snapshot.data.msg);
-          }
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 15.0),
-            child: _buildContent(context, snapshot.data.data),
+    final userId = context.watch<UserVM>().user.id;
+    return userId?.isNotEmpty == true
+        ? SingleChildScrollView(
+            child: FutureBuilder<Result<ForumUser>>(
+              future: repository.getUserInfo(userId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CenterInfoText('加载中...');
+                }
+                if (snapshot.data.fail) {
+                  return CenterInfoText(snapshot.data.msg);
+                }
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 15.0),
+                  child: _buildContent(context, snapshot.data.data),
+                );
+              },
+            ),
+          )
+        : Center(
+            child: TextButton(
+              child: Text('登录'),
+              onPressed: () => eventBus.sendEvent(EventBusType.loginInvalid),
+            ),
           );
-        },
-      ),
-    );
   }
 
   Widget _buildContent(BuildContext context, ForumUser user) {

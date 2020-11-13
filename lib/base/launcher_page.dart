@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../common/models.dart';
 import 'api/api.dart' as api;
 import 'home_page.dart';
-import 'login_page.dart';
 
 /// 启动页
 class LauncherPage extends StatefulWidget {
@@ -16,13 +15,11 @@ class LauncherPage extends StatefulWidget {
 class _LauncherPageState extends State<LauncherPage> {
   @override
   void initState() {
-    api.getUserInfo().then((result) {
+    api.getUserInfo(checkLogin: false).then((result) {
       if (result.success) {
         context.read<UserVM>().user = result.data;
-        Navigator.of(context).pushReplacementNamed(HomePage.routeName);
-      } else {
-        Navigator.of(context).pushReplacementNamed(LoginPage.routeName);
       }
+      Navigator.pushReplacementNamed(context, HomePage.routeName);
     });
     super.initState();
   }

@@ -49,7 +49,7 @@ class _UserPostPageState extends State<UserPostPage> {
   @override
   Widget build(BuildContext context) {
     if (_myself == null)
-      _myself = widget.arg.userId == context.read<UserVM>().user.id;
+      _myself = widget.arg.userId == context.watch<UserVM>().user.id;
     return Scaffold(
       appBar: AppBar(
         title: StreamBuilder<bool>(

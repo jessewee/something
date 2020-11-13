@@ -78,16 +78,18 @@ class _PostsPageState extends State<PostsPage>
               child: child,
               scale: animation,
             ),
-            child: IconButton(
+            child: FloatingActionButton(
               key: ValueKey(_displayType),
-              color: Colors.white,
-              icon: Icon(
+              heroTag: 'posts_page_floating_action_button',
+              mini: true,
+              child: Icon(
                 snapshot.data ? Icons.auto_awesome_motion : Icons.list,
+                color: Colors.white,
               ),
               onPressed: () => _displayType.add(!snapshot.data),
             ),
           ),
-        ).positioned(left: null, bottom: null),
+        ).positioned(right: null, top: null),
         // 加载中
         StreamBuilder(
           initialData: _loading.value,
@@ -149,6 +151,7 @@ class _PostsPageState extends State<PostsPage>
     if (result.success) {
       _dataChanged.add(result);
     } else {
+      _dataChanged.add(Result());
       showToast(result.msg);
     }
   }

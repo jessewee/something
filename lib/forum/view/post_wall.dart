@@ -35,7 +35,7 @@ class PostWall extends StatelessWidget {
           if (posts.isEmpty && errorMsg.isNotEmpty)
             CenterInfoText(errorMsg)
           else if (posts.isEmpty)
-            CenterInfoText('暂无数据')
+            CenterInfoText(loading == true ? '加载中...' : '暂无数据')
           else
             _buildPostWallWidget(context),
           // 刷新和下一页按钮

@@ -46,7 +46,7 @@ class _UserPageState extends State<UserPage> {
   @override
   Widget build(BuildContext context) {
     if (_myself == null)
-      _myself = widget.userId == context.read<UserVM>().user.id;
+      _myself = widget.userId == context.watch<UserVM>().user.id;
     return Scaffold(
       appBar: AppBar(title: Text('用户信息')),
       body: SingleChildScrollView(
