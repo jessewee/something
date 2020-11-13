@@ -81,16 +81,15 @@ class _LoginPageState extends State<LoginPage> {
             Padding(
               padding: const EdgeInsets.only(top: 15.0),
               child: StreamBuilder<bool>(
-                  initialData: false,
-                  stream: _loginBtnSc.stream,
-                  builder: (context, snapshot) {
-                    return ButtonWithIcon(
-                      text: '登录',
-                      backgroundColor: Theme.of(context).primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 15.0),
-                      onPressed: snapshot.data ? _onLoginClick : null,
-                    );
-                  }),
+                initialData: false,
+                stream: _loginBtnSc.stream,
+                builder: (context, snapshot) => ButtonWithIcon(
+                  text: '登录',
+                  backgroundColor: Theme.of(context).primaryColor,
+                  padding: const EdgeInsets.symmetric(vertical: 15.0),
+                  onPressed: snapshot.data ? _onLoginClick : null,
+                ),
+              ),
             ),
           ],
         ),
