@@ -102,7 +102,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     StreamBuilder(
                       initialData: _vfCodeBtnStreamController.value,
                       stream: _vfCodeBtnStreamController.stream,
-                      builder: (context, snapshot) => ButtonWithIcon(
+                      builder: (context, snapshot) => NormalButton(
                         text: '发送验证码',
                         loading: snapshot.data == true,
                         onPressed: _email.isEmpty ? null : _sendEmailVfCode,
@@ -123,7 +123,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 Builder(
                   builder: (context) => StreamBuilder<Object>(
                     stream: _confirmBtnStreamController.stream,
-                    builder: (context, snapshot) => ButtonWithIcon(
+                    builder: (context, snapshot) => NormalButton(
                       backgroundColor: Theme.of(context).primaryColor,
                       text: '注册',
                       padding: const EdgeInsets.symmetric(vertical: 15.0),

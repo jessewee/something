@@ -152,7 +152,7 @@ class __UserItemState extends State<_UserItem> {
             alignment: Alignment.centerRight,
             child: StreamBuilder<bool>(
               stream: _followStreamController.stream,
-              builder: (context, _) => ButtonWithIcon(
+              builder: (context, _) => NormalButton(
                 color: widget.user.followed
                     ? theme.primaryColorLight
                     : theme.primaryColor,

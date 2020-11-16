@@ -72,7 +72,7 @@ class _ForumPageState extends State<ForumPage> {
       textSelections: ['选择', '输入'],
     );
     String text;
-    if (selected == 1) {
+    if (selected == 0) {
       text = await Navigator.pushNamed(
         context,
         SelectPostLabelPage.routeName,

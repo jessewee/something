@@ -98,7 +98,7 @@ class _PostItemState extends State<PostItem> {
     // 点赞
     Widget like = StreamBuilder(
       stream: _likeStatusStreamController.stream,
-      builder: (context, _) => ButtonWithIcon(
+      builder: (context, _) => NormalButton(
         color: widget.post.myAttitude == 1 ? theme.primaryColor : Colors.black,
         icon: Iconfont.like,
         text: '${widget.post.likeCnt}',
@@ -109,7 +109,7 @@ class _PostItemState extends State<PostItem> {
     // 点踩
     Widget dislike = StreamBuilder(
       stream: _likeStatusStreamController.stream,
-      builder: (context, _) => ButtonWithIcon(
+      builder: (context, _) => NormalButton(
         color: widget.post.myAttitude == -1 ? theme.primaryColor : Colors.black,
         icon: Iconfont.dislike,
         text: '${widget.post.dislikeCnt}',
@@ -162,7 +162,7 @@ class _PostItemState extends State<PostItem> {
             content,
             if (media != null) media,
             bottom.withMargin(top: 8.0),
-            Divider().withMargin(top: 8.0),
+            Divider(height: 1.0, thickness: 1.0).withMargin(top: 8.0),
           ],
         ),
       ),

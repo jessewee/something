@@ -62,7 +62,6 @@ class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
       indent: 12.0,
       endIndent: 12.0,
     );
-    final theme = Theme.of(context);
     return Column(
       children: [
         // 名字、性别
@@ -85,6 +84,8 @@ class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
             round: true,
             width: 40,
             height: 40,
+            backgroundColor: Colors.grey[200],
+            errorWidget: Icon(Icons.emoji_people),
             onPressed: () => viewImages(context, [user.avatar]),
           ),
         ),
@@ -136,7 +137,7 @@ class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
 
   Widget _buildItem(String label, {String content, Widget tail, Widget mid}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8.0),
+      padding: const EdgeInsets.all(15.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

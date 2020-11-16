@@ -110,13 +110,13 @@ class PostWall extends StatelessWidget {
   Widget _buildButtons() {
     return Row(
       children: [
-        ButtonWithIcon(
+        NormalButton(
           loading: loading == true,
           disabled: loading != null,
           text: '刷新',
           onPressed: () => loadData(true),
         ),
-        ButtonWithIcon(
+        NormalButton(
           loading: loading == false,
           disabled: loading != null || noMoreData,
           text: '下一页',

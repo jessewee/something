@@ -92,7 +92,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
       final post = widget.postBase as Post;
       follow = StreamBuilder<bool>(
         stream: _followStreamController.stream,
-        builder: (context, _) => ButtonWithIcon(
+        builder: (context, _) => NormalButton(
           color: post.posterFollowed
               ? theme.primaryColorLight
               : theme.primaryColor,
@@ -152,7 +152,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     // 点赞
     Widget like = StreamBuilder(
       stream: _likeStatusStreamController.stream,
-      builder: (context, _) => ButtonWithIcon(
+      builder: (context, _) => NormalButton(
         color:
             widget.postBase.myAttitude == 1 ? theme.primaryColor : Colors.black,
         icon: Iconfont.like,
@@ -163,7 +163,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     // 点踩
     Widget dislike = StreamBuilder(
       stream: _likeStatusStreamController.stream,
-      builder: (context, _) => ButtonWithIcon(
+      builder: (context, _) => NormalButton(
         color: widget.postBase.myAttitude == -1
             ? theme.primaryColor
             : Colors.black,

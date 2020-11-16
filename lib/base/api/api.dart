@@ -42,7 +42,7 @@ Future<Result<User>> getUserInfo({bool checkLogin = true}) async {
   if (tmp.fail) return Result(code: tmp.code, msg: tmp.msg);
   final map = tmp.data;
   return Result.success(User(
-    id: map['id'] ?? '',
+    id: map['id']?.toString() ?? '',
     name: map['name'] ?? '',
     avatar: map['avatar'] ?? '',
     avatarThumb: map['avatar_thumb'] ?? '',
@@ -87,7 +87,7 @@ Future<Result<UploadedFile>> upload(
   if (result.fail)
     return Result<UploadedFile>(code: result.code, msg: result.msg);
   return Result.success(UploadedFile(
-      id: result.data['id'],
+      id: result.data['id'].toString(),
       type: FileTypeExt.fromName(result.data['type']),
       url: result.data['url'],
       thumbUrl: result.data['thumb_url']));

@@ -81,13 +81,14 @@ void showToast(String msg) {
           color: const Color.fromARGB(255, 50, 50, 50),
           borderRadius: BorderRadius.circular(5.0),
         ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-          child: Text(msg,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyText1
-                  .copyWith(color: Colors.white)),
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+        margin: const EdgeInsets.all(50),
+        child: Text(
+          msg,
+          style: Theme.of(context)
+              .textTheme
+              .bodyText1
+              .copyWith(color: Colors.white),
         ),
       ),
     );

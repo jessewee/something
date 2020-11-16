@@ -112,8 +112,8 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts(
     return Result<DataWidthPageInfo<Post>>(code: result.code, msg: result.msg);
   final list = result.data['list']
       .map<Post>((e) => Post(
-            id: e['id'] ?? '',
-            posterId: e['poster_id'] ?? '',
+            id: e['id']?.toString() ?? '',
+            posterId: e['poster_id']?.toString() ?? '',
             avatar: e['avatar'] ?? '',
             avatarThumb: e['avatar_thumb'] ?? '',
             name: e['name'] ?? '',
@@ -157,8 +157,8 @@ Future<Result<FloorResultData>> getFloors({
     return Result<FloorResultData>(code: result.code, msg: result.msg);
   final list = result.data['list']
       .map<Floor>((e) => Floor(
-            id: e['id'] ?? '',
-            posterId: e['poster_id'] ?? '',
+            id: e['id']?.toString() ?? '',
+            posterId: e['poster_id']?.toString() ?? '',
             avatar: e['avatar'] ?? '',
             avatarThumb: e['avatar_thumb'] ?? '',
             name: e['name'] ?? '',
@@ -202,8 +202,8 @@ Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
     );
   final list = result.data['list']
       .map<InnerFloor>((e) => InnerFloor(
-            id: e['id'] ?? '',
-            posterId: e['poster_id'] ?? '',
+            id: e['id']?.toString() ?? '',
+            posterId: e['poster_id']?.toString() ?? '',
             avatar: e['avatar'] ?? '',
             avatarThumb: e['avatar_thumb'] ?? '',
             name: e['name'] ?? '',
@@ -262,10 +262,10 @@ Future<Result<ReplyResultData>> reply({
   });
   if (result.fail) return Result(code: result.code, msg: result.msg);
   return Result.success(ReplyResultData(
-    floorId: result.data['floor_id'] ?? '',
-    floor: result.data['floor'] ?? '',
-    innerFloorId: result.data['inner_floor_id'] ?? '',
-    innerFloor: result.data['inner_floor'] ?? '',
+    floorId: result.data['floor_id']?.toString() ?? '',
+    floor: result.data['floor'] ?? 0,
+    innerFloorId: result.data['inner_floor_id']?.toString() ?? '',
+    innerFloor: result.data['inner_floor'] ?? 0,
   ));
 }
 
@@ -291,7 +291,7 @@ Future<Result<ForumUser>> getUserInfo(String userId) async {
   if (tmp.fail) return Result(code: tmp.code, msg: tmp.msg);
   final map = tmp.data;
   return Result.success(ForumUser(
-    id: map['id'] ?? '',
+    id: map['id']?.toString() ?? '',
     name: map['name'] ?? '',
     avatar: map['avatar'] ?? '',
     avatarThumb: map['avatar_thumb'] ?? '',

@@ -140,6 +140,8 @@ class ImageWithUrl extends StatelessWidget {
   final double width;
   final double height;
   final bool round;
+  final Color backgroundColor;
+  final Widget errorWidget;
   final void Function() onPressed;
 
   const ImageWithUrl(
@@ -149,6 +151,8 @@ class ImageWithUrl extends StatelessWidget {
     this.width,
     this.height,
     this.round = false,
+    this.backgroundColor,
+    this.errorWidget = const Icon(Icons.broken_image),
   });
 
   @override
@@ -156,42 +160,53 @@ class ImageWithUrl extends StatelessWidget {
     return CachedNetworkImage(
       fit: fit,
       imageUrl: url,
-      errorWidget: (context, url, error) => Icon(Icons.broken_image),
+      errorWidget: (context, url, error) => _buildContent(errorWidget),
       progressIndicatorBuilder: (context, url, progress) => Center(
         child: SizedBox(
             width: 20.0,
             height: 20.0,
             child: CircularProgressIndicator(value: progress.progress)),
       ),
-      imageBuilder: onPressed == null
-          ? null
-          : (context, imageProvider) => Container(
-                width: width,
-                height: height,
-                clipBehavior: Clip.hardEdge,
-                decoration: ShapeDecoration(
-                  shape: round
-                      ? CircleBorder()
-                      : RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(2.0),
-                        ),
-                  image: DecorationImage(image: imageProvider, fit: fit),
-                ),
-                child: Material(
+      imageBuilder: (context, imageProvider) =>
+          _buildContent(Image(image: imageProvider)),
+    );
+  }
+
+  Widget _buildContent(Widget child) {
+    return Container(
+      width: width,
+      height: height,
+      clipBehavior: Clip.hardEdge,
+      decoration: ShapeDecoration(
+        color: backgroundColor,
+        shape: round
+            ? CircleBorder()
+            : RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(2.0),
+              ),
+      ),
+      child: onPressed == null
+          ? child
+          : Stack(
+              alignment: Alignment.center,
+              children: [
+                child,
+                Material(
                   color: Colors.transparent,
                   child: InkWell(
                     highlightColor: Colors.black26,
                     splashColor: Colors.black26,
                     onTap: onPressed,
                   ),
-                ),
-              ),
+                )
+              ],
+            ),
     );
   }
 }
 
 /// 带图标的按钮
-class ButtonWithIcon extends StatefulWidget {
+class NormalButton extends StatefulWidget {
   final Color backgroundColor;
   final Color color;
   final IconData icon;
@@ -202,7 +217,7 @@ class ButtonWithIcon extends StatefulWidget {
 
   final Function() onPressed;
 
-  const ButtonWithIcon({
+  const NormalButton({
     this.backgroundColor,
     this.color,
     this.icon,
@@ -214,10 +229,10 @@ class ButtonWithIcon extends StatefulWidget {
   });
 
   @override
-  _ButtonWithIconState createState() => _ButtonWithIconState();
+  _NormalButtonState createState() => _NormalButtonState();
 }
 
-class _ButtonWithIconState extends State<ButtonWithIcon> {
+class _NormalButtonState extends State<NormalButton> {
   bool _loading = false;
 
   @override
@@ -528,15 +543,17 @@ class _TextFileSheetState extends State<TextFileSheet> {
     Widget top = Stack(
       children: <Widget>[
         // 取消按钮
-        ButtonWithIcon(
+        NormalButton(
           text: '取消',
+          padding: const EdgeInsets.symmetric(vertical: 15.0),
           onPressed: () => Navigator.of(context).pop(),
-        ),
+        ).positioned(right: null),
         // 确定按钮
         StreamBuilder<Object>(
           initialData: _btnStreamController.value,
           stream: _btnStreamController.stream,
-          builder: (context, snapshot) => ButtonWithIcon(
+          builder: (context, snapshot) => NormalButton(
+            padding: const EdgeInsets.all(15.0),
             text: '确定',
             disabled: snapshot.data != true,
             onPressed: () async {
@@ -552,7 +569,7 @@ class _TextFileSheetState extends State<TextFileSheet> {
           ).positioned(left: null),
         ),
         // 分割线
-        Divider().positioned(top: null),
+        Divider(height: 1.0, thickness: 1.0).positioned(top: null),
       ],
     );
     // 输入框
@@ -639,12 +656,13 @@ class SelectionSheet extends StatelessWidget {
     Widget top = Stack(
       children: <Widget>[
         // 取消按钮
-        ButtonWithIcon(
+        NormalButton(
           text: '取消',
+          padding: const EdgeInsets.symmetric(vertical: 15.0),
           onPressed: () => Navigator.of(context).pop(),
         ),
         // 分割线
-        Divider().positioned(top: null),
+        Divider(height: 1.0, thickness: 1.0).positioned(top: null),
       ],
     );
     // 选项
@@ -662,9 +680,10 @@ class SelectionSheet extends StatelessWidget {
       List<Widget> children = [];
       for (int i = 0; i < textSelections.length; i++) {
         children.add(
-          TextButton(
+          NormalButton(
+            padding: const EdgeInsets.symmetric(vertical: 15.0),
             onPressed: () => Navigator.pop(context, i),
-            child: Text(textSelections[i]),
+            text: textSelections[i],
           ),
         );
       }

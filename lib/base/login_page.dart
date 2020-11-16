@@ -83,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
               child: StreamBuilder<bool>(
                 initialData: false,
                 stream: _loginBtnSc.stream,
-                builder: (context, snapshot) => ButtonWithIcon(
+                builder: (context, snapshot) => NormalButton(
                   text: '登录',
                   backgroundColor: Theme.of(context).primaryColor,
                   padding: const EdgeInsets.symmetric(vertical: 15.0),

@@ -149,7 +149,7 @@ class _UserPageState extends State<UserPage> {
         if (_myself != true)
           StreamBuilder<bool>(
             stream: _followStreamController.stream,
-            builder: (context, snapshot) => ButtonWithIcon(
+            builder: (context, snapshot) => NormalButton(
               color:
                   user.followed ? theme.primaryColorLight : theme.primaryColor,
               text: user.followed ? '已关注' : '关注',

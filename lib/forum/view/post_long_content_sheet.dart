@@ -105,12 +105,12 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
           ],
         ).positioned(),
         // 发送按钮
-        ButtonWithIcon(
+        NormalButton(
           text: '发送',
           onPressed: _onSendPressed,
         ).positioned(left: null),
         // 分割线
-        Divider().positioned(top: null),
+        Divider(height: 1.0, thickness: 1.0).positioned(top: null),
       ],
     );
     // 多行输入框
