@@ -104,7 +104,7 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
             ),
           ],
         ).positioned(),
-        // 发送按钮
+        // 发送按钮 TODO 没有内容变灰
         NormalButton(
           text: '发送',
           onPressed: _onSendPressed,

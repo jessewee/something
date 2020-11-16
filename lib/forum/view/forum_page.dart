@@ -26,6 +26,7 @@ class _ForumPageState extends State<ForumPage> {
     final primaryColor = Theme.of(context).primaryColor;
     final top = MediaQuery.of(context).padding.top;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Padding(
         padding: EdgeInsets.only(top: top),
         child: IndexedStack(

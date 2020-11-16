@@ -490,10 +490,12 @@ class TextFileSheet extends StatefulWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
       ),
       context: context,
-      builder: (context) => TextFileSheet(
-        defaultText: defaultText,
-        maxLength: maxLength,
-        onConfirmClick: onConfirmClick,
+      builder: (context) => SingleChildScrollView(
+        child: TextFileSheet(
+          defaultText: defaultText,
+          maxLength: maxLength,
+          onConfirmClick: onConfirmClick,
+        ),
       ),
     );
   }
@@ -540,14 +542,15 @@ class _TextFileSheetState extends State<TextFileSheet> {
   @override
   Widget build(BuildContext context) {
     // 顶行
-    Widget top = Stack(
+    Widget top = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         // 取消按钮
         NormalButton(
           text: '取消',
-          padding: const EdgeInsets.symmetric(vertical: 15.0),
+          padding: const EdgeInsets.all(15.0),
           onPressed: () => Navigator.of(context).pop(),
-        ).positioned(right: null),
+        ),
         // 确定按钮
         StreamBuilder<Object>(
           initialData: _btnStreamController.value,
@@ -566,13 +569,11 @@ class _TextFileSheetState extends State<TextFileSheet> {
               }
               Navigator.pop(context, _controller.text);
             },
-          ).positioned(left: null),
+          ),
         ),
-        // 分割线
-        Divider(height: 1.0, thickness: 1.0).positioned(top: null),
       ],
     );
-    // 输入框
+    // 输入框 TODO 软键盘弹出有问题
     Widget input = TextField(
       controller: _controller,
       minLines: 5,
@@ -601,12 +602,14 @@ class _TextFileSheetState extends State<TextFileSheet> {
     final screenH = MediaQuery.of(context).size.height;
     return Container(
       height: screenH / 2,
+      margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             top,
+            Divider(height: 1.0, thickness: 1.0),
             Flexible(
               child: Container(
                 padding: const EdgeInsets.all(12.0),
@@ -652,19 +655,6 @@ class SelectionSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 顶行
-    Widget top = Stack(
-      children: <Widget>[
-        // 取消按钮
-        NormalButton(
-          text: '取消',
-          padding: const EdgeInsets.symmetric(vertical: 15.0),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        // 分割线
-        Divider(height: 1.0, thickness: 1.0).positioned(top: null),
-      ],
-    );
     // 选项
     Widget selections;
     if (widgetSelections != null) {
@@ -699,7 +689,18 @@ class SelectionSheet extends StatelessWidget {
         color: Colors.transparent,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[top, Expanded(child: selections)],
+          children: <Widget>[
+            // 取消按钮
+            NormalButton(
+              text: '取消',
+              padding: const EdgeInsets.symmetric(vertical: 15.0),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            // 分割线
+            Divider(height: 1.0, thickness: 1.0),
+            // 选项
+            Expanded(child: selections),
+          ],
         ),
       ),
     );
