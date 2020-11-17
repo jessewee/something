@@ -21,16 +21,18 @@ class PostLongContentSheet extends StatefulWidget {
     BuildContext context,
     Future<bool> Function(String, List<UploadedFile>) onSend, {
     String defaultText = '',
+    Widget label,
   }) {
     return showModalBottomSheet(
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(2.0)),
       ),
       context: context,
       builder: (context) => PostLongContentSheet(
         onSend: onSend,
         defaultText: defaultText,
+        label: label,
       ),
     );
   }
@@ -40,7 +42,10 @@ class PostLongContentSheet extends StatefulWidget {
   /// 发送，参数是文字内容和图片视频列表
   final Future<bool> Function(String, List<UploadedFile>) onSend;
 
-  const PostLongContentSheet({this.defaultText = '', this.onSend});
+  /// 发帖页需要有标签选择
+  final Widget label;
+
+  const PostLongContentSheet({this.defaultText = '', this.onSend, this.label});
 
   @override
   _PostLongContentSheetState createState() => _PostLongContentSheetState();
@@ -50,14 +55,21 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
   TextEditingController _controller;
   StreamController<List> _imgSc;
   StreamController<String> _videoSc;
-  List<String> imgPaths;
-  String videoPath;
-  Uint8List videoCover;
+  StreamControllerWithData<bool> _sendBtnSc; // true:加载中、false:不可用、null:正常
+  List<String> _imgPaths;
+  String _videoPath;
+  Uint8List _videoCover;
   ImagePicker _imagePicker;
+  bool get _contentEmpty =>
+      _controller.text?.isNotEmpty != true &&
+      _imgPaths?.isNotEmpty != true &&
+      _videoPath?.isNotEmpty != true;
 
   @override
   void initState() {
     _controller = TextEditingController();
+    _sendBtnSc = StreamControllerWithData(
+        widget.defaultText?.isNotEmpty == true ? null : false);
     _imgSc = StreamController();
     _videoSc = StreamController();
     super.initState();
@@ -66,6 +78,7 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
   @override
   void dispose() {
     _controller.dispose();
+    _sendBtnSc.dispose();
     _imgSc.makeSureClosed();
     _videoSc.makeSureClosed();
     super.dispose();
@@ -77,40 +90,27 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
     final screenH = size.height;
     final screenW = size.width;
     // 顶行
-    Widget top = Stack(
+    Widget top = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         // 关闭按钮
         IconButton(
           icon: Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            // @好友
-            IconButton(
-              icon: Icon(Icons.alternate_email),
-              onPressed: _onAtFriendClick,
-            ),
-            // 图片按钮
-            IconButton(
-              icon: Icon(Icons.image),
-              onPressed: _onSelectImgClick,
-            ),
-            // 视频按钮
-            IconButton(
-              icon: Icon(Icons.video_call),
-              onPressed: _onSelectVideoClick,
-            ),
-          ],
-        ).positioned(),
-        // 发送按钮 TODO 没有内容变灰
-        NormalButton(
-          text: '发送',
-          onPressed: _onSendPressed,
-        ).positioned(left: null),
-        // 分割线
-        Divider(height: 1.0, thickness: 1.0).positioned(top: null),
+        // 发送按钮
+        StreamBuilder<bool>(
+            initialData: _sendBtnSc.value,
+            stream: _sendBtnSc.stream,
+            builder: (context, snapshot) {
+              return NormalButton(
+                text: '发送',
+                padding: const EdgeInsets.all(15.0),
+                disabled: snapshot.data != null,
+                loading: snapshot.data == true,
+                onPressed: _onSendPressed,
+              );
+            }),
       ],
     );
     // 多行输入框
@@ -121,6 +121,10 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
       maxLength: 500,
       buildCounter: (context, {currentLength, isFocused, maxLength}) =>
           Text('$currentLength/$maxLength'),
+      onChanged: (_) {
+        if (_sendBtnSc.value == true) return;
+        _sendBtnSc.add(_contentEmpty ? false : null);
+      },
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 15.0,
@@ -138,9 +142,32 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
         ),
       ),
     );
+    // 按钮行
+    Widget buttons = Row(
+      children: <Widget>[
+        // 标签
+        if (widget.label != null) widget.label,
+        Spacer(),
+        // @好友
+        IconButton(
+          icon: Icon(Icons.alternate_email),
+          onPressed: _onAtFriendClick,
+        ),
+        // 图片按钮
+        IconButton(
+          icon: Icon(Icons.image),
+          onPressed: _onSelectImgClick,
+        ),
+        // 视频按钮
+        IconButton(
+          icon: Icon(Icons.video_call),
+          onPressed: _onSelectVideoClick,
+        ),
+      ],
+    );
     // 图片
     Widget images = StreamBuilder<List>(
-      initialData: imgPaths,
+      initialData: _imgPaths,
       stream: _imgSc.stream,
       builder: (context, snapshot) {
         if (snapshot.data == null || snapshot.data.isEmpty) return Container();
@@ -164,8 +191,10 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
                       icon: Icon(Icons.delete),
                       color: Colors.white,
                       onPressed: () {
-                        imgPaths.removeAt(i);
-                        _imgSc.add(imgPaths);
+                        _imgPaths.removeAt(i);
+                        _imgSc.add(_imgPaths);
+                        if (_sendBtnSc.value == true) return;
+                        _sendBtnSc.add(_contentEmpty ? false : null);
                       },
                     ).positioned(left: null, bottom: null),
                   ],
@@ -177,7 +206,7 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
     );
     // 视频
     Widget video = StreamBuilder<String>(
-      initialData: videoPath,
+      initialData: _videoPath,
       stream: _videoSc.stream,
       builder: (context, snapshot) {
         if (snapshot.data == null || snapshot.data.isEmpty) return Container();
@@ -194,23 +223,25 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
                 // 封面
                 AspectRatio(
                   aspectRatio: 1.75,
-                  child: Image.memory(videoCover, fit: BoxFit.cover),
+                  child: Image.memory(_videoCover, fit: BoxFit.cover),
                 ),
                 // 播放按钮
                 IconButton(
                   icon: Icon(Icons.play_circle_outline),
                   color: Colors.white,
                   iconSize: 50.0,
-                  onPressed: () => playVideo(context, videoPath),
+                  onPressed: () => playVideo(context, _videoPath),
                 ),
                 // 删除按钮
                 IconButton(
                   icon: Icon(Icons.delete),
                   color: Colors.white,
                   onPressed: () {
-                    videoPath = '';
-                    videoCover = null;
-                    _videoSc.add(videoPath);
+                    _videoPath = '';
+                    _videoCover = null;
+                    _videoSc.add(_videoPath);
+                    if (_sendBtnSc.value == true) return;
+                    _sendBtnSc.add(_contentEmpty ? false : null);
                   },
                 ).positioned(left: null, bottom: null),
               ],
@@ -228,12 +259,14 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             top,
+            Divider(height: 1.0, thickness: 1.0).positioned(top: null),
             Flexible(
               child: Container(
                 padding: const EdgeInsets.all(12.0),
                 child: input,
               ),
             ),
+            buttons,
             video,
             images,
           ],
@@ -247,9 +280,11 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
     if (_imagePicker == null) _imagePicker = ImagePicker();
     final pickedFile = await _imagePicker.getImage(source: ImageSource.gallery);
     if (pickedFile == null) return;
-    if (imgPaths == null) imgPaths = [];
-    imgPaths.add(pickedFile.path);
-    _imgSc.add(imgPaths);
+    if (_imgPaths == null) _imgPaths = [];
+    _imgPaths.add(pickedFile.path);
+    _imgSc.add(_imgPaths);
+    if (_sendBtnSc.value == true) return;
+    _sendBtnSc.add(_contentEmpty ? false : null);
   }
 
   // 选择视频
@@ -257,15 +292,17 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
     if (_imagePicker == null) _imagePicker = ImagePicker();
     final pickedFile = await _imagePicker.getVideo(source: ImageSource.gallery);
     if (pickedFile == null) return;
-    videoPath = pickedFile.path;
-    videoCover = await VideoThumbnail.thumbnailData(
-      video: videoPath,
+    _videoPath = pickedFile.path;
+    _videoCover = await VideoThumbnail.thumbnailData(
+      video: _videoPath,
       imageFormat: ImageFormat.JPEG,
       maxWidth: 128,
       // specify the width of the thumbnail, let the height auto-scaled to keep the source aspect ratio
       quality: 25,
     );
-    _videoSc.add(videoPath);
+    _videoSc.add(_videoPath);
+    if (_sendBtnSc.value == true) return;
+    _sendBtnSc.add(_contentEmpty ? false : null);
   }
 
   // 点@好友按钮
@@ -280,30 +317,33 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
   }
 
   // 点发送按钮
-  Future _onSendPressed() async {
+  void _onSendPressed() async {
+    _sendBtnSc.add(true);
     final medias = List<UploadedFile>();
     // 图片
-    if (imgPaths?.isNotEmpty == true) {
-      for (int i = 0; i < imgPaths.length; i++) {
-        final result = await repository.upload(imgPaths[i], FileType.image);
+    if (_imgPaths?.isNotEmpty == true) {
+      for (int i = 0; i < _imgPaths.length; i++) {
+        final result = await repository.upload(_imgPaths[i], FileType.image);
         if (result.fail) {
           showToast('第${i + 1}张图片上传失败');
+          _sendBtnSc.add(_contentEmpty ? false : null);
           return;
         }
         medias.add(result.data);
       }
     }
     // 视频
-    if (videoPath?.isNotEmpty == true) {
-      final result = await repository.upload(videoPath, FileType.video);
+    if (_videoPath?.isNotEmpty == true) {
+      final result = await repository.upload(_videoPath, FileType.video);
       if (result.fail) {
         showToast('视频上传失败');
+        _sendBtnSc.add(_contentEmpty ? false : null);
         return;
       }
       medias.add(result.data);
     }
     final sendResult = await widget.onSend(_controller.text, medias);
+    _sendBtnSc.add(_contentEmpty ? false : null);
     if (sendResult) Navigator.pop(context);
-    return;
   }
 }

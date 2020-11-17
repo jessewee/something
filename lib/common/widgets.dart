@@ -211,6 +211,7 @@ class NormalButton extends StatefulWidget {
   final Color color;
   final IconData icon;
   final String text;
+  final double fontSize;
   final bool loading;
   final bool disabled;
   final EdgeInsetsGeometry padding;
@@ -222,6 +223,7 @@ class NormalButton extends StatefulWidget {
     this.color,
     this.icon,
     this.text,
+    this.fontSize,
     this.loading = false,
     this.disabled = false,
     this.padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
@@ -240,7 +242,8 @@ class _NormalButtonState extends State<NormalButton> {
     final theme = Theme.of(context);
     Color color;
     Color backgroundColor;
-    final loadingSize = theme.textTheme.bodyText1.fontSize * 0.75;
+    final fontSize = widget.fontSize ?? theme.textTheme.bodyText1.fontSize;
+    final loadingSize = fontSize * 0.75;
     if (widget.onPressed == null ||
         _loading ||
         widget.loading ||
@@ -262,7 +265,12 @@ class _NormalButtonState extends State<NormalButton> {
         if (widget.icon != null) Icon(widget.icon, color: color),
         if (widget.icon != null || widget.text != null) Container(width: 5.0),
         if (widget.text != null)
-          Text(widget.text, style: TextStyle(color: color)),
+          Text(
+            widget.text,
+            style: TextStyle(color: color, fontSize: fontSize),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
         if (_loading || widget.loading)
           Container(
             margin: const EdgeInsets.only(left: 5.0),
@@ -487,7 +495,7 @@ class TextFileSheet extends StatefulWidget {
     return showModalBottomSheet<String>(
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(2.0)),
       ),
       context: context,
       builder: (context) => SingleChildScrollView(
@@ -573,7 +581,7 @@ class _TextFileSheetState extends State<TextFileSheet> {
         ),
       ],
     );
-    // 输入框 TODO 软键盘弹出有问题
+    // 输入框
     Widget input = TextField(
       controller: _controller,
       minLines: 5,
@@ -601,7 +609,7 @@ class _TextFileSheetState extends State<TextFileSheet> {
     // 结果
     final screenH = MediaQuery.of(context).size.height;
     return Container(
-      height: screenH / 2,
+      height: screenH - 60,
       margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -635,7 +643,7 @@ class SelectionSheet extends StatelessWidget {
     return showModalBottomSheet<int>(
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(2.0)),
       ),
       context: context,
       builder: (context) => SelectionSheet(

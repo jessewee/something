@@ -19,7 +19,7 @@ class PostFloorRepliesSheet extends StatefulWidget {
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20.0),
+          top: Radius.circular(2.0),
         ),
       ),
       context: context,
