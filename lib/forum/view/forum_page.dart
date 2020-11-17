@@ -265,22 +265,18 @@ class __PostLabelSheetState extends State<_PostLabelSheet> {
     final screenH = MediaQuery.of(context).size.height;
     return Container(
       height: screenH - 60,
-      margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            top,
-            Divider(height: 1.0, thickness: 1.0),
-            Container(
-              padding: const EdgeInsets.all(12.0),
-              child: input,
-            ),
-            select,
-            Expanded(child: records),
-          ],
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: <Widget>[
+          top,
+          Divider(height: 1.0, thickness: 1.0),
+          Container(
+            padding: const EdgeInsets.all(12.0),
+            child: input,
+          ),
+          select,
+          Flexible(child: records),
+        ],
       ),
     );
   }

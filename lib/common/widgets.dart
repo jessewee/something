@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import 'pub.dart';
-import 'extensions.dart';
 
 /// loading提示
 class Loading extends StatelessWidget {
@@ -611,21 +610,18 @@ class _TextFileSheetState extends State<TextFileSheet> {
     return Container(
       height: screenH - 60,
       margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            top,
-            Divider(height: 1.0, thickness: 1.0),
-            Flexible(
-              child: Container(
-                padding: const EdgeInsets.all(12.0),
-                child: input,
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          top,
+          Divider(height: 1.0, thickness: 1.0),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.all(12.0),
+              child: input,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

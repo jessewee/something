@@ -24,7 +24,6 @@ class PostLongContentSheet extends StatefulWidget {
     Widget label,
   }) {
     return showModalBottomSheet(
-      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(2.0)),
       ),
@@ -253,24 +252,21 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
     // 结果
     return Container(
       height: screenH - 60,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            top,
-            Divider(height: 1.0, thickness: 1.0).positioned(top: null),
-            Flexible(
-              child: Container(
-                padding: const EdgeInsets.all(12.0),
-                child: input,
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          top,
+          Divider(height: 1.0, thickness: 1.0),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.all(12.0),
+              child: input,
             ),
-            buttons,
-            video,
-            images,
-          ],
-        ),
+          ),
+          buttons,
+          video,
+          images,
+        ],
       ),
     );
   }
