@@ -132,6 +132,8 @@ class __UserItemState extends State<_UserItem> {
             width: 40.0,
             height: 40.0,
             round: true,
+            backgroundColor: Colors.grey[200],
+            errorWidget: Icon(Icons.emoji_people),
             onPressed: () => viewImages(context, [widget.user.avatar]),
           ),
           // 名字

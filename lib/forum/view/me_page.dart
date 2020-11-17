@@ -55,8 +55,8 @@ class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
   }
 
   Widget _buildContent(BuildContext context, ForumUser user) {
-    final divider = const Divider(
-      color: Colors.blueGrey,
+    final divider = Divider(
+      color: Colors.grey[200],
       height: 1.0,
       thickness: 1.0,
       indent: 12.0,

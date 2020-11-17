@@ -161,10 +161,14 @@ class ImageWithUrl extends StatelessWidget {
       imageUrl: url,
       errorWidget: (context, url, error) => _buildContent(errorWidget),
       progressIndicatorBuilder: (context, url, progress) => Center(
-        child: SizedBox(
-            width: 20.0,
-            height: 20.0,
-            child: CircularProgressIndicator(value: progress.progress)),
+        child: Container(
+          width: width,
+          height: height,
+          child: SizedBox(
+              width: 20.0,
+              height: 20.0,
+              child: CircularProgressIndicator(value: progress.progress)),
+        ),
       ),
       imageBuilder: (context, imageProvider) =>
           _buildContent(Image(image: imageProvider)),
@@ -484,7 +488,7 @@ class ParamErrorPage extends StatelessWidget {
 }
 
 /// 带输入框的sheet
-class TextFileSheet extends StatefulWidget {
+class TextFieldSheet extends StatefulWidget {
   static Future<String> show(
     BuildContext context, {
     String defaultText = '',
@@ -497,12 +501,10 @@ class TextFileSheet extends StatefulWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(2.0)),
       ),
       context: context,
-      builder: (context) => SingleChildScrollView(
-        child: TextFileSheet(
-          defaultText: defaultText,
-          maxLength: maxLength,
-          onConfirmClick: onConfirmClick,
-        ),
+      builder: (context) => TextFieldSheet(
+        defaultText: defaultText,
+        maxLength: maxLength,
+        onConfirmClick: onConfirmClick,
       ),
     );
   }
@@ -511,17 +513,17 @@ class TextFileSheet extends StatefulWidget {
   final String defaultText;
   final Function(String) onConfirmClick;
 
-  TextFileSheet({
+  TextFieldSheet({
     this.defaultText = '',
     this.maxLength = 500,
     this.onConfirmClick,
   });
 
   @override
-  _TextFileSheetState createState() => _TextFileSheetState();
+  _TextFieldSheetState createState() => _TextFieldSheetState();
 }
 
-class _TextFileSheetState extends State<TextFileSheet> {
+class _TextFieldSheetState extends State<TextFieldSheet> {
   TextEditingController _controller;
   StreamControllerWithData<bool> _btnStreamController;
 
@@ -609,7 +611,6 @@ class _TextFileSheetState extends State<TextFileSheet> {
     final screenH = MediaQuery.of(context).size.height;
     return Container(
       height: screenH - 60,
-      margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[

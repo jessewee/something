@@ -60,6 +60,8 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
       round: true,
       width: 50.0,
       height: 50.0,
+      backgroundColor: Colors.grey[200],
+      errorWidget: Icon(Icons.emoji_people),
       onPressed: () => viewImages(context, [widget.postBase.avatar]),
     );
     // 名字

@@ -62,7 +62,7 @@ Future<Result> updateUserInfo({
   String birthday,
   String remark,
 }) async {
-  final params = {};
+  final params = <String, dynamic>{};
   if (name?.isNotEmpty == true) params['name'] = name;
   if (avatar?.isNotEmpty == true) params['avatar'] = avatar;
   if (avatarThumb?.isNotEmpty == true) params['avatarThumb'] = avatarThumb;

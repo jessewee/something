@@ -35,8 +35,8 @@ class _MePageState extends State<MePage> {
 
   Widget _buildContent(BuildContext context) {
     _user = context.watch<UserVM>().user;
-    final divider = const Divider(
-      color: Colors.blueGrey,
+    final divider = Divider(
+      color: Colors.grey[200],
       height: 1.0,
       thickness: 1.0,
       indent: 12.0,
@@ -48,20 +48,12 @@ class _MePageState extends State<MePage> {
         _Item(
           '名字',
           content: _user.name,
-          onTap: () async {
-            await TextFileSheet.show(
-              context,
-              defaultText: _user.name,
-              maxLength: 20,
-              onConfirmClick: _changeName,
-            );
-          },
+          onTap: _changeName,
         ),
         divider,
         // 性别
         _Item(
           '性别',
-          content: _user.name,
           tail: _user.isGenderClear
               ? Icon(
                   _user.isMale ? Iconfont.male : Iconfont.female,
@@ -79,6 +71,8 @@ class _MePageState extends State<MePage> {
             round: true,
             width: 40,
             height: 40,
+            backgroundColor: Colors.grey[200],
+            errorWidget: Icon(Icons.emoji_people),
             onPressed: () => viewImages(context, [_user.avatar]),
           ),
           onTap: _changeAvatar,
@@ -94,13 +88,7 @@ class _MePageState extends State<MePage> {
         _Item(
           '备注',
           content: _user.remark,
-          onTap: () async {
-            await TextFileSheet.show(
-              context,
-              defaultText: _user.remark,
-              onConfirmClick: _changeRemark,
-            );
-          },
+          onTap: _changeRemark,
         ),
         divider,
       ],
@@ -108,57 +96,35 @@ class _MePageState extends State<MePage> {
   }
 
   // 修改名字
-  Future<bool> _changeName(String text) async {
-    final result = await api.updateUserInfo(name: text);
-    if (result.fail) {
-      showToast(result.msg);
-      return false;
-    }
-    setState(() => _user.name = text);
-    return true;
+  void _changeName() {
+    TextFieldSheet.show(
+      context,
+      defaultText: _user.name,
+      maxLength: 20,
+      onConfirmClick: (text) async {
+        final result = await api.updateUserInfo(name: text);
+        if (result.fail) {
+          showToast(result.msg);
+          return false;
+        }
+        setState(() => _user.name = text);
+        return true;
+      },
+    );
   }
 
   // 修改性别
   Future _changeGender() async {
-    final screenW = MediaQuery.of(context).size.width;
-    final gender = await showDialog(
-      context: context,
-      builder: (context) => Container(
-        width: screenW / 3,
-        padding: const EdgeInsets.all(15.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(5.0),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextButton(
-              child: Row(
-                children: [
-                  Text('男'),
-                  Icon(Iconfont.male, color: Colors.blue),
-                ],
-              ),
-              onPressed: () => Navigator.pop(context, Gender.male),
-            ),
-            TextButton(
-              child: Row(
-                children: [
-                  Text('女'),
-                  Icon(Iconfont.female, color: Colors.pink),
-                ],
-              ),
-              onPressed: () => Navigator.pop(context, Gender.female),
-            ),
-            TextButton(
-              child: Text('不设置'),
-              onPressed: () => Navigator.pop(context, Gender.unknown),
-            ),
-          ],
-        ),
-      ),
+    final idx = await SelectionSheet.show(
+      context,
+      textSelections: ['男', '女', '不设置'],
     );
+    if (idx == null) return;
+    final gender = idx == 0
+        ? Gender.male
+        : idx == 1
+            ? Gender.female
+            : Gender.unknown;
     final result = await api.updateUserInfo(gender: gender);
     if (result.fail) {
       showToast(result.msg);
@@ -205,14 +171,20 @@ class _MePageState extends State<MePage> {
   }
 
   // 修改备注
-  Future<bool> _changeRemark(String text) async {
-    final result = await api.updateUserInfo(remark: text);
-    if (result.fail) {
-      showToast(result.msg);
-      return false;
-    }
-    setState(() => _user.remark = text);
-    return true;
+  void _changeRemark() {
+    TextFieldSheet.show(
+      context,
+      defaultText: _user.remark,
+      onConfirmClick: (text) async {
+        final result = await api.updateUserInfo(remark: text);
+        if (result.fail) {
+          showToast(result.msg);
+          return false;
+        }
+        setState(() => _user.remark = text);
+        return true;
+      },
+    );
   }
 }
 
@@ -238,7 +210,7 @@ class __ItemState extends State<_Item> {
   Widget build(BuildContext context) {
     final loadingSize = Theme.of(context).textTheme.bodyText1.fontSize * 0.75;
     final child = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8.0),
+      padding: const EdgeInsets.all(15.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -262,7 +234,17 @@ class __ItemState extends State<_Item> {
           if (widget.content == null)
             Spacer()
           else
-            Expanded(child: Text(widget.content, textAlign: TextAlign.end)),
+            Expanded(
+              child: Text(
+                widget.content,
+                textAlign: TextAlign.end,
+                style: TextStyle(
+                  color: widget.onTap == null
+                      ? Colors.grey[400]
+                      : Colors.grey[800],
+                ),
+              ),
+            ),
           // 右边的widget
           if (widget.tail != null) widget.tail,
         ],

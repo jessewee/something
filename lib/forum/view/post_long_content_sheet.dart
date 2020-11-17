@@ -24,6 +24,7 @@ class PostLongContentSheet extends StatefulWidget {
     Widget label,
   }) {
     return showModalBottomSheet(
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(2.0)),
       ),

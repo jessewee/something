@@ -107,6 +107,8 @@ class _SelectFollowingPageState extends State<SelectFollowingPage> {
       label: Text(user.name),
       avatar: ImageWithUrl(
         user.avatarThumb,
+        backgroundColor: Colors.grey[200],
+        errorWidget: Icon(Icons.emoji_people),
         onPressed: () => viewImages(context, [user.avatar]),
       ),
       selected: _selected.contains(user),

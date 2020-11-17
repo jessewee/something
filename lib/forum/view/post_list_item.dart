@@ -70,6 +70,8 @@ class _PostItemState extends State<PostItem> {
       round: true,
       width: 50.0,
       height: 50.0,
+      backgroundColor: Colors.grey[200],
+      errorWidget: Icon(Icons.emoji_people),
       onPressed: () => viewImages(context, [widget.post.avatar]),
     );
     // 日期

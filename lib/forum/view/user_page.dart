@@ -70,8 +70,8 @@ class _UserPageState extends State<UserPage> {
   }
 
   Widget _buildContent(BuildContext context, ForumUser user) {
-    final divider = const Divider(
-      color: Colors.blueGrey,
+    final divider = Divider(
+      color: Colors.grey[200],
       height: 1.0,
       thickness: 1.0,
       indent: 12.0,
@@ -100,6 +100,8 @@ class _UserPageState extends State<UserPage> {
             round: true,
             width: 40,
             height: 40,
+            backgroundColor: Colors.grey[200],
+            errorWidget: Icon(Icons.emoji_people),
             onPressed: () => viewImages(context, [user.avatar]),
           ),
         ),
