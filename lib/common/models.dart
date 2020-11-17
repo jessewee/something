@@ -11,7 +11,7 @@ extension GenderExt on Gender {
       case 2:
         return 'female';
       default:
-        return 'unknow';
+        return 'unknown';
     }
   }
 

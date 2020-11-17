@@ -59,7 +59,7 @@ class _MePageState extends State<MePage> {
                   _user.isMale ? Iconfont.male : Iconfont.female,
                   color: _user.isMale ? Colors.blue : Colors.pink,
                 )
-              : null,
+              : Text('未知', style: TextStyle(color: Colors.grey[800])),
           onTap: _changeGender,
         ),
         divider,
