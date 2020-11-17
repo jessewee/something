@@ -173,6 +173,7 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
         if (snapshot.data == null || snapshot.data.isEmpty) return Container();
         return Flexible(
           child: GridView.count(
+            padding: const EdgeInsets.all(15.0),
             crossAxisCount: 3,
             crossAxisSpacing: 2.0,
             mainAxisSpacing: 2.0,
@@ -183,8 +184,14 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
                     // 图片
                     ImageWithUrl(
                       snapshot.data[i],
+                      local: true,
                       fit: BoxFit.cover,
-                      onPressed: () => viewImages(context, snapshot.data, i),
+                      onPressed: () => viewImages(
+                        context,
+                        snapshot.data,
+                        curIndex: i,
+                        local: true,
+                      ),
                     ),
                     // 删除按钮
                     IconButton(

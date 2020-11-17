@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -136,6 +137,7 @@ class _SearchAppBarState extends State<SearchAppBar> {
 /// 带缓存和loading的图片
 class ImageWithUrl extends StatelessWidget {
   final String url;
+  final bool local;
   final BoxFit fit;
   final double width;
   final double height;
@@ -146,6 +148,7 @@ class ImageWithUrl extends StatelessWidget {
 
   const ImageWithUrl(
     this.url, {
+    this.local = false,
     this.fit = BoxFit.cover,
     this.onPressed,
     this.width,
@@ -157,6 +160,14 @@ class ImageWithUrl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (local) {
+      final file = File(url);
+      if (file.existsSync()) {
+        return _buildContent(Image.file(file, fit: fit));
+      } else {
+        return _buildContent(errorWidget);
+      }
+    }
     return CachedNetworkImage(
       fit: fit,
       imageUrl: url.checkServerFileUrl(),

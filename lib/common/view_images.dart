@@ -6,19 +6,28 @@ import 'widgets.dart';
 import 'pub.dart';
 
 // 浏览图片
-Future viewImages(BuildContext context, List<String> imageUrls,
-    [int curIndex = 0]) {
+Future viewImages(
+  BuildContext context,
+  List<String> imageUrls, {
+  int curIndex = 0,
+  bool local = false,
+}) {
   return showDialog(
     context: context,
-    builder: (context) => ViewImages(imageUrls, curIndex),
+    builder: (context) => ViewImages(
+      imageUrls,
+      curIndex: curIndex,
+      local: local,
+    ),
   );
 }
 
 class ViewImages extends StatefulWidget {
   final List<String> imageUrls;
   final int curIndex;
+  final bool local;
 
-  const ViewImages(this.imageUrls, [this.curIndex = 0]);
+  const ViewImages(this.imageUrls, {this.curIndex = 0, this.local = false});
 
   @override
   _ViewImagesState createState() => _ViewImagesState();
@@ -52,9 +61,15 @@ class _ViewImagesState extends State<ViewImages>
 
   @override
   Widget build(BuildContext context) {
-    final widgets = widget.imageUrls.map((e) {
-      return InteractiveViewer(child: ImageWithUrl(e, fit: BoxFit.contain));
-    }).toList();
+    final widgets = widget.imageUrls
+        .map((e) => InteractiveViewer(
+              child: ImageWithUrl(
+                e,
+                local: widget.local,
+                fit: BoxFit.contain,
+              ),
+            ))
+        .toList();
     final textStyle =
         Theme.of(context).textTheme.bodyText1.copyWith(color: Colors.white);
     return GestureDetector(

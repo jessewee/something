@@ -325,6 +325,10 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
   ) {
     final images = medias.where((m) => m.type == FileType.image).toList();
     final idx = images.indexOf(cur);
-    viewImages(context, images.map((e) => e.url).toList(), max(0, idx));
+    viewImages(
+      context,
+      images.map((e) => e.url).toList(),
+      curIndex: max(0, idx),
+    );
   }
 }
