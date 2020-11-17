@@ -70,7 +70,9 @@ Future<Result<List<String>>> getPostLabels(String searchContent) async {
   );
   if (result.fail)
     return Result<List<String>>(code: result.code, msg: result.msg);
-  return Result.success(result.data.map<String>((e) => e['label']).toList());
+  return Result.success(
+    result.data.map<String>((e) => e['label'] as String).toList(),
+  );
 }
 
 /// 帖子点赞
@@ -298,6 +300,7 @@ Future<Result<ForumUser>> getUserInfo(String userId) async {
     gender: GenderExt.fromName(map['gender']),
     birthday: map['birthday'] ?? '',
     registerDate: map['register_date'] ?? '',
+    remark: map['remark'] ?? '',
     followerCount: map['follower_count'] ?? 0,
     followingCount: map['following_count'] ?? 0,
     followed: map['followed'] == true,

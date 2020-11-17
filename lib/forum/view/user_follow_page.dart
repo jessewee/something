@@ -61,11 +61,10 @@ class _UserFollowPageState extends State<UserFollowPage> {
     return Scaffold(
       appBar: AppBar(
         title: StreamBuilder<bool>(
-          initialData: _loading.value,
           stream: _loading.stream,
-          builder: (context, snapshot) => TextWithLoading(
+          builder: (context, _) => TextWithLoading(
             _vm.flag ? '关注的人' : '粉丝',
-            snapshot.data == true,
+            _loading.value == true,
           ),
         ),
       ),

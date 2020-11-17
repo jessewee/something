@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import 'package:something/common/event_bus.dart';
 
 import '../../common/widgets.dart';
-import '../../common/pub.dart';
 import '../../common/models.dart';
 import '../../common/view_images.dart';
 
@@ -21,37 +21,47 @@ class MePage extends StatefulWidget {
 }
 
 class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
+  ForumUser _user;
+  String _errormsg;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final userId = context.watch<UserVM>().user.id;
-    return userId?.isNotEmpty == true
-        ? SingleChildScrollView(
-            child: FutureBuilder<Result<ForumUser>>(
-              future: repository.getUserInfo(userId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CenterInfoText('加载中...');
-                }
-                if (snapshot.data.fail) {
-                  return CenterInfoText(snapshot.data.msg);
-                }
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 15.0),
-                  child: _buildContent(context, snapshot.data.data),
-                );
-              },
-            ),
-          )
-        : Center(
-            child: TextButton(
-              child: Text('登录'),
-              onPressed: () => eventBus.sendEvent(EventBusType.loginInvalid),
-            ),
-          );
+    if (_user == null) {
+      final userId = context.watch<UserVM>().user.id;
+      if (userId?.isNotEmpty != true) {
+        return Center(
+          child: TextButton(
+            child: Text('登录'),
+            onPressed: () => eventBus.sendEvent(EventBusType.loginInvalid),
+          ),
+        );
+      }
+      _loadData(userId);
+      return CenterInfoText('加载中...');
+    }
+    if (_errormsg?.isNotEmpty == true) return CenterInfoText(_errormsg);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 15.0),
+      child: _buildContent(context, _user),
+    );
+  }
+
+  Future<void> _loadData(String userId) async {
+    final result = await repository.getUserInfo(userId);
+    if (result.fail) {
+      setState(() => _errormsg = result.msg);
+    } else {
+      setState(() => _user = result.data);
+    }
   }
 
   Widget _buildContent(BuildContext context, ForumUser user) {
