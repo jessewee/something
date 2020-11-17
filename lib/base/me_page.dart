@@ -44,6 +44,21 @@ class _MePageState extends State<MePage> {
     );
     return Column(
       children: [
+        // 头像
+        _Item(
+          '头像',
+          tail: ImageWithUrl(
+            _user.avatarThumb,
+            round: true,
+            width: 40,
+            height: 40,
+            backgroundColor: Colors.grey[200],
+            errorWidget: Icon(Icons.emoji_people),
+            onPressed: () => viewImages(context, [_user.avatar]),
+          ),
+          onTap: _changeAvatar,
+        ),
+        divider,
         // 名字
         _Item(
           '名字',
@@ -63,21 +78,6 @@ class _MePageState extends State<MePage> {
           onTap: _changeGender,
         ),
         divider,
-        // 头像
-        _Item(
-          '头像',
-          tail: ImageWithUrl(
-            _user.avatarThumb,
-            round: true,
-            width: 40,
-            height: 40,
-            backgroundColor: Colors.grey[200],
-            errorWidget: Icon(Icons.emoji_people),
-            onPressed: () => viewImages(context, [_user.avatar]),
-          ),
-          onTap: _changeAvatar,
-        ),
-        divider,
         // 生日
         _Item('生日', content: _user.birthday, onTap: _changeBirthday),
         divider,
@@ -88,6 +88,7 @@ class _MePageState extends State<MePage> {
         _Item(
           '备注',
           content: _user.remark,
+          crossAxisAlignment: CrossAxisAlignment.start,
           onTap: _changeRemark,
         ),
         divider,
@@ -139,15 +140,22 @@ class _MePageState extends State<MePage> {
     final pickedFile =
         await ImagePicker().getImage(source: ImageSource.gallery);
     if (pickedFile == null) return;
-    final result = await api.upload(pickedFile.path, FileType.image);
+    final ur = await api.upload(pickedFile.path, FileType.image);
+    if (ur.fail) {
+      showToast(ur.msg);
+      return;
+    }
+    final data = ur.data;
+    final result =
+        await api.updateUserInfo(avatar: data.url, avatarThumb: data.thumbUrl);
     if (result.fail) {
       showToast(result.msg);
-    } else {
-      setState(() {
-        _user.avatar = result.data.url;
-        _user.avatarThumb = result.data.thumbUrl;
-      });
+      return;
     }
+    setState(() {
+      _user.avatar = data.url;
+      _user.avatarThumb = data.thumbUrl;
+    });
     return;
   }
 
@@ -193,11 +201,13 @@ class _Item extends StatefulWidget {
   final String content;
   final Widget tail;
   final Function onTap;
+  final CrossAxisAlignment crossAxisAlignment;
   const _Item(
     this.label, {
     this.content,
     this.tail,
     this.onTap,
+    this.crossAxisAlignment = CrossAxisAlignment.center,
   });
 
   @override
@@ -212,7 +222,7 @@ class __ItemState extends State<_Item> {
     final child = Container(
       padding: const EdgeInsets.all(15.0),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: widget.crossAxisAlignment,
         children: [
           // loading
           if (_loading)
@@ -227,7 +237,7 @@ class __ItemState extends State<_Item> {
             ),
           // 标签
           Padding(
-            padding: const EdgeInsets.only(right: 8.0),
+            padding: const EdgeInsets.only(right: 15.0),
             child: Text(widget.label),
           ),
           // 内容
@@ -235,13 +245,15 @@ class __ItemState extends State<_Item> {
             Spacer()
           else
             Expanded(
-              child: Text(
-                widget.content,
-                textAlign: TextAlign.end,
-                style: TextStyle(
-                  color: widget.onTap == null
-                      ? Colors.grey[400]
-                      : Colors.grey[800],
+              child: Container(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  widget.content,
+                  style: TextStyle(
+                    color: widget.onTap == null
+                        ? Colors.grey[400]
+                        : Colors.grey[800],
+                  ),
                 ),
               ),
             ),

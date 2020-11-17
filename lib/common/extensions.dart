@@ -1,6 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:something/configs.dart';
+
+extension StringExt on String {
+  /// 服务器返回的文件路径是相对路径，需要自己拼上前部分
+  String checkServerFileUrl() {
+    if (this.isEmpty) return this;
+    if (this.startsWith(RegExp('http://|https://'))) {
+      return this;
+    }
+    return fileServer + this;
+  }
+}
 
 /// StreamController调用add之前判断是否已经关闭
 extension CheckBeforAdd<T> on StreamController<T> {

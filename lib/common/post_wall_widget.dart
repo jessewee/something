@@ -4,6 +4,8 @@ import 'dart:ui' as dartUI;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../common/extensions.dart';
+
 import 'circle_menu.dart';
 import 'pub.dart';
 
@@ -287,7 +289,7 @@ class _PostWallPainter extends CustomPainter
         item.image = info.image;
         if (!synchronousCall) notifyListeners();
       });
-      CachedNetworkImageProvider(item.imgUrl)
+      CachedNetworkImageProvider(item.imgUrl.checkServerFileUrl())
           .resolve(ImageConfiguration())
           .addListener(imgSmListener);
     }

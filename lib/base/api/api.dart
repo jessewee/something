@@ -65,7 +65,7 @@ Future<Result> updateUserInfo({
   final params = <String, dynamic>{};
   if (name?.isNotEmpty == true) params['name'] = name;
   if (avatar?.isNotEmpty == true) params['avatar'] = avatar;
-  if (avatarThumb?.isNotEmpty == true) params['avatarThumb'] = avatarThumb;
+  if (avatarThumb?.isNotEmpty == true) params['avatar_thumb'] = avatarThumb;
   if (gender != null) params['gender'] = gender.name;
   if (birthday?.isNotEmpty == true) params['birthday'] = birthday;
   if (remark?.isNotEmpty == true) params['remark'] = remark;
@@ -89,6 +89,6 @@ Future<Result<UploadedFile>> upload(
   return Result.success(UploadedFile(
       id: result.data['id'].toString(),
       type: FileTypeExt.fromName(result.data['type']),
-      url: result.data['url'],
-      thumbUrl: result.data['thumb_url']));
+      url: result.data['url'] ?? '',
+      thumbUrl: result.data['thumb_url'] ?? ''));
 }

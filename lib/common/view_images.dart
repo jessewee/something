@@ -71,7 +71,7 @@ class _ViewImagesState extends State<ViewImages>
                 stream: _pageChanged.stream,
                 builder: (context, snapshot) {
                   return Text(
-                    '${snapshot.data} / ${_controller.length}',
+                    '${snapshot.data + 1} / ${_controller.length}',
                     style: textStyle,
                   );
                 }),

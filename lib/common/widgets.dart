@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import 'extensions.dart';
 import 'pub.dart';
 
 /// loading提示
@@ -158,20 +160,15 @@ class ImageWithUrl extends StatelessWidget {
   Widget build(BuildContext context) {
     return CachedNetworkImage(
       fit: fit,
-      imageUrl: url,
+      imageUrl: url.checkServerFileUrl(),
       errorWidget: (context, url, error) => _buildContent(errorWidget),
       progressIndicatorBuilder: (context, url, progress) => Center(
-        child: Container(
-          width: width,
-          height: height,
-          child: SizedBox(
-              width: 20.0,
-              height: 20.0,
-              child: CircularProgressIndicator(value: progress.progress)),
+        child: _buildContent(
+          Center(child: CircularProgressIndicator(value: progress.progress)),
         ),
       ),
       imageBuilder: (context, imageProvider) =>
-          _buildContent(Image(image: imageProvider)),
+          _buildContent(Image(image: imageProvider, fit: fit)),
     );
   }
 
@@ -191,7 +188,7 @@ class ImageWithUrl extends StatelessWidget {
       child: onPressed == null
           ? child
           : Stack(
-              alignment: Alignment.center,
+              fit: StackFit.expand,
               children: [
                 child,
                 Material(
@@ -530,7 +527,8 @@ class _TextFieldSheetState extends State<TextFieldSheet> {
   @override
   void initState() {
     _controller = TextEditingController(text: widget.defaultText);
-    _btnStreamController = StreamControllerWithData(false);
+    _btnStreamController =
+        StreamControllerWithData(widget.defaultText?.isNotEmpty == true);
     _controller.addListener(() {
       if (_controller.text.isEmpty && _btnStreamController.value) {
         _btnStreamController.add(false);
