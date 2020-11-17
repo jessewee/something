@@ -146,7 +146,7 @@ Future<Result<ReplyResultData>> reply({
 }
 
 /// 发帖，返回post_id
-Future<Result<ReplyResultData>> post({
+Future<Result<String>> post({
   String label,
   String content,
   List<String> mediaIds,

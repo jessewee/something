@@ -64,11 +64,14 @@ class _ForumPageState extends State<ForumPage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
-        onPressed: () => PostLongContentSheet.show(
-          context,
-          _onPost,
-          label: _LabelWidget((text) => _postLabel = text),
-        ),
+        onPressed: () {
+          if (!context.checkLogin()) return;
+          PostLongContentSheet.show(
+            context,
+            _onPost,
+            label: _LabelWidget((text) => _postLabel = text),
+          );
+        },
         child: Icon(Icons.add, color: Colors.white),
         heroTag: 'forum_page_floating_action_button',
       ),
@@ -80,6 +83,7 @@ class _ForumPageState extends State<ForumPage> {
     if (_postLabel?.isNotEmpty != true) {
       _postLabel = await _LabelWidget.requireLabel(context);
     }
+    if (_postLabel?.isNotEmpty != true) return false;
     final result = await repository.post(
       label: _postLabel,
       content: text,
@@ -191,6 +195,8 @@ class __PostLabelSheetState extends State<_PostLabelSheet> {
           padding: const EdgeInsets.all(15.0),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        // 标题
+        Text('填写帖子标签'),
         // 确定按钮
         StreamBuilder<Object>(
           initialData: false,
@@ -214,6 +220,10 @@ class __PostLabelSheetState extends State<_PostLabelSheet> {
       maxLength: 20,
       buildCounter: (context, {currentLength, isFocused, maxLength}) =>
           Text('$currentLength/$maxLength'),
+      onChanged: (text) {
+        if (_text?.isNotEmpty != text?.isNotEmpty) _controller.add(null);
+        _text = text;
+      },
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 15.0,

@@ -80,7 +80,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
       );
       label = Container(
         child: label,
-        padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 2.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
         decoration: ShapeDecoration(
           color: Colors.yellow[900],
           shape: StadiumBorder(),
@@ -115,7 +115,6 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
               label == null
                   ? date.withMargin(top: 8.0)
                   : Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         date.withMargin(right: 8.0),
                         Flexible(child: label),

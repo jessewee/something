@@ -1,7 +1,23 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:something/configs.dart';
+import 'package:provider/provider.dart';
+
+import '../common/event_bus.dart';
+import '../configs.dart';
+import 'models.dart';
+
+extension ContextExt on BuildContext {
+  /// 检查登录状态
+  bool checkLogin() {
+    final user = this.read<UserVM>().user;
+    if (user.id?.isNotEmpty != true) {
+      eventBus.sendEvent(EventBusType.loginInvalid);
+      return false;
+    }
+    return true;
+  }
+}
 
 extension StringExt on String {
   /// 服务器返回的文件路径是相对路径，需要自己拼上前部分

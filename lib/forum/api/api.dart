@@ -272,16 +272,20 @@ Future<Result<ReplyResultData>> reply({
 }
 
 /// 发帖，返回post_id
-Future<Result<ReplyResultData>> post({
+Future<Result<String>> post({
   String label,
   String content,
   List<String> mediaIds,
 }) async {
-  return await network.post('/forum/post', params: {
+  final result = await network.post('/forum/post', params: {
     'label': label,
     'text': content,
     'medias': mediaIds,
   });
+  if (result.success) {
+    return Result.success(result.data.toString());
+  }
+  return Result<String>(code: result.code, msg: result.msg);
 }
 
 /// 获取社区用户数据
