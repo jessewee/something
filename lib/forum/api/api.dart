@@ -260,7 +260,7 @@ Future<Result<ReplyResultData>> reply({
     'floor_id': floorId,
     'inner_floor_id': innerFloorId,
     'text': content,
-    'medias': mediaIds,
+    'medias': mediaIds.map<int>((e) => int.parse(e)).toList(),
   });
   if (result.fail) return Result(code: result.code, msg: result.msg);
   return Result.success(ReplyResultData(
@@ -280,7 +280,7 @@ Future<Result<String>> post({
   final result = await network.post('/forum/post', params: {
     'label': label,
     'text': content,
-    'medias': mediaIds,
+    'medias': mediaIds.map<int>((e) => int.parse(e)).toList(),
   });
   if (result.success) {
     return Result.success(result.data.toString());

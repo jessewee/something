@@ -93,6 +93,7 @@ class _ForumPageState extends State<ForumPage> {
       showToast(result.msg);
       return false;
     }
+    Navigator.pop(context);
     return true;
   }
 }
@@ -117,25 +118,31 @@ class __LabelWidgetState extends State<_LabelWidget> {
     if (_text.isEmpty) {
       return TextButton(
         child: Text('标签', style: TextStyle(fontSize: textTheme.fontSize)),
-        onPressed: () async {
-          _text = await _LabelWidget.requireLabel(context);
-          setState(() {});
-        },
+        onPressed: _selectLabel,
       );
     }
     Widget label = NormalButton(
       text: _text,
       backgroundColor: Colors.yellow[900],
       fontSize: textTheme.fontSize,
-      padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 2.0),
+      onPressed: _selectLabel,
     );
     label = Container(
+      margin: const EdgeInsets.only(left: 15.0),
       child: label,
       clipBehavior: Clip.hardEdge,
       decoration: ShapeDecoration(shape: StadiumBorder()),
     );
     label = Tooltip(message: _text, child: label);
     return label;
+  }
+
+  void _selectLabel() async {
+    final tmp = await _LabelWidget.requireLabel(context);
+    if (tmp?.isNotEmpty != true) return;
+    _text = tmp;
+    widget.onChange(_text);
+    setState(() {});
   }
 }
 
