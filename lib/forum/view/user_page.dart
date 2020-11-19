@@ -88,6 +88,7 @@ class _UserPageState extends State<UserPage> {
               ? Icon(
                   user.isMale ? Iconfont.male : Iconfont.female,
                   color: user.isMale ? Colors.blue : Colors.pink,
+                  size: 16.0,
                 )
               : null,
         ),

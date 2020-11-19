@@ -48,7 +48,7 @@ class _PostFloorRepliesSheetState extends State<PostFloorRepliesSheet> {
     _scrollController.addListener(() async {
       if (_loading != null) return;
       final pos = _scrollController.position;
-      if (pos.pixels >= pos.maxScrollExtent - 50) {
+      if (pos.pixels >= pos.maxScrollExtent - LoadMore.validHeight) {
         _loadData(refresh: false);
       }
     });

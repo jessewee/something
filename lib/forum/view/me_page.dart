@@ -82,6 +82,7 @@ class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
               ? Icon(
                   user.isMale ? Iconfont.male : Iconfont.female,
                   color: user.isMale ? Colors.blue : Colors.pink,
+                  size: 16.0,
                 )
               : null,
         ),

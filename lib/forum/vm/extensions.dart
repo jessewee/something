@@ -39,7 +39,12 @@ extension PostBaseExt on PostBase {
         dislikeCnt++;
       }
     }
-    if (this is Post) eventBus.sendEvent(EventBusType.forumPostItemChanged);
+    if (this is Post) {
+      eventBus.sendEvent(
+        EventBusType.forumPostItemChanged,
+        {'postId': id, 'likeCnt': likeCnt, 'dislikeCnt': dislikeCnt},
+      );
+    }
     return '';
   }
 }

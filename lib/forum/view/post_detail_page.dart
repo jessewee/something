@@ -36,7 +36,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
     _scrollController.addListener(() async {
       if (_loading.value == false) return;
       final pos = _scrollController.position;
-      if (pos.pixels >= pos.maxScrollExtent - 50) {
+      if (pos.pixels >= pos.maxScrollExtent - LoadMore.validHeight) {
         _loadData(refresh: false);
       }
     });

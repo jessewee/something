@@ -37,7 +37,7 @@ class _UserFollowPageState extends State<UserFollowPage> {
     _scrollController.addListener(() async {
       if (loadingMore || _vm.noMoreData) return;
       final pos = _scrollController.position;
-      if (pos.pixels >= pos.maxScrollExtent - 50) {
+      if (pos.pixels >= pos.maxScrollExtent - LoadMore.validHeight) {
         loadingMore = true;
         _loadData(false);
       }
@@ -145,6 +145,7 @@ class __UserItemState extends State<_UserItem> {
               ? Icon(
                   widget.user.isMale ? Iconfont.male : Iconfont.female,
                   color: widget.user.isMale ? Colors.blue : Colors.pink,
+                  size: 16.0,
                 )
               : null,
           // 关注按钮

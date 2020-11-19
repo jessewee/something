@@ -36,7 +36,7 @@ class _PostListState extends State<PostList> {
     _scrollController.addListener(() async {
       if (widget.loading != null || loadingMore || widget.noMoreData) return;
       final pos = _scrollController.position;
-      if (pos.pixels >= pos.maxScrollExtent - 50) {
+      if (pos.pixels >= pos.maxScrollExtent - LoadMore.validHeight) {
         loadingMore = true;
         widget.loadData(false);
       }

@@ -43,6 +43,8 @@ class _PostItemState extends State<PostItem> {
         if (likeCnt != null) widget.post.likeCnt = likeCnt;
         final dislikeCnt = map['dislikeCnt'];
         if (dislikeCnt != null) widget.post.dislikeCnt = dislikeCnt;
+        final replyCnt = map['replyCnt'];
+        if (replyCnt != null) widget.post.replyCnt = replyCnt;
         setState(() {});
       },
       '${PostItem.eventBusEventType}_${widget.post.id}',
@@ -97,6 +99,13 @@ class _PostItemState extends State<PostItem> {
       ),
       child: top,
     ).withMargin(bottom: 8.0);
+    // 回复
+    Widget reply = NormalButton(
+      color: Colors.black,
+      icon: Iconfont.reply,
+      text: '${widget.post.replyCnt}',
+      onPressed: _toDetailPage,
+    );
     // 点赞
     Widget like = StreamBuilder(
       stream: _likeStatusStreamController.stream,
@@ -119,10 +128,10 @@ class _PostItemState extends State<PostItem> {
             _changeLikeState(widget.post.myAttitude == -1 ? null : false),
       ),
     );
-    // 点赞、点踩区域
+    // 回复、点赞、点踩区域
     Widget bottom = Row(
       mainAxisAlignment: MainAxisAlignment.end,
-      children: <Widget>[like, dislike],
+      children: <Widget>[reply, like, dislike],
     );
     // 文本
     Widget content = Text(
@@ -150,11 +159,7 @@ class _PostItemState extends State<PostItem> {
     }
     // 结果
     return InkWell(
-      onTap: () => Navigator.pushNamed(
-        context,
-        PostDetailPage.routeName,
-        arguments: widget.post,
-      ),
+      onTap: _toDetailPage,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(15.0, 15.0, 15.0, 0.0),
         child: Column(
@@ -171,17 +176,21 @@ class _PostItemState extends State<PostItem> {
     );
   }
 
+  // 到详情页
+  void _toDetailPage() {
+    Navigator.pushNamed(context, PostDetailPage.routeName,
+        arguments: widget.post);
+  }
+
   // 构建图片或者视频Widget
   Widget _buildMedia(UploadedFile media, int cnt) {
     Widget w;
     if (media.type == FileType.image) {
-      w = AspectRatio(
+      w = ImageWithUrl(
+        media.thumbUrl,
         aspectRatio: 1,
-        child: ImageWithUrl(
-          media.thumbUrl,
-          fit: BoxFit.cover,
-          onPressed: () => _viewMediaImages(media),
-        ),
+        fit: BoxFit.cover,
+        onPressed: () => _viewMediaImages(media),
       );
     } else if (media.type == FileType.video) {
       w = AspectRatio(

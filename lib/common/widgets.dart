@@ -139,6 +139,7 @@ class ImageWithUrl extends StatelessWidget {
   final String url;
   final bool local;
   final BoxFit fit;
+  final double aspectRatio;
   final double width;
   final double height;
   final bool round;
@@ -153,6 +154,7 @@ class ImageWithUrl extends StatelessWidget {
     this.onPressed,
     this.width,
     this.height,
+    this.aspectRatio,
     this.round = false,
     this.backgroundColor,
     this.errorWidget = const Icon(Icons.broken_image),
@@ -160,6 +162,7 @@ class ImageWithUrl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    assert(height != null || aspectRatio != null, '高和宽高比至少有一个');
     if (local) {
       final file = File(url);
       if (file.existsSync()) {
@@ -183,7 +186,7 @@ class ImageWithUrl extends StatelessWidget {
   }
 
   Widget _buildContent(Widget child) {
-    return Container(
+    Widget content = Container(
       width: width,
       height: height,
       clipBehavior: Clip.hardEdge,
@@ -212,6 +215,10 @@ class ImageWithUrl extends StatelessWidget {
               ],
             ),
     );
+    if (aspectRatio != null) {
+      content = AspectRatio(aspectRatio: aspectRatio, child: content);
+    }
+    return content;
   }
 }
 
@@ -272,7 +279,7 @@ class _NormalButtonState extends State<NormalButton> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        if (widget.icon != null) Icon(widget.icon, color: color),
+        if (widget.icon != null) Icon(widget.icon, color: color, size: 16.0),
         if (widget.icon != null || widget.text != null) Container(width: 5.0),
         if (widget.text != null)
           Text(
@@ -328,6 +335,8 @@ class _NormalButtonState extends State<NormalButton> {
 
 /// 底部加载更多显示
 class LoadMore extends StatelessWidget {
+  /// 下滑到距离底部的一定高度后开始加载更多
+  static const validHeight = 100;
   final bool noMore;
 
   const LoadMore({this.noMore});
@@ -337,7 +346,7 @@ class LoadMore extends StatelessWidget {
     var loadingSize = Theme.of(context).textTheme.bodyText1.fontSize * 0.75;
     return Container(
       color: Colors.grey[100],
-      padding: const EdgeInsets.all(5.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 30.0),
       alignment: Alignment.center,
       child: noMore == true
           ? Text('没有更多数据了')
