@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
-import 'package:something/common/event_bus.dart';
 
+import '../../common/event_bus.dart';
 import '../../common/widgets.dart';
 import '../../common/models.dart';
 import '../../common/view_images.dart';
@@ -27,6 +27,16 @@ class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
+    eventBus.on(EventBusType.forumPosted, (arg) {
+      _user.postCount += 1;
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    eventBus.off(type: EventBusType.forumPosted);
+    super.dispose();
   }
 
   @override

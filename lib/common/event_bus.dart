@@ -69,5 +69,8 @@ enum EventBusType {
   loginInvalid,
 
   /// 帖子列表里的信息改变
-  forumPostItemChanged
+  forumPostItemChanged,
+
+  /// 主页里发帖成功
+  forumPosted
 }

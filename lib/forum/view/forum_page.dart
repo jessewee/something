@@ -2,13 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
+import '../../common/event_bus.dart';
 import '../../common/pub.dart';
 import '../../common/widgets.dart';
 import '../../common/models.dart';
 import '../../common/extensions.dart';
 
 import '../repository/repository.dart' as repository;
+import '../model/post.dart';
 import 'select_post_label_page.dart';
 import 'post_long_content_sheet.dart';
 import 'me_page.dart';
@@ -66,6 +69,7 @@ class _ForumPageState extends State<ForumPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (!context.checkLogin()) return;
+          _postLabel = '';
           PostLongContentSheet.show(
             context,
             _onPost,
@@ -93,6 +97,19 @@ class _ForumPageState extends State<ForumPage> {
       showToast(result.msg);
       return false;
     }
+    final loginUser = context.read<UserVM>();
+    eventBus.sendEvent(
+      EventBusType.forumPosted,
+      Post(
+          id: result.data,
+          posterId: loginUser.user.id,
+          avatar: loginUser.user.avatar,
+          avatarThumb: loginUser.user.avatarThumb,
+          name: loginUser.user.name,
+          date: DateTime.now().format(),
+          content: text,
+          medias: medias),
+    );
     return true;
   }
 }

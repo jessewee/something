@@ -15,6 +15,12 @@ class PostsVM {
   int _totalCnt = 0; // 总数据数量
   get noMoreData => _posts.length >= _totalCnt;
 
+  /// 添加新数据，一般是登录人发帖后添加显示
+  List<Post> addNewPostAndReturnList(Post post) {
+    _posts.insert(0, post);
+    return _posts;
+  }
+
   /// 根据id获取post对象
   Post getPostById(String id) {
     return _posts.firstWhere((p) => p.id == id, orElse: () => null);

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../common/event_bus.dart';
 import '../../configs.dart';
 import '../../common/pub.dart';
 import '../../common/widgets.dart';
@@ -37,6 +38,14 @@ class _PostsPageState extends State<PostsPage>
     _loading = StreamControllerWithData(true);
     _vm = PostsVM();
     SchedulerBinding.instance.addPostFrameCallback((_) => _loadData(true));
+    eventBus.on(EventBusType.forumPosted, (arg) {
+      if (arg is! Post) {
+        _loadData(true);
+      } else {
+        final list = _vm.addNewPostAndReturnList(arg);
+        _dataChanged.add(Result.success(list));
+      }
+    });
     super.initState();
   }
 
@@ -45,6 +54,7 @@ class _PostsPageState extends State<PostsPage>
     _displayType.dispose();
     _dataChanged.dispose();
     _loading.dispose();
+    eventBus.off(type: EventBusType.forumPosted);
     super.dispose();
   }
 
