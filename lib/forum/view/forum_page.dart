@@ -294,6 +294,10 @@ class __PostLabelSheetState extends State<_PostLabelSheet> {
         ),
       ),
     );
+    records = Container(
+      child: records,
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
+    );
     // 结果
     final screenH = MediaQuery.of(context).size.height;
     return Container(
