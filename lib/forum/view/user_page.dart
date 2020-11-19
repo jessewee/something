@@ -84,11 +84,11 @@ class _UserPageState extends State<UserPage> {
         _buildItem(
           '名字',
           content: user.name,
-          mid: user.isGenderClear
+          tail: user.isGenderClear
               ? Icon(
                   user.isMale ? Iconfont.male : Iconfont.female,
                   color: user.isMale ? Colors.blue : Colors.pink,
-                  size: 16.0,
+                  size: 12.0,
                 )
               : null,
         ),
@@ -166,11 +166,17 @@ class _UserPageState extends State<UserPage> {
     );
   }
 
-  Widget _buildItem(String label, {String content, Widget tail, Widget mid}) {
+  Widget _buildItem(
+    String label, {
+    String content,
+    Widget tail,
+    Widget mid,
+    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8.0),
+      padding: const EdgeInsets.all(15.0),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: crossAxisAlignment,
         children: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
@@ -182,7 +188,11 @@ class _UserPageState extends State<UserPage> {
             Spacer()
           else
             Expanded(child: Text(content, textAlign: TextAlign.end)),
-          if (tail != null) tail,
+          if (tail != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 5.0),
+              child: tail,
+            ),
         ],
       ),
     );
@@ -194,18 +204,15 @@ class _UserPageState extends State<UserPage> {
     VoidCallback onLeftClick,
     VoidCallback onRightClick,
   ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextButton(onPressed: onLeftClick, child: Text(left)),
-          ),
-          Expanded(
-            child: TextButton(onPressed: onRightClick, child: Text(right)),
-          ),
-        ],
-      ),
+    return Row(
+      children: [
+        Expanded(
+          child: TextButton(onPressed: onLeftClick, child: Text(left)),
+        ),
+        Expanded(
+          child: TextButton(onPressed: onRightClick, child: Text(right)),
+        ),
+      ],
     );
   }
 }
