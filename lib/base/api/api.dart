@@ -87,8 +87,11 @@ Future<Result<UploadedFile>> upload(
   if (result.fail)
     return Result<UploadedFile>(code: result.code, msg: result.msg);
   return Result.success(UploadedFile(
-      id: result.data['id'].toString(),
-      type: FileTypeExt.fromName(result.data['type']),
-      url: result.data['url'] ?? '',
-      thumbUrl: result.data['thumb_url'] ?? ''));
+    id: result.data['id'].toString(),
+    type: FileTypeExt.fromName(result.data['type']),
+    url: result.data['url'] ?? '',
+    thumbUrl: result.data['thumb_url'] ?? '',
+    width: result.data['width'],
+    height: result.data['height'],
+  ));
 }

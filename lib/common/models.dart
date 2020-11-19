@@ -122,10 +122,21 @@ class UploadedFile {
   /// 图片缩略图或者视频封面
   final String thumbUrl;
 
+  /// 图片的宽高
+  final int width;
+  final int height;
+
+  double get aspectRatio {
+    if (width == null || height == null || width <= 0 || height <= 0) return 1;
+    return width / height;
+  }
+
   const UploadedFile({
     this.id = '',
     @required this.type,
     @required this.url,
     this.thumbUrl = '',
+    this.width,
+    this.height,
   });
 }

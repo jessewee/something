@@ -238,6 +238,8 @@ List<UploadedFile> _mapMedias(data) {
           type: type,
           url: m['url'] ?? '',
           thumbUrl: m['thumb_url'] ?? '',
+          width: m['width'],
+          height: m['height'],
         );
       })
       .where((e) => e != null)

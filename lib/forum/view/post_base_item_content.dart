@@ -287,6 +287,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
         list.add(
           ImageWithUrl(
             m.thumbUrl,
+            aspectRatio: m.aspectRatio,
             fit: BoxFit.cover,
             onPressed: () => _viewMediaImages(context, m, medias),
           ),

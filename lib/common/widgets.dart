@@ -162,7 +162,6 @@ class ImageWithUrl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    assert(height != null || aspectRatio != null, '高和宽高比至少有一个');
     if (local) {
       final file = File(url);
       if (file.existsSync()) {
