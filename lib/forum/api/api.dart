@@ -125,7 +125,7 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts(
             likeCnt: e['like_count'] ?? 0,
             dislikeCnt: e['dislike_count'] ?? 0,
             replyCnt: e['reply_count'] ?? 0,
-            myAttitude: e['attitude'] ?? 0,
+            myAttitude: e['attitude'],
             posterFollowed: e['poster_followed'] == true,
             medias: _mapMedias(e['medias']),
           ))
@@ -169,7 +169,7 @@ Future<Result<FloorResultData>> getFloors({
             replyCnt: e['reply_count'] ?? 0,
             likeCnt: e['like_count'] ?? 0,
             dislikeCnt: e['dislike_count'] ?? 0,
-            myAttitude: e['attitude'] ?? 0,
+            myAttitude: e['attitude'],
             medias: _mapMedias(e['medias']),
             floor: e['floor'],
           ))
@@ -213,7 +213,7 @@ Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
             content: e['text'] ?? '',
             likeCnt: e['like_count'] ?? 0,
             dislikeCnt: e['dislike_count'] ?? 0,
-            myAttitude: e['attitude'] ?? 0,
+            myAttitude: e['attitude'],
             medias: _mapMedias(e['medias']),
             innerFloor: e['innser_floor'],
             targetId: e['target_id'],

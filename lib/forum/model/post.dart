@@ -30,8 +30,8 @@ class PostBase {
   /// 点踩数
   int dislikeCnt;
 
-  /// 我的态度-1:踩、0:中、1:赞
-  int myAttitude;
+  /// 我的态度  true:赞、false:踩、null:中
+  bool myAttitude;
 
   PostBase.essential({
     this.id = '',
@@ -44,7 +44,7 @@ class PostBase {
     this.medias = const [],
     this.likeCnt = 0,
     this.dislikeCnt = 0,
-    this.myAttitude = 0,
+    this.myAttitude,
   });
 }
 
@@ -70,7 +70,7 @@ class Post extends PostBase {
     List<UploadedFile> medias = const [],
     int likeCnt = 0,
     int dislikeCnt = 0,
-    int myAttitude = 0,
+    bool myAttitude,
     this.label = '',
     this.replyCnt = 0,
     this.posterFollowed = false,
@@ -108,7 +108,7 @@ class Floor extends PostBase {
     List<UploadedFile> medias = const [],
     int likeCnt = 0,
     int dislikeCnt = 0,
-    int myAttitude = 0,
+    bool myAttitude,
     this.floor = 0,
     this.replyCnt = 0,
   }) : super.essential(
@@ -148,7 +148,7 @@ class InnerFloor extends PostBase {
     List<UploadedFile> medias = const [],
     int likeCnt = 0,
     int dislikeCnt = 0,
-    int myAttitude = 0,
+    bool myAttitude,
     this.innerFloor = 0,
     this.targetId = '',
     this.targetName = '',

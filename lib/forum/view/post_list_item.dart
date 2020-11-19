@@ -78,6 +78,22 @@ class _PostItemState extends State<PostItem> {
     );
     // 日期
     Widget date = Text(widget.post.date, style: theme.textTheme.caption);
+    // 标签
+    Widget label = Text(
+      widget.post.label,
+      style: theme.textTheme.caption.copyWith(color: Colors.white),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+    );
+    label = Container(
+      child: label,
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      decoration: ShapeDecoration(
+        color: Colors.yellow[900],
+        shape: StadiumBorder(),
+      ),
+    );
+    label = Tooltip(message: widget.post.label, child: label);
     // 头像、名字、日期区域
     Widget top = Row(
       children: <Widget>[
@@ -85,7 +101,17 @@ class _PostItemState extends State<PostItem> {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[name, date.withMargin(top: 8.0)],
+            children: <Widget>[
+              name,
+              label == null
+                  ? date.withMargin(top: 8.0)
+                  : Row(
+                      children: [
+                        date.withMargin(right: 8.0),
+                        Flexible(child: label),
+                      ],
+                    ).withMargin(top: 8.0),
+            ],
           ),
         ),
       ],
@@ -110,22 +136,24 @@ class _PostItemState extends State<PostItem> {
     Widget like = StreamBuilder(
       stream: _likeStatusStreamController.stream,
       builder: (context, _) => NormalButton(
-        color: widget.post.myAttitude == 1 ? theme.primaryColor : Colors.black,
+        color:
+            widget.post.myAttitude == true ? theme.primaryColor : Colors.black,
         icon: Iconfont.like,
         text: '${widget.post.likeCnt}',
         onPressed: () =>
-            _changeLikeState(widget.post.myAttitude == 1 ? null : true),
+            _changeLikeState(widget.post.myAttitude == true ? null : true),
       ),
     );
     // 点踩
     Widget dislike = StreamBuilder(
       stream: _likeStatusStreamController.stream,
       builder: (context, _) => NormalButton(
-        color: widget.post.myAttitude == -1 ? theme.primaryColor : Colors.black,
+        color:
+            widget.post.myAttitude == false ? theme.primaryColor : Colors.black,
         icon: Iconfont.dislike,
         text: '${widget.post.dislikeCnt}',
         onPressed: () =>
-            _changeLikeState(widget.post.myAttitude == -1 ? null : false),
+            _changeLikeState(widget.post.myAttitude == false ? null : false),
       ),
     );
     // 回复、点赞、点踩区域

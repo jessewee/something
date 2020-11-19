@@ -68,26 +68,6 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     Widget name = Text(widget.postBase.name, style: theme.textTheme.subtitle2);
     // 日期
     Widget date = Text(widget.postBase.date, style: theme.textTheme.caption);
-    // 标签
-    Widget label;
-    if (widget.postBase is Post) {
-      final post = widget.postBase as Post;
-      label = Text(
-        post.label,
-        style: theme.textTheme.caption.copyWith(color: Colors.white),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-      );
-      label = Container(
-        child: label,
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        decoration: ShapeDecoration(
-          color: Colors.yellow[900],
-          shape: StadiumBorder(),
-        ),
-      );
-      label = Tooltip(message: post.label, child: label);
-    }
     // 关注按钮
     Widget follow;
     if (widget.postBase is Post) {
@@ -110,17 +90,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              name,
-              label == null
-                  ? date.withMargin(top: 8.0)
-                  : Row(
-                      children: [
-                        date.withMargin(right: 8.0),
-                        Flexible(child: label),
-                      ],
-                    ).withMargin(top: 8.0),
-            ],
+            children: <Widget>[name, date.withMargin(top: 8.0)],
           ),
         ),
         if (follow != null) follow,
@@ -154,8 +124,9 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     Widget like = StreamBuilder(
       stream: _likeStatusStreamController.stream,
       builder: (context, _) => NormalButton(
-        color:
-            widget.postBase.myAttitude == 1 ? theme.primaryColor : Colors.black,
+        color: widget.postBase.myAttitude == true
+            ? theme.primaryColor
+            : Colors.black,
         icon: Iconfont.like,
         text: '${widget.postBase.likeCnt}',
         onPressed: _onLikeClick,
@@ -165,7 +136,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     Widget dislike = StreamBuilder(
       stream: _likeStatusStreamController.stream,
       builder: (context, _) => NormalButton(
-        color: widget.postBase.myAttitude == -1
+        color: widget.postBase.myAttitude == false
             ? theme.primaryColor
             : Colors.black,
         icon: Iconfont.dislike,
@@ -231,7 +202,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
 
   // 点赞
   Future _onLikeClick() async {
-    final target = widget.postBase.myAttitude == 1 ? null : true;
+    final target = widget.postBase.myAttitude == true ? null : true;
     final result = await widget.postBase.changeLikeState(target);
     if (result.isNotEmpty) {
       showToast(result);
@@ -243,7 +214,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
 
   // 点踩
   Future _onDislikeClick() async {
-    final target = widget.postBase.myAttitude == -1 ? null : false;
+    final target = widget.postBase.myAttitude == false ? null : false;
     final result = await widget.postBase.changeLikeState(target);
     if (result.isNotEmpty) {
       showToast(result);
