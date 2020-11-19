@@ -93,7 +93,6 @@ class _ForumPageState extends State<ForumPage> {
       showToast(result.msg);
       return false;
     }
-    Navigator.pop(context);
     return true;
   }
 }
