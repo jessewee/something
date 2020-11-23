@@ -68,7 +68,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
       body: Column(
         children: [
           Expanded(child: _buildContent()),
-          BottomReplyBar(postId: _vm.post.id, onReplied: _onReplied),
+          BottomReplyBar(ReplyVM(postId: _vm.post.id, onReplied: _onReplied)),
         ],
       ),
     );

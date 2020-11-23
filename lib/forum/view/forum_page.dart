@@ -12,6 +12,7 @@ import '../../common/extensions.dart';
 
 import '../repository/repository.dart' as repository;
 import '../model/post.dart';
+import 'bottom_reply_bar.dart';
 import 'select_post_label_page.dart';
 import 'post_long_content_sheet.dart';
 import 'me_page.dart';
@@ -70,11 +71,7 @@ class _ForumPageState extends State<ForumPage> {
         onPressed: () {
           if (!context.checkLogin()) return;
           _postLabel = '';
-          PostLongContentSheet.show(
-            context,
-            _onPost,
-            label: _LabelWidget((text) => _postLabel = text),
-          );
+          PostLongContentSheet.show(context, ReplyVM(showLabel: true));
         },
         child: Icon(Icons.add, color: Colors.white),
         heroTag: 'forum_page_floating_action_button',

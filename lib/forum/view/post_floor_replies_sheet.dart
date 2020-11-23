@@ -109,22 +109,22 @@ class _PostFloorRepliesSheetState extends State<PostFloorRepliesSheet> {
               stream: _replyTarget.stream,
               builder: (context, snapshot) {
                 if (snapshot.data == null) {
-                  return BottomReplyBar(
+                  return BottomReplyBar(ReplyVM(
                     postId: _vm.floor.postId,
                     floorId: _vm.floor.id,
                     onReplied: _onReplied,
-                  );
+                  ));
                 } else if (snapshot.data is InnerFloor) {
                   String targetId = snapshot.data.posterId ?? '';
                   String targetName = snapshot.data.name ?? '';
-                  return BottomReplyBar(
+                  return BottomReplyBar(ReplyVM(
                     postId: _vm.floor.postId,
                     floorId: _vm.floor.id,
                     innerFloorId: snapshot.data.id,
                     targetId: targetId,
                     targetName: targetName,
                     onReplied: _onReplied,
-                  );
+                  ));
                 } else {
                   return Container();
                 }

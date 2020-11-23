@@ -3,56 +3,39 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:provider/provider.dart';
 
+import '../../common/event_bus.dart';
+import '../../common/pub.dart';
+import '../../common/widgets.dart';
 import '../../common/models.dart';
 import '../../common/extensions.dart';
-import '../../common/widgets.dart';
 import '../../common/view_images.dart';
 import '../../common/play_video_page.dart';
-import '../../common/pub.dart';
-import 'select_following_page.dart';
 import '../model/m.dart';
+import '../model/post.dart';
 import '../repository/repository.dart' as repository;
+import 'bottom_reply_bar.dart';
+import 'select_post_label_page.dart';
+import 'select_following_page.dart';
 
 /// 发帖或发长回复的页面，这个用showModalBottomSheet显示，不注册在页面路由里
 class PostLongContentSheet extends StatefulWidget {
-  static Future show(
-    BuildContext context,
-    Future<bool> Function(String, List<UploadedFile>) onSend, {
-    String defaultText = '',
-    String hintText = '',
-    Widget label,
-  }) {
+  static Future show(BuildContext context, ReplyVM vm) {
     return showModalBottomSheet(
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(2.0)),
       ),
       context: context,
-      builder: (context) => PostLongContentSheet(
-        onSend: onSend,
-        defaultText: defaultText,
-        label: label,
-      ),
+      builder: (context) => PostLongContentSheet(vm),
     );
   }
 
-  final String hintText;
-  final String defaultText;
-
-  /// 发送，参数是文字内容和图片视频列表
-  final Future<bool> Function(String, List<UploadedFile>) onSend;
-
-  /// 发帖页需要有标签选择
-  final Widget label;
-
-  const PostLongContentSheet({
-    this.hintText = '',
-    this.defaultText = '',
-    this.onSend,
-    this.label,
-  });
+  final ReplyVM vm;
+  const PostLongContentSheet(this.vm);
 
   @override
   _PostLongContentSheetState createState() => _PostLongContentSheetState();
@@ -76,7 +59,7 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
   void initState() {
     _controller = TextEditingController();
     _sendBtnSc = StreamControllerWithData(
-        widget.defaultText?.isNotEmpty == true ? null : false);
+        widget.vm.defaultText?.isNotEmpty == true ? null : false);
     _imgSc = StreamController();
     _videoSc = StreamController();
     super.initState();
@@ -133,7 +116,7 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
         _sendBtnSc.add(_contentEmpty ? false : null);
       },
       decoration: InputDecoration(
-        hintText: widget.hintText,
+        hintText: widget.vm.hintText,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 15.0,
           vertical: 8.0,
@@ -154,7 +137,8 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
     Widget buttons = Row(
       children: <Widget>[
         // 标签
-        if (widget.label != null) widget.label,
+        if (widget.vm.showLabel == true)
+          _LabelWidget((text) => widget.vm.postLabel = text),
         Spacer(),
         // @好友
         IconButton(
@@ -354,8 +338,222 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
       }
       medias.add(result.data);
     }
-    final sendResult = await widget.onSend(_controller.text, medias);
+    final sendResult = await widget.vm
+        .submit(context.read<UserVM>().user, _controller.text, medias);
     _sendBtnSc.add(_contentEmpty ? false : null);
     if (sendResult) Navigator.pop(context);
+  }
+}
+
+/// 发帖页面的标签按钮
+class _LabelWidget extends StatefulWidget {
+  final void Function(String) onChange;
+  const _LabelWidget(this.onChange);
+  @override
+  __LabelWidgetState createState() => __LabelWidgetState();
+
+  static Future<String> requireLabel(BuildContext context) async {
+    return await _PostLabelSheet.show(context);
+  }
+}
+
+class __LabelWidgetState extends State<_LabelWidget> {
+  String _text = '';
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme.caption;
+    if (_text.isEmpty) {
+      return TextButton(
+        child: Text('标签', style: TextStyle(fontSize: textTheme.fontSize)),
+        onPressed: _selectLabel,
+      );
+    }
+    Widget label = NormalButton(
+      text: _text,
+      backgroundColor: Colors.yellow[900],
+      fontSize: textTheme.fontSize,
+      onPressed: _selectLabel,
+    );
+    label = Container(
+      margin: const EdgeInsets.only(left: 15.0),
+      child: label,
+      clipBehavior: Clip.hardEdge,
+      decoration: ShapeDecoration(shape: StadiumBorder()),
+    );
+    label = Tooltip(message: _text, child: label);
+    return label;
+  }
+
+  void _selectLabel() async {
+    final tmp = await _LabelWidget.requireLabel(context);
+    if (tmp?.isNotEmpty != true) return;
+    _text = tmp;
+    widget.onChange(_text);
+    setState(() {});
+  }
+}
+
+/// 发帖时选择标签的页面
+class _PostLabelSheet extends StatefulWidget {
+  static Future<String> show(BuildContext context) {
+    return showModalBottomSheet<String>(
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(2.0)),
+      ),
+      context: context,
+      builder: (context) => _PostLabelSheet(),
+    );
+  }
+
+  @override
+  __PostLabelSheetState createState() => __PostLabelSheetState();
+}
+
+class __PostLabelSheetState extends State<_PostLabelSheet> {
+  // 历史记录
+  List<String> _records = [];
+  StreamController _recordsStreamController;
+  // 输入框内容
+  String _text = '';
+  // 确定按钮状态
+  StreamController _controller;
+
+  @override
+  void initState() {
+    _recordsStreamController = StreamController();
+    _controller = StreamController();
+    SharedPreferences.getInstance().then((sp) {
+      _records = sp.getStringList('forum_post_label_used') ?? [];
+      if (_records.length > 0) _recordsStreamController.add(null);
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _recordsStreamController.makeSureClosed();
+    _controller.makeSureClosed();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 顶行
+    Widget top = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        // 取消按钮
+        NormalButton(
+          text: '取消',
+          padding: const EdgeInsets.all(15.0),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        // 标题
+        Text('填写帖子标签'),
+        // 确定按钮
+        StreamBuilder<Object>(
+          initialData: false,
+          stream: _controller.stream,
+          builder: (context, _) => NormalButton(
+            padding: const EdgeInsets.all(15.0),
+            text: '确定',
+            disabled: _text.isEmpty,
+            onPressed: () {
+              Navigator.pop(context, _text);
+              _saveRecord(_text);
+            },
+          ),
+        ),
+      ],
+    );
+    // 输入框
+    Widget input = TextField(
+      minLines: 3,
+      maxLines: 5,
+      maxLength: 20,
+      buildCounter: (context, {currentLength, isFocused, maxLength}) =>
+          Text('$currentLength/$maxLength'),
+      onChanged: (text) {
+        if (_text?.isNotEmpty != text?.isNotEmpty) _controller.add(null);
+        _text = text;
+      },
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 15.0,
+          vertical: 8.0,
+        ),
+        fillColor: Colors.grey[100],
+        filled: true,
+        enabledBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(5.0)),
+          borderSide: BorderSide(color: Colors.transparent),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(5.0)),
+          borderSide: BorderSide(color: Colors.transparent),
+        ),
+      ),
+    );
+    // 选择按钮
+    final select = IconButton(
+      icon: Icon(Icons.search),
+      onPressed: () async {
+        final result = await Navigator.pushNamed(
+          context,
+          SelectPostLabelPage.routeName,
+          arguments: true,
+        );
+        if (result == null || result is! String) return;
+        Navigator.pop(context, result);
+        _saveRecord(result);
+      },
+    );
+    // 历史列表
+    Widget records = StreamBuilder(
+      stream: _recordsStreamController.stream,
+      builder: (context, snapshot) => Visibility(
+        visible: _records.isNotEmpty,
+        child: Wrap(
+          spacing: 5.0,
+          children: _records
+              .map((e) => ActionChip(
+                    label: Text(e),
+                    onPressed: () => Navigator.pop(context, e),
+                  ))
+              .toList(),
+        ),
+      ),
+    );
+    records = Container(
+      child: records,
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
+    );
+    // 结果
+    final screenH = MediaQuery.of(context).size.height;
+    return Container(
+      height: screenH - 60,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: <Widget>[
+          top,
+          Divider(height: 1.0, thickness: 1.0),
+          Container(
+            padding: const EdgeInsets.all(12.0),
+            child: input,
+          ),
+          select,
+          Flexible(child: records),
+        ],
+      ),
+    );
+  }
+
+  void _saveRecord(String text) {
+    if (_records.contains(text)) return;
+    _records.insert(0, text);
+    SharedPreferences.getInstance().then((sp) {
+      sp.setStringList('forum_post_label_used', _records);
+    });
   }
 }
