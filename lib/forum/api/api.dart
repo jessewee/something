@@ -172,6 +172,7 @@ Future<Result<FloorResultData>> getFloors({
             myAttitude: e['attitude'],
             medias: _mapMedias(e['medias']),
             floor: e['floor'],
+            postId: e['post_id'],
           ))
       .toList();
   return Result.success(FloorResultData(
@@ -190,7 +191,7 @@ Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
   int dataPageSize = 100,
 }) async {
   final result = await network.get(
-    '/forum/get_innser_floors',
+    '/forum/get_inner_floors',
     params: {
       'floor_id': floorId,
       'data_idx': dataIdx,
@@ -218,6 +219,8 @@ Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
             innerFloor: e['innser_floor'],
             targetId: e['target_id'],
             targetName: e['target_name'],
+            postId: e['post_id'],
+            floorId: e['floor_id'],
           ))
       .toList();
   return Result.success(DataWidthPageInfo<InnerFloor>(

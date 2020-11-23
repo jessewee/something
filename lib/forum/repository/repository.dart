@@ -128,10 +128,9 @@ Future<Result<ReplyResultData>> reply({
   String content,
   List<String> mediaIds,
 }) async {
-  assert(
-    postId != null || floorId != null || innerFloorId != null,
-    'reply---postId、floorId和innerFloorId必须传一个',
-  );
+  assert(innerFloorId != null
+      ? (floorId != null && postId != null)
+      : postId != null);
   assert(
     content?.isNotEmpty == true || mediaIds?.isNotEmpty == true,
     'reply---content和medias必须传一个',

@@ -107,6 +107,7 @@ class _PostFloorRepliesSheetState extends State<PostFloorRepliesSheet> {
               builder: (context, snapshot) {
                 if (snapshot.data == null) {
                   return BottomReplyBar(
+                    postId: _vm.floor.postId,
                     floorId: _vm.floor.id,
                     onReplied: _onReplied,
                   );
@@ -121,6 +122,8 @@ class _PostFloorRepliesSheetState extends State<PostFloorRepliesSheet> {
                     targetName = snapshot.data.name;
                   }
                   return BottomReplyBar(
+                    postId: _vm.floor.postId,
+                    floorId: _vm.floor.id,
                     innerFloorId: snapshot.data.id,
                     targetId: targetId,
                     targetName: targetName,

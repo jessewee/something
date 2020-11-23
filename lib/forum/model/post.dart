@@ -91,6 +91,8 @@ class Post extends PostBase {
 
 /// 楼层回复
 class Floor extends PostBase {
+  final String postId;
+
   /// 楼层
   final int floor;
 
@@ -109,6 +111,7 @@ class Floor extends PostBase {
     int likeCnt = 0,
     int dislikeCnt = 0,
     bool myAttitude,
+    this.postId = '',
     this.floor = 0,
     this.replyCnt = 0,
   }) : super.essential(
@@ -128,6 +131,9 @@ class Floor extends PostBase {
 
 /// 楼中回复，跟楼层差不多，为了区分还是单独吧
 class InnerFloor extends PostBase {
+  final String postId;
+  final String floorId;
+
   /// 楼层
   final int innerFloor;
 
@@ -149,6 +155,8 @@ class InnerFloor extends PostBase {
     int likeCnt = 0,
     int dislikeCnt = 0,
     bool myAttitude,
+    this.postId = '',
+    this.floorId = '',
     this.innerFloor = 0,
     this.targetId = '',
     this.targetName = '',

@@ -17,10 +17,10 @@ class BottomReplyBar extends StatefulWidget {
   /// 回复楼主时用这个参数
   final String postId;
 
-  /// 回复层主时用这个参数
+  /// 回复层主时用这个参数，同时还必须传postId
   final String floorId;
 
-  /// 回复非层主时用这个参数
+  /// 回复非层主时用这个参数，同时还必须传floorId和postId
   final String innerFloorId;
 
   /// 层内回复目标id
@@ -205,6 +205,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         content: text,
         medias: medias,
         floor: result.data.floor,
+        postId: widget.postId,
       ));
       _controller.text = '';
       return true;
@@ -212,6 +213,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
     // 回复层主
     if (widget.floorId?.isNotEmpty == true) {
       final result = await repository.reply(
+        postId: widget.postId,
         floorId: widget.floorId,
         content: text,
         mediaIds: medias.map((e) => e.id).toList(),
@@ -231,6 +233,8 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         content: text,
         medias: medias,
         innerFloor: result.data.innerFloor,
+        postId: widget.postId,
+        floorId: widget.floorId,
       ));
       _controller.text = '';
       return true;
@@ -238,6 +242,8 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
     // 层内回复
     if (widget.innerFloorId?.isNotEmpty == true) {
       final result = await repository.reply(
+        postId: widget.postId,
+        floorId: widget.floorId,
         innerFloorId: widget.innerFloorId,
         content: text,
         mediaIds: medias.map((e) => e.id).toList(),
@@ -259,6 +265,8 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         innerFloor: result.data.innerFloor,
         targetId: widget.targetId ?? '',
         targetName: widget.targetName ?? '',
+        postId: widget.postId,
+        floorId: widget.floorId,
       ));
       _controller.text = '';
       return true;
