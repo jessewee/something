@@ -66,11 +66,14 @@ class _PostFloorRepliesSheetState extends State<PostFloorRepliesSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final screenH = MediaQuery.of(context).size.height;
+    final mediaQuery = MediaQuery.of(context);
+    final screenH = mediaQuery.size.height;
+    final bottom = mediaQuery.viewInsets.bottom;
     final titlePart = _vm.totalCnt > 0 ? '${_vm.totalCnt}条' : '';
     final len = _vm.innerFloors.length;
     return Container(
-      height: screenH - 60,
+      height: screenH - 60 - bottom,
+      margin: EdgeInsets.only(bottom: bottom),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -112,15 +115,8 @@ class _PostFloorRepliesSheetState extends State<PostFloorRepliesSheet> {
                     onReplied: _onReplied,
                   );
                 } else if (snapshot.data is InnerFloor) {
-                  String targetId, targetName;
-                  if (snapshot.data.posterId == _vm.floor.posterId) {
-                    // 回复层主时不显示目标名字
-                    targetId = '';
-                    targetName = '';
-                  } else {
-                    targetId = snapshot.data.posterId;
-                    targetName = snapshot.data.name;
-                  }
+                  String targetId = snapshot.data.posterId ?? '';
+                  String targetName = snapshot.data.name ?? '';
                   return BottomReplyBar(
                     postId: _vm.floor.postId,
                     floorId: _vm.floor.id,

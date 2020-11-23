@@ -21,6 +21,7 @@ class PostLongContentSheet extends StatefulWidget {
     BuildContext context,
     Future<bool> Function(String, List<UploadedFile>) onSend, {
     String defaultText = '',
+    String hintText = '',
     Widget label,
   }) {
     return showModalBottomSheet(
@@ -37,6 +38,7 @@ class PostLongContentSheet extends StatefulWidget {
     );
   }
 
+  final String hintText;
   final String defaultText;
 
   /// 发送，参数是文字内容和图片视频列表
@@ -45,7 +47,12 @@ class PostLongContentSheet extends StatefulWidget {
   /// 发帖页需要有标签选择
   final Widget label;
 
-  const PostLongContentSheet({this.defaultText = '', this.onSend, this.label});
+  const PostLongContentSheet({
+    this.hintText = '',
+    this.defaultText = '',
+    this.onSend,
+    this.label,
+  });
 
   @override
   _PostLongContentSheetState createState() => _PostLongContentSheetState();
@@ -126,6 +133,7 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
         _sendBtnSc.add(_contentEmpty ? false : null);
       },
       decoration: InputDecoration(
+        hintText: widget.hintText,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 15.0,
           vertical: 8.0,
