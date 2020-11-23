@@ -11,6 +11,7 @@ import '../model/post.dart';
 import 'post_base_item_content.dart';
 import '../vm/floor_vm.dart';
 import 'bottom_reply_bar.dart';
+import 'post_long_content_sheet.dart';
 
 /// 楼层回复列表页面，这个用showModalBottomSheet显示，不注册在页面路由里
 class PostFloorRepliesSheet extends StatefulWidget {
@@ -35,7 +36,6 @@ class PostFloorRepliesSheet extends StatefulWidget {
 }
 
 class _PostFloorRepliesSheetState extends State<PostFloorRepliesSheet> {
-  StreamControllerWithData<InnerFloor> _replyTarget;
   ScrollController _scrollController;
   bool _loading; // true:刷新、false:加载更多、null:不在加载状态
   FloorVM _vm;
@@ -43,7 +43,6 @@ class _PostFloorRepliesSheetState extends State<PostFloorRepliesSheet> {
   @override
   void initState() {
     _vm = FloorVM(widget.floor);
-    _replyTarget = StreamControllerWithData(null);
     _scrollController = ScrollController();
     _scrollController.addListener(() async {
       if (_loading != null) return;
@@ -59,7 +58,6 @@ class _PostFloorRepliesSheetState extends State<PostFloorRepliesSheet> {
 
   @override
   void dispose() {
-    _replyTarget.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -99,36 +97,28 @@ class _PostFloorRepliesSheetState extends State<PostFloorRepliesSheet> {
               itemBuilder: (context, index) => index < len
                   ? PostBaseItemContent(
                       _vm.innerFloors[index],
-                      () => _replyTarget.add(_vm.innerFloors[index]),
+                      () {
+                        final innerFloor = _vm.innerFloors[index];
+                        PostLongContentSheet.show(
+                            context,
+                            ReplyVM(
+                              postId: _vm.floor.postId,
+                              floorId: _vm.floor.id,
+                              innerFloorId: innerFloor.id,
+                              targetId: innerFloor.posterId ?? '',
+                              targetName: innerFloor.name ?? '',
+                              onReplied: _onReplied,
+                            ));
+                      },
                     )
                   : LoadMore(noMore: _loading == null && _vm.noMoreData),
             ),
           ),
-          StreamBuilder<PostBase>(
-              initialData: _replyTarget.value,
-              stream: _replyTarget.stream,
-              builder: (context, snapshot) {
-                if (snapshot.data == null) {
-                  return BottomReplyBar(ReplyVM(
-                    postId: _vm.floor.postId,
-                    floorId: _vm.floor.id,
-                    onReplied: _onReplied,
-                  ));
-                } else if (snapshot.data is InnerFloor) {
-                  String targetId = snapshot.data.posterId ?? '';
-                  String targetName = snapshot.data.name ?? '';
-                  return BottomReplyBar(ReplyVM(
-                    postId: _vm.floor.postId,
-                    floorId: _vm.floor.id,
-                    innerFloorId: snapshot.data.id,
-                    targetId: targetId,
-                    targetName: targetName,
-                    onReplied: _onReplied,
-                  ));
-                } else {
-                  return Container();
-                }
-              }),
+          BottomReplyBar(ReplyVM(
+            postId: _vm.floor.postId,
+            floorId: _vm.floor.id,
+            onReplied: _onReplied,
+          )),
         ],
       ),
     );
