@@ -142,12 +142,12 @@ class _PostFloorRepliesSheetState extends State<PostFloorRepliesSheet> {
   Future _loadData({bool refresh = true}) async {
     _loading = refresh;
     final result = await _vm.getInnerFloors(refresh: refresh);
+    _loading = null;
     if (result.success) {
       setState(() {});
     } else {
       showToast(result.msg);
     }
-    _loading = null;
   }
 
   // 回复发送成功的回调

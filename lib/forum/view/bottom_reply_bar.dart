@@ -183,10 +183,12 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
   }
 
   Future<bool> _doSubmit(String text, List<UploadedFile> medias) async {
-    // 回复楼主
-    if (widget.postId?.isNotEmpty == true) {
+    // 层内回复
+    if (widget.innerFloorId?.isNotEmpty == true) {
       final result = await repository.reply(
         postId: widget.postId,
+        floorId: widget.floorId,
+        innerFloorId: widget.innerFloorId,
         content: text,
         mediaIds: medias.map((e) => e.id).toList(),
       );
@@ -195,8 +197,8 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         return false;
       }
       final loginUser = context.read<UserVM>();
-      widget.onReplied(Floor(
-        id: result.data.floorId,
+      widget.onReplied(InnerFloor(
+        id: result.data.innerFloorId,
         posterId: loginUser.user.id,
         avatar: loginUser.user.avatar,
         avatarThumb: loginUser.user.avatarThumb,
@@ -204,8 +206,11 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         date: DateTime.now().format(),
         content: text,
         medias: medias,
-        floor: result.data.floor,
+        innerFloor: result.data.innerFloor,
+        targetId: widget.targetId ?? '',
+        targetName: widget.targetName ?? '',
         postId: widget.postId,
+        floorId: widget.floorId,
       ));
       _controller.text = '';
       return true;
@@ -239,12 +244,10 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
       _controller.text = '';
       return true;
     }
-    // 层内回复
-    if (widget.innerFloorId?.isNotEmpty == true) {
+    // 回复楼主
+    if (widget.postId?.isNotEmpty == true) {
       final result = await repository.reply(
         postId: widget.postId,
-        floorId: widget.floorId,
-        innerFloorId: widget.innerFloorId,
         content: text,
         mediaIds: medias.map((e) => e.id).toList(),
       );
@@ -253,8 +256,8 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         return false;
       }
       final loginUser = context.read<UserVM>();
-      widget.onReplied(InnerFloor(
-        id: result.data.innerFloorId,
+      widget.onReplied(Floor(
+        id: result.data.floorId,
         posterId: loginUser.user.id,
         avatar: loginUser.user.avatar,
         avatarThumb: loginUser.user.avatarThumb,
@@ -262,11 +265,8 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
         date: DateTime.now().format(),
         content: text,
         medias: medias,
-        innerFloor: result.data.innerFloor,
-        targetId: widget.targetId ?? '',
-        targetName: widget.targetName ?? '',
+        floor: result.data.floor,
         postId: widget.postId,
-        floorId: widget.floorId,
       ));
       _controller.text = '';
       return true;

@@ -12,11 +12,11 @@ class PostVM {
   int _totalFloorCnt = 0; // 总楼层数量，不算层内回复
 
   /// 总楼层数量，不算层内回复
-  get totalFloorCnt => _totalFloorCnt;
+  int get totalFloorCnt => _totalFloorCnt;
 
-  get noMoreData => _floors.length >= _totalCnt;
+  bool get noMoreData => _floors.length >= _totalCnt;
 
-  get floors => _floors;
+  List<Floor> get floors => _floors;
 
   PostVM(this.post);
 

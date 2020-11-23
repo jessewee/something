@@ -172,7 +172,7 @@ Future<Result<FloorResultData>> getFloors({
             myAttitude: e['attitude'],
             medias: _mapMedias(e['medias']),
             floor: e['floor'],
-            postId: e['post_id'],
+            postId: e['post_id']?.toString(),
           ))
       .toList();
   return Result.success(FloorResultData(
@@ -219,8 +219,8 @@ Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
             innerFloor: e['innser_floor'],
             targetId: e['target_id'],
             targetName: e['target_name'],
-            postId: e['post_id'],
-            floorId: e['floor_id'],
+            postId: e['post_id']?.toString(),
+            floorId: e['floor_id']?.toString(),
           ))
       .toList();
   return Result.success(DataWidthPageInfo<InnerFloor>(

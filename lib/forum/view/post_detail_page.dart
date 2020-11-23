@@ -56,13 +56,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: StreamBuilder<bool>(
-            initialData: _loading.value,
             stream: _loading.stream,
             builder: (context, snapshot) {
-              return TextWithLoading(
-                _vm.post.label,
-                snapshot.data != null,
-              );
+              return TextWithLoading(_vm.post.label, _loading.value != null);
             }),
         actions: [
           if (_vm.totalFloorCnt > 200)
@@ -99,7 +95,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     stream: _loading.stream,
                     builder: (context, snapshot) {
                       return LoadMore(
-                        noMore: snapshot.data == null && _vm.noMoreData,
+                        noMore: _loading.value == null && _vm.noMoreData,
                       );
                     }),
       ),
@@ -153,10 +149,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
       floorStartIdx: floorStartIdx,
       floorEndIdx: floorEndIdx,
     );
-    _loading.add(null);
     if (result.success) {
       if (mounted) setState(() => _loading.setValueWithoutNotify(null));
     } else {
+      _loading.add(null);
       showToast(result.msg);
     }
   }
