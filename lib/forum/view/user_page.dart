@@ -52,25 +52,25 @@ class _UserPageState extends State<UserPage> {
     }
     return Scaffold(
       appBar: AppBar(title: Text('用户信息')),
-      body: SingleChildScrollView(
-        child: FutureBuilder<Result<ForumUser>>(
-          future: repository.getUserInfo(
-            userId: widget.arg.userId,
-            userName: widget.arg.userName,
-          ),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return CenterInfoText('加载中...');
-            }
-            if (snapshot.data.fail) {
-              return CenterInfoText(snapshot.data.msg);
-            }
-            return Padding(
+      body: FutureBuilder<Result<ForumUser>>(
+        future: repository.getUserInfo(
+          userId: widget.arg.userId,
+          userName: widget.arg.userName,
+        ),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CenterInfoText('加载中...');
+          }
+          if (snapshot.data.fail) {
+            return CenterInfoText(snapshot.data.msg);
+          }
+          return SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 15.0),
               child: _buildContent(context, snapshot.data.data),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
