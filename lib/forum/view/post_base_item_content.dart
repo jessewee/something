@@ -32,7 +32,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
   StreamController<int> _likeStatusStreamController; // 点赞点踩按钮改变
   StreamController<bool> _followStreamController; // 关注按钮改变
   StreamController<int> _replyCntStreamController; // 回复按钮改变
-  TapGestureRecognizer _tapGestureRecognizer; // 点击回复对象
+  List<TapGestureRecognizer> _tapGestureRecognizers; // 点击目标对象
 
   @override
   void initState() {
@@ -42,13 +42,13 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     } else if (widget.postBase is Floor) {
       _replyCntStreamController = StreamController();
     }
-    _tapGestureRecognizer = TapGestureRecognizer();
+    _tapGestureRecognizers = [];
     super.initState();
   }
 
   @override
   void dispose() {
-    _tapGestureRecognizer.dispose();
+    _tapGestureRecognizers.forEach((e) => e.dispose());
     _replyCntStreamController?.makeSureClosed();
     _followStreamController?.makeSureClosed();
     _likeStatusStreamController.makeSureClosed();
@@ -121,18 +121,22 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
         (widget.postBase as InnerFloor).targetId?.isNotEmpty == true) {
       final innerFloor = widget.postBase as InnerFloor;
       contentSpans.add(TextSpan(text: '回复'));
+      // 点击事件
+      final tgr = TapGestureRecognizer()
+        ..onTap = () {
+          final targetId = (widget.postBase as InnerFloor).targetId;
+          Navigator.pushNamed(
+            context,
+            UserPage.routeName,
+            arguments: UserPageArg(userId: targetId),
+          );
+        };
+      _tapGestureRecognizers.add(tgr);
+      // 名字显示
       contentSpans.add(TextSpan(
         text: innerFloor.targetName,
         style: TextStyle(color: Colors.blue),
-        recognizer: _tapGestureRecognizer
-          ..onTap = () {
-            final targetId = (widget.postBase as InnerFloor).targetId;
-            Navigator.pushNamed(
-              context,
-              UserPage.routeName,
-              arguments: UserPageArg(userId: targetId),
-            );
-          },
+        recognizer: tgr,
       ));
       contentSpans.add(TextSpan(text: '： '));
     }
@@ -145,17 +149,21 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
         if (endIdx < 0) endIdx = text.length - 1;
         if (endIdx > idx + 1) {
           final target = text.substring(idx + 1, endIdx + 1);
+          // 点击事件
+          final tgr = TapGestureRecognizer()
+            ..onTap = () {
+              Navigator.pushNamed(
+                context,
+                UserPage.routeName,
+                arguments: UserPageArg(userName: target.trim()),
+              );
+            };
+          _tapGestureRecognizers.add(tgr);
+          // 名字显示
           contentSpans.add(TextSpan(
             text: '@$target',
             style: TextStyle(color: Colors.blue),
-            recognizer: _tapGestureRecognizer
-              ..onTap = () {
-                Navigator.pushNamed(
-                  context,
-                  UserPage.routeName,
-                  arguments: UserPageArg(userName: target.trim()),
-                );
-              },
+            recognizer: tgr,
           ));
         }
         text = text.substring(endIdx + 1);
