@@ -42,14 +42,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     } else if (widget.postBase is Floor) {
       _replyCntStreamController = StreamController();
     }
-    _tapGestureRecognizer = TapGestureRecognizer()
-      ..onTap = () {
-        Navigator.pushNamed(
-          context,
-          UserPage.routeName,
-          arguments: (widget.postBase as InnerFloor).targetId,
-        );
-      };
+    _tapGestureRecognizer = TapGestureRecognizer();
     super.initState();
   }
 
@@ -123,27 +116,55 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
       onPressed: _onViewUserClick,
     );
     // 文本
-    Widget content;
-    if (widget.postBase is! InnerFloor ||
-        (widget.postBase as InnerFloor).targetId?.isNotEmpty != true) {
-      content = Text(widget.postBase.content);
-    } else {
+    List<InlineSpan> contentSpans = [];
+    if (widget.postBase is InnerFloor &&
+        (widget.postBase as InnerFloor).targetId?.isNotEmpty == true) {
       final innerFloor = widget.postBase as InnerFloor;
-      content = RichText(
-        text: TextSpan(
-          style: TextStyle(color: theme.textTheme.bodyText1.color),
-          children: [
-            TextSpan(text: '回复 '),
-            TextSpan(
-              text: innerFloor.targetName,
-              style: TextStyle(color: Colors.blue),
-              recognizer: _tapGestureRecognizer,
-            ),
-            TextSpan(text: ' ：${innerFloor.content}'),
-          ],
-        ),
-      );
+      contentSpans.add(TextSpan(text: '回复'));
+      contentSpans.add(TextSpan(
+        text: innerFloor.targetName,
+        style: TextStyle(color: Colors.blue),
+        recognizer: _tapGestureRecognizer
+          ..onTap = () {
+            Navigator.pushNamed(
+              context,
+              UserPage.routeName,
+              arguments: (widget.postBase as InnerFloor).targetId,
+            );
+          },
+      ));
+      contentSpans.add(TextSpan(text: '： '));
     }
+    if (widget.postBase.content.contains('@')) {
+      var text = widget.postBase.content;
+      var idx = -1;
+      while ((idx = text.indexOf('@')) >= 0) {
+        if (idx > 0) contentSpans.add(TextSpan(text: text.substring(0, idx)));
+        var endIdx = text.indexOf(' ', idx);
+        if (endIdx < 0) endIdx = text.length - 1;
+        if (endIdx > idx + 1) {
+          final target = text.substring(idx + 1, endIdx + 1);
+          contentSpans.add(TextSpan(
+            text: '@$target',
+            style: TextStyle(color: Colors.blue),
+            recognizer: _tapGestureRecognizer
+              ..onTap = () {
+                // TODO 根据名字到详情页
+              },
+          ));
+        }
+        text = text.substring(endIdx + 1);
+      }
+      contentSpans.add(TextSpan(text: text));
+    } else {
+      contentSpans.add(TextSpan(text: widget.postBase.content));
+    }
+    Widget content = RichText(
+      text: TextSpan(
+        style: TextStyle(color: theme.textTheme.bodyText1.color),
+        children: contentSpans,
+      ),
+    );
     // 图片和视频
     Widget media = _buildMedias(context, widget.postBase.medias);
     // 回复
