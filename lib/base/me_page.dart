@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:something/common/network.dart';
 import 'package:something/common/pub.dart';
 
 import '../common/view_images.dart';
@@ -43,6 +44,7 @@ class _MePageState extends State<MePage> {
       endIndent: 12.0,
     );
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // 头像
         _Item(
@@ -93,6 +95,25 @@ class _MePageState extends State<MePage> {
           onTap: _changeRemark,
         ),
         divider,
+        // 退出登录
+        Padding(
+          padding: const EdgeInsets.fromLTRB(15.0, 50.0, 15.0, 25.0),
+          child: OutlinedButton(
+            onPressed: () {
+              showAlertDialog(
+                title: '确认',
+                content: '确认要退出登录？',
+                onConfirm: () {
+                  context.read<UserVM>().user = User();
+                  network.clearToken();
+                  Navigator.pop(context);
+                  return;
+                },
+              );
+            },
+            child: Text('退出登录'),
+          ),
+        ),
       ],
     );
   }

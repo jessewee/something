@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import '../../common/pub.dart';
 import '../../common/widgets.dart';
 
+import '../vm/reply_vm.dart';
 import '../model/post.dart';
 import '../view/bottom_reply_bar.dart';
 import '../view/post_base_item_content.dart';
@@ -93,11 +94,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 ? PostBaseItemContent(_vm.floors[index - 1])
                 : StreamBuilder<bool>(
                     stream: _loading.stream,
-                    builder: (context, snapshot) {
-                      return LoadMore(
-                        noMore: _loading.value == null && _vm.noMoreData,
-                      );
-                    }),
+                    builder: (context, snapshot) => LoadMore(
+                      noMore: _loading.value == null && _vm.noMoreData,
+                    ),
+                  ),
       ),
     );
   }

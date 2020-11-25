@@ -7,10 +7,11 @@ import '../../common/extensions.dart';
 import '../../common/pub.dart';
 import '../../common/widgets.dart';
 
+import '../vm/reply_vm.dart';
 import '../model/post.dart';
+import 'bottom_reply_bar.dart';
 import 'post_base_item_content.dart';
 import '../vm/floor_vm.dart';
-import 'bottom_reply_bar.dart';
 import 'post_long_content_sheet.dart';
 
 /// 楼层回复列表页面，这个用showModalBottomSheet显示，不注册在页面路由里

@@ -216,11 +216,11 @@ Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
             dislikeCnt: e['dislike_count'] ?? 0,
             myAttitude: e['attitude'],
             medias: _mapMedias(e['medias']),
-            innerFloor: e['innser_floor'],
-            targetId: e['target_id'],
-            targetName: e['target_name'],
-            postId: e['post_id']?.toString(),
-            floorId: e['floor_id']?.toString(),
+            innerFloor: e['inner_floor'],
+            targetId: e['target_id']?.toString() ?? '',
+            targetName: e['target_name'] ?? '',
+            postId: e['post_id']?.toString() ?? '',
+            floorId: e['floor_id']?.toString() ?? '',
           ))
       .toList();
   return Result.success(DataWidthPageInfo<InnerFloor>(

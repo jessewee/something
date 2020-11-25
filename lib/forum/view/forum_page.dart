@@ -11,8 +11,8 @@ import '../../common/models.dart';
 import '../../common/extensions.dart';
 
 import '../repository/repository.dart' as repository;
+import '../vm/reply_vm.dart';
 import '../model/post.dart';
-import 'bottom_reply_bar.dart';
 import 'select_post_label_page.dart';
 import 'post_long_content_sheet.dart';
 import 'me_page.dart';

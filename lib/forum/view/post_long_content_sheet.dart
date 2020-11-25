@@ -7,17 +7,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:provider/provider.dart';
 
-import '../../common/event_bus.dart';
 import '../../common/pub.dart';
 import '../../common/widgets.dart';
 import '../../common/models.dart';
 import '../../common/extensions.dart';
 import '../../common/view_images.dart';
 import '../../common/play_video_page.dart';
+import '../vm/reply_vm.dart';
 import '../model/m.dart';
-import '../model/post.dart';
 import '../repository/repository.dart' as repository;
-import 'bottom_reply_bar.dart';
 import 'select_post_label_page.dart';
 import 'select_following_page.dart';
 

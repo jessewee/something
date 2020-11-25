@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../common/models.dart';
@@ -31,6 +32,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
   StreamController<int> _likeStatusStreamController; // 点赞点踩按钮改变
   StreamController<bool> _followStreamController; // 关注按钮改变
   StreamController<int> _replyCntStreamController; // 回复按钮改变
+  TapGestureRecognizer _tapGestureRecognizer; // 点击回复对象
 
   @override
   void initState() {
@@ -40,11 +42,20 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     } else if (widget.postBase is Floor) {
       _replyCntStreamController = StreamController();
     }
+    _tapGestureRecognizer = TapGestureRecognizer()
+      ..onTap = () {
+        Navigator.pushNamed(
+          context,
+          UserPage.routeName,
+          arguments: (widget.postBase as InnerFloor).targetId,
+        );
+      };
     super.initState();
   }
 
   @override
   void dispose() {
+    _tapGestureRecognizer.dispose();
     _replyCntStreamController?.makeSureClosed();
     _followStreamController?.makeSureClosed();
     _likeStatusStreamController.makeSureClosed();
@@ -66,8 +77,18 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     );
     // 名字
     Widget name = Text(widget.postBase.name, style: theme.textTheme.subtitle2);
-    // 日期
-    Widget date = Text(widget.postBase.date, style: theme.textTheme.caption);
+    // 楼层和日期
+    String dateText;
+    if (widget.postBase is Floor) {
+      final floor = widget.postBase as Floor;
+      dateText = '第${floor.floor}楼 · ${floor.date}';
+    } else if (widget.postBase is InnerFloor) {
+      final innerFloor = widget.postBase as InnerFloor;
+      dateText = '第${innerFloor.innerFloor}楼 · ${innerFloor.date}';
+    } else {
+      dateText = widget.postBase.date;
+    }
+    Widget date = Text(dateText, style: theme.textTheme.caption);
     // 关注按钮
     Widget follow;
     if (widget.postBase is Post) {
@@ -83,7 +104,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
         ),
       );
     }
-    // 头像、名字、日期区域
+    // 头像、名字、楼层和日期区域
     Widget top = Row(
       children: <Widget>[
         avatar.withMargin(right: 8.0),
@@ -102,7 +123,27 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
       onPressed: _onViewUserClick,
     );
     // 文本
-    Widget content = Text(widget.postBase.content);
+    Widget content;
+    if (widget.postBase is! InnerFloor ||
+        (widget.postBase as InnerFloor).targetId?.isNotEmpty != true) {
+      content = Text(widget.postBase.content);
+    } else {
+      final innerFloor = widget.postBase as InnerFloor;
+      content = RichText(
+        text: TextSpan(
+          style: TextStyle(color: theme.textTheme.bodyText1.color),
+          children: [
+            TextSpan(text: '回复 '),
+            TextSpan(
+              text: innerFloor.targetName,
+              style: TextStyle(color: Colors.blue),
+              recognizer: _tapGestureRecognizer,
+            ),
+            TextSpan(text: ' ：${innerFloor.content}'),
+          ],
+        ),
+      );
+    }
     // 图片和视频
     Widget media = _buildMedias(context, widget.postBase.medias);
     // 回复
@@ -161,7 +202,8 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
         content,
         if (media != null) media.withMargin(top: 8.0, bottom: 8.0),
         buttons,
-        Divider(color: Colors.grey[300], height: 1.0).withMargin(top: 8.0),
+        if (widget.postBase is! Post)
+          Divider(color: Colors.grey[300], height: 1.0).withMargin(top: 8.0),
       ],
     );
     final leftSpace = widget.postBase is Post ? 12.0 : 60.0;
@@ -171,7 +213,13 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[top, bottom],
+      children: <Widget>[
+        top,
+        bottom,
+        if (widget.postBase is Post)
+          Divider(color: Colors.grey[100], height: 20, thickness: 20)
+              .withMargin(top: 8.0),
+      ],
     );
   }
 

@@ -44,6 +44,12 @@ class Network {
     return __refreshToken;
   }
 
+  void clearToken() {
+    _token = '';
+    __refreshToken = '';
+    SharedPreferences.getInstance().then((sp) => sp.clear());
+  }
+
   Network._init() {
     _dio = Dio();
     _dio.options.baseUrl = apiServer;
