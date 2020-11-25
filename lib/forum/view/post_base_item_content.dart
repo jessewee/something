@@ -126,10 +126,11 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
         style: TextStyle(color: Colors.blue),
         recognizer: _tapGestureRecognizer
           ..onTap = () {
+            final targetId = (widget.postBase as InnerFloor).targetId;
             Navigator.pushNamed(
               context,
               UserPage.routeName,
-              arguments: (widget.postBase as InnerFloor).targetId,
+              arguments: UserPageArg(userId: targetId),
             );
           },
       ));
@@ -149,7 +150,11 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
             style: TextStyle(color: Colors.blue),
             recognizer: _tapGestureRecognizer
               ..onTap = () {
-                // TODO 根据名字到详情页
+                Navigator.pushNamed(
+                  context,
+                  UserPage.routeName,
+                  arguments: UserPageArg(userName: target.trim()),
+                );
               },
           ));
         }
@@ -298,7 +303,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     final result = await Navigator.pushNamed(
       context,
       UserPage.routeName,
-      arguments: widget.postBase.posterId,
+      arguments: UserPageArg(userId: widget.postBase.posterId),
     );
     if (widget.postBase is Post && result != null && result is bool) {
       (widget.postBase as Post).posterFollowed = result;

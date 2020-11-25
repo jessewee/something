@@ -54,8 +54,13 @@ final List<RouteInfo> forumRoutes = [
   ),
   RouteInfo(UserPage.routeName, false, (context) {
     final arg = ModalRoute.of(context).settings.arguments;
-    if (arg == null || arg is! String) return ParamErrorPage(arg);
-    return UserPage(arg);
+    if (arg == null || arg is! UserPageArg) return ParamErrorPage(arg);
+    final userPageArg = arg as UserPageArg;
+    if (userPageArg.userId?.isNotEmpty != true &&
+        userPageArg.userName.isNotEmpty != true) {
+      return ParamErrorPage(arg);
+    }
+    return UserPage(userPageArg);
   }),
   RouteInfo(
     UserFollowPage.routeName,

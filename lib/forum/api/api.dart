@@ -294,10 +294,10 @@ Future<Result<String>> post({
 }
 
 /// 获取社区用户数据
-Future<Result<ForumUser>> getUserInfo(String userId) async {
+Future<Result<ForumUser>> getUserInfo({String userId, String userName}) async {
   final tmp = await network.get(
     '/forum/get_user_info',
-    params: {'user_id': userId},
+    params: {'user_id': userId, 'user_name': userName},
   );
   if (tmp.fail) return Result(code: tmp.code, msg: tmp.msg);
   final map = tmp.data;

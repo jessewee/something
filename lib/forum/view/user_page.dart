@@ -19,9 +19,9 @@ import 'user_reply_page.dart';
 /// 用户信息页
 class UserPage extends StatefulWidget {
   static const routeName = '/forum/user';
-  final String userId;
+  final UserPageArg arg;
 
-  UserPage(this.userId);
+  UserPage(this.arg);
 
   @override
   _UserPageState createState() => _UserPageState();
@@ -45,13 +45,19 @@ class _UserPageState extends State<UserPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_myself == null)
-      _myself = widget.userId == context.watch<UserVM>().user.id;
+    if (_myself == null) {
+      final loginUser = context.watch<UserVM>().user;
+      _myself = widget.arg.userId == loginUser.id ||
+          widget.arg.userName == loginUser.name;
+    }
     return Scaffold(
       appBar: AppBar(title: Text('用户信息')),
       body: SingleChildScrollView(
         child: FutureBuilder<Result<ForumUser>>(
-          future: repository.getUserInfo(widget.userId),
+          future: repository.getUserInfo(
+            userId: widget.arg.userId,
+            userName: widget.arg.userName,
+          ),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return CenterInfoText('加载中...');
@@ -215,4 +221,10 @@ class _UserPageState extends State<UserPage> {
       ],
     );
   }
+}
+
+class UserPageArg {
+  final String userId;
+  final String userName;
+  UserPageArg({this.userId, this.userName});
 }

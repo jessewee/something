@@ -121,7 +121,7 @@ class _PostItemState extends State<PostItem> {
       onPressed: () => Navigator.pushNamed(
         context,
         UserPage.routeName,
-        arguments: widget.post.posterId,
+        arguments: UserPageArg(userId: widget.post.posterId),
       ),
       child: top,
     ).withMargin(bottom: 8.0);

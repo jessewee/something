@@ -66,7 +66,7 @@ class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
   }
 
   Future<void> _loadData(String userId) async {
-    final result = await repository.getUserInfo(userId);
+    final result = await repository.getUserInfo(userId: userId);
     if (result.fail) {
       setState(() => _errormsg = result.msg);
     } else {

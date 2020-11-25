@@ -98,7 +98,7 @@ class PostWall extends StatelessWidget {
           Navigator.pushNamed(
             context,
             UserPage.routeName,
-            arguments: post.posterId,
+            arguments: UserPageArg(userId: post.posterId),
           );
         },
       ),
