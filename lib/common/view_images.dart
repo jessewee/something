@@ -11,8 +11,10 @@ Future viewImages(
   List<String> imageUrls, {
   int curIndex = 0,
   bool local = false,
-}) {
-  return showDialog(
+}) async {
+  if (imageUrls?.isNotEmpty != true) return;
+  if (imageUrls.length == 1 && imageUrls.first?.isNotEmpty != true) return;
+  return await showDialog(
     context: context,
     builder: (context) => ViewImages(
       imageUrls,
@@ -33,8 +35,7 @@ class ViewImages extends StatefulWidget {
   _ViewImagesState createState() => _ViewImagesState();
 }
 
-class _ViewImagesState extends State<ViewImages>
-    with SingleTickerProviderStateMixin {
+class _ViewImagesState extends State<ViewImages> with SingleTickerProviderStateMixin {
   TabController _controller;
   StreamControllerWithData<int> _pageChanged;
 
@@ -70,8 +71,7 @@ class _ViewImagesState extends State<ViewImages>
               ),
             ))
         .toList();
-    final textStyle =
-        Theme.of(context).textTheme.bodyText1.copyWith(color: Colors.white);
+    final textStyle = Theme.of(context).textTheme.bodyText1.copyWith(color: Colors.white);
     return GestureDetector(
       onTap: () => Navigator.pop(context),
       child: Stack(

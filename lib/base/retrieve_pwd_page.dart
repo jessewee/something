@@ -7,7 +7,7 @@ import 'api/api.dart' as api;
 
 /// 找回密码页
 class RetrievePwdPage extends StatefulWidget {
-  static const routeName = '/retrieve_pwd';
+  static const routeName = 'retrieve_pwd';
 
   @override
   _RetrievePwdPageState createState() => _RetrievePwdPageState();
@@ -68,8 +68,7 @@ class _RetrievePwdPageState extends State<RetrievePwdPage> {
                           _email = text;
                           _vfCodeBtnStreamController.reAdd();
                         },
-                        validator: (text) =>
-                            text.trim().isEmpty ? '请输入邮箱' : null,
+                        validator: (text) => text.trim().isEmpty ? '请输入邮箱' : null,
                         onFieldSubmitted: (_) => _sendEmailVfCode(),
                       ),
                     ),

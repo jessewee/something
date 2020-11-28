@@ -15,7 +15,7 @@ import '../vm/post_vm.dart';
 
 /// 帖子详情
 class PostDetailPage extends StatefulWidget {
-  static const routeName = '/forum/post_detail';
+  static const routeName = 'forum_post_detail';
   final Post post;
 
   PostDetailPage(this.post);
@@ -62,8 +62,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
               return TextWithLoading(_vm.post.label, _loading.value != null);
             }),
         actions: [
-          if (_vm.totalFloorCnt > 200)
-            TextButton(child: Text('跳转楼层'), onPressed: _showToFloors),
+          if (_vm.totalFloorCnt > 200) TextButton(child: Text('跳转楼层'), onPressed: _showToFloors),
         ],
       ),
       body: Column(
@@ -114,8 +113,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         final items = <MapEntry<String, void Function()>>[];
         for (var i = 0; i < cnt; i++) {
           final start = pageSize * i + 1;
-          final end =
-              i == cnt - 1 ? _vm.totalFloorCnt : (pageSize * (i + 1) + 1);
+          final end = i == cnt - 1 ? _vm.totalFloorCnt : (pageSize * (i + 1) + 1);
           items.add(MapEntry(
             '$start楼~$end楼',
             () => _loadData(floorStartIdx: start, floorEndIdx: end),

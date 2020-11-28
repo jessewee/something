@@ -48,16 +48,19 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
   String _videoPath;
   Uint8List _videoCover;
   ImagePicker _imagePicker;
-  bool get _contentEmpty =>
-      _controller.text?.isNotEmpty != true &&
-      _imgPaths?.isNotEmpty != true &&
-      _videoPath?.isNotEmpty != true;
+  bool _loading = false;
+  bool get _contentEmpty => _controller.text?.isNotEmpty != true && _imgPaths?.isNotEmpty != true && _videoPath?.isNotEmpty != true;
+  bool get _labelInvalid => widget.vm.showLabel == true && widget.vm.postLabel?.isNotEmpty != true;
+  bool get _sendBtnStatus => _loading
+      ? true
+      : _contentEmpty || _labelInvalid
+          ? false
+          : null;
 
   @override
   void initState() {
     _controller = TextEditingController();
-    _sendBtnSc = StreamControllerWithData(
-        widget.vm.defaultText?.isNotEmpty == true ? null : false);
+    _sendBtnSc = StreamControllerWithData(widget.vm.defaultText?.isNotEmpty == true ? null : false);
     _imgSc = StreamController();
     _videoSc = StreamController();
     super.initState();
@@ -107,11 +110,10 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
       minLines: 5,
       maxLines: 10,
       maxLength: 500,
-      buildCounter: (context, {currentLength, isFocused, maxLength}) =>
-          Text('$currentLength/$maxLength'),
+      buildCounter: (context, {currentLength, isFocused, maxLength}) => Text('$currentLength/$maxLength'),
       onChanged: (_) {
         if (_sendBtnSc.value == true) return;
-        _sendBtnSc.add(_contentEmpty ? false : null);
+        _sendBtnSc.add(_sendBtnStatus);
       },
       decoration: InputDecoration(
         hintText: widget.vm.hintText,
@@ -136,7 +138,10 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
       children: <Widget>[
         // 标签
         if (widget.vm.showLabel == true)
-          _LabelWidget((text) => widget.vm.postLabel = text),
+          _LabelWidget((text) {
+            widget.vm.postLabel = text;
+            _sendBtnSc.add(_sendBtnStatus);
+          }),
         Spacer(),
         // @好友
         IconButton(
@@ -191,7 +196,7 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
                         _imgPaths.removeAt(i);
                         _imgSc.add(_imgPaths);
                         if (_sendBtnSc.value == true) return;
-                        _sendBtnSc.add(_contentEmpty ? false : null);
+                        _sendBtnSc.add(_sendBtnStatus);
                       },
                     ).positioned(left: null, bottom: null),
                   ],
@@ -238,7 +243,7 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
                     _videoCover = null;
                     _videoSc.add(_videoPath);
                     if (_sendBtnSc.value == true) return;
-                    _sendBtnSc.add(_contentEmpty ? false : null);
+                    _sendBtnSc.add(_sendBtnStatus);
                   },
                 ).positioned(left: null, bottom: null),
               ],
@@ -278,7 +283,7 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
     _imgPaths.add(pickedFile.path);
     _imgSc.add(_imgPaths);
     if (_sendBtnSc.value == true) return;
-    _sendBtnSc.add(_contentEmpty ? false : null);
+    _sendBtnSc.add(_sendBtnStatus);
   }
 
   // 选择视频
@@ -296,17 +301,15 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
     );
     _videoSc.add(_videoPath);
     if (_sendBtnSc.value == true) return;
-    _sendBtnSc.add(_contentEmpty ? false : null);
+    _sendBtnSc.add(_sendBtnStatus);
   }
 
   // 点@好友按钮
   Future<void> _onAtFriendClick() async {
-    ForumUser user = await Navigator.of(context)
-        .pushNamed(SelectFollowingPage.routeName, arguments: true);
+    ForumUser user = await Navigator.of(context).pushNamed(SelectFollowingPage.routeName, arguments: true);
     if (user != null) {
       _controller.text = '${_controller.text} @${user.name} ';
-      _controller.selection =
-          TextSelection.collapsed(offset: _controller.text.length);
+      _controller.selection = TextSelection.collapsed(offset: _controller.text.length);
     }
   }
 
@@ -314,13 +317,16 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
   void _onSendPressed() async {
     _sendBtnSc.add(true);
     final medias = List<UploadedFile>();
+    _loading = true;
+    _sendBtnSc.add(_sendBtnStatus);
     // 图片
     if (_imgPaths?.isNotEmpty == true) {
       for (int i = 0; i < _imgPaths.length; i++) {
         final result = await repository.upload(_imgPaths[i], FileType.image);
         if (result.fail) {
           showToast('第${i + 1}张图片上传失败');
-          _sendBtnSc.add(_contentEmpty ? false : null);
+          _loading = false;
+          _sendBtnSc.add(_sendBtnStatus);
           return;
         }
         medias.add(result.data);
@@ -331,14 +337,15 @@ class _PostLongContentSheetState extends State<PostLongContentSheet> {
       final result = await repository.upload(_videoPath, FileType.video);
       if (result.fail) {
         showToast('视频上传失败');
-        _sendBtnSc.add(_contentEmpty ? false : null);
+        _loading = false;
+        _sendBtnSc.add(_sendBtnStatus);
         return;
       }
       medias.add(result.data);
     }
-    final sendResult = await widget.vm
-        .submit(context.read<UserVM>().user, _controller.text, medias);
-    _sendBtnSc.add(_contentEmpty ? false : null);
+    final sendResult = await widget.vm.submit(context.read<UserVM>().user, _controller.text, medias);
+    _loading = false;
+    _sendBtnSc.add(_sendBtnStatus);
     if (sendResult) Navigator.pop(context);
   }
 }
@@ -470,8 +477,7 @@ class __PostLabelSheetState extends State<_PostLabelSheet> {
       minLines: 3,
       maxLines: 5,
       maxLength: 20,
-      buildCounter: (context, {currentLength, isFocused, maxLength}) =>
-          Text('$currentLength/$maxLength'),
+      buildCounter: (context, {currentLength, isFocused, maxLength}) => Text('$currentLength/$maxLength'),
       onChanged: (text) {
         if (_text?.isNotEmpty != text?.isNotEmpty) _controller.add(null);
         _text = text;

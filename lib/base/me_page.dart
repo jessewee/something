@@ -12,7 +12,7 @@ import 'iconfont.dart';
 
 /// 我的页面
 class MePage extends StatefulWidget {
-  static const routeName = '/me';
+  static const routeName = 'me';
 
   @override
   _MePageState createState() => _MePageState();
@@ -159,8 +159,7 @@ class _MePageState extends State<MePage> {
 
   // 修改头像
   Future _changeAvatar() async {
-    final pickedFile =
-        await ImagePicker().getImage(source: ImageSource.gallery);
+    final pickedFile = await ImagePicker().getImage(source: ImageSource.gallery);
     if (pickedFile == null) return;
     final ur = await api.upload(pickedFile.path, FileType.image);
     if (ur.fail) {
@@ -168,8 +167,7 @@ class _MePageState extends State<MePage> {
       return;
     }
     final data = ur.data;
-    final result =
-        await api.updateUserInfo(avatar: data.url, avatarThumb: data.thumbUrl);
+    final result = await api.updateUserInfo(avatar: data.url, avatarThumb: data.thumbUrl);
     if (result.fail) {
       showToast(result.msg);
       return;
@@ -272,9 +270,7 @@ class __ItemState extends State<_Item> {
                 child: Text(
                   widget.content,
                   style: TextStyle(
-                    color: widget.onTap == null
-                        ? Colors.grey[400]
-                        : Colors.grey[800],
+                    color: widget.onTap == null ? Colors.grey[400] : Colors.grey[800],
                   ),
                 ),
               ),

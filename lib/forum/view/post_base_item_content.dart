@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:something/common/event_bus.dart';
 
 import '../../common/models.dart';
 import '../../common/play_video_page.dart';
@@ -39,6 +40,18 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     _likeStatusStreamController = StreamController.broadcast();
     if (widget.postBase is Post) {
       _followStreamController = StreamController();
+      // 在其它页改变了关注状态
+      final post = widget.postBase as Post;
+      eventBus.on(EventBusType.forumUserChanged, (arg) {
+        if (arg == null || arg is! Map) return;
+        if (arg['userId'] != widget.postBase.posterId) return;
+        if (arg['followed'] == null) return;
+        final followed = arg['followed'] as bool;
+        if (followed != post.posterFollowed) {
+          post.posterFollowed = followed;
+          _followStreamController.send(null);
+        }
+      }, 'post_list_item');
     } else if (widget.postBase is Floor) {
       _replyCntStreamController = StreamController();
     }
@@ -48,6 +61,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
 
   @override
   void dispose() {
+    if (widget.postBase is Post) eventBus.off(tag: 'post_list_item');
     _tapGestureRecognizers.forEach((e) => e.dispose());
     _replyCntStreamController?.makeSureClosed();
     _followStreamController?.makeSureClosed();
@@ -89,9 +103,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
       follow = StreamBuilder<bool>(
         stream: _followStreamController.stream,
         builder: (context, _) => NormalButton(
-          color: post.posterFollowed
-              ? theme.primaryColorLight
-              : theme.primaryColor,
+          color: post.posterFollowed ? theme.primaryColorLight : theme.primaryColor,
           text: post.posterFollowed ? '已关注' : '关注',
           onPressed: _onFollowClick,
         ),
@@ -117,8 +129,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     );
     // 文本
     List<InlineSpan> contentSpans = [];
-    if (widget.postBase is InnerFloor &&
-        (widget.postBase as InnerFloor).targetId?.isNotEmpty == true) {
+    if (widget.postBase is InnerFloor && (widget.postBase as InnerFloor).targetId?.isNotEmpty == true) {
       final innerFloor = widget.postBase as InnerFloor;
       contentSpans.add(TextSpan(text: '回复'));
       // 点击事件
@@ -199,9 +210,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     Widget like = StreamBuilder(
       stream: _likeStatusStreamController.stream,
       builder: (context, _) => NormalButton(
-        color: widget.postBase.myAttitude == true
-            ? theme.primaryColor
-            : Colors.black,
+        color: widget.postBase.myAttitude == true ? theme.primaryColor : Colors.black,
         icon: Iconfont.like,
         text: '${widget.postBase.likeCnt}',
         onPressed: _onLikeClick,
@@ -211,9 +220,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     Widget dislike = StreamBuilder(
       stream: _likeStatusStreamController.stream,
       builder: (context, _) => NormalButton(
-        color: widget.postBase.myAttitude == false
-            ? theme.primaryColor
-            : Colors.black,
+        color: widget.postBase.myAttitude == false ? theme.primaryColor : Colors.black,
         icon: Iconfont.dislike,
         text: '${widget.postBase.dislikeCnt}',
         onPressed: _onDislikeClick,
@@ -236,8 +243,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
         content,
         if (media != null) media.withMargin(top: 8.0, bottom: 8.0),
         buttons,
-        if (widget.postBase is! Post)
-          Divider(color: Colors.grey[300], height: 1.0).withMargin(top: 8.0),
+        if (widget.postBase is! Post) Divider(color: Colors.grey[300], height: 1.0).withMargin(top: 8.0),
       ],
     );
     final leftSpace = widget.postBase is Post ? 12.0 : 60.0;
@@ -250,9 +256,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
       children: <Widget>[
         top,
         bottom,
-        if (widget.postBase is Post)
-          Divider(color: Colors.grey[100], height: 20, thickness: 20)
-              .withMargin(top: 8.0),
+        if (widget.postBase is Post) Divider(color: Colors.grey[100], height: 20, thickness: 20).withMargin(top: 8.0),
       ],
     );
   }
@@ -307,16 +311,12 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
   }
 
   // 查看发布人
-  void _onViewUserClick() async {
-    final result = await Navigator.pushNamed(
+  void _onViewUserClick() {
+    Navigator.pushNamed(
       context,
       UserPage.routeName,
       arguments: UserPageArg(userId: widget.postBase.posterId),
     );
-    if (widget.postBase is Post && result != null && result is bool) {
-      (widget.postBase as Post).posterFollowed = result;
-      _followStreamController?.send(null);
-    }
   }
 
   // 关注按钮
@@ -325,9 +325,13 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     final result = await post.changeFollowPosterStatus();
     if (result.isNotEmpty) {
       showToast(result);
-    } else {
-      _followStreamController.send(null);
+      return;
     }
+    _followStreamController.send(null);
+    eventBus.sendEvent(
+      EventBusType.forumUserChanged,
+      {'userId': post.posterId, 'followed': post.posterFollowed},
+    );
     return;
   }
 

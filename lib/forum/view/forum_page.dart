@@ -20,7 +20,7 @@ import 'posts_page.dart';
 
 /// 社区页
 class ForumPage extends StatefulWidget {
-  static const routeName = '/forum';
+  static const routeName = 'forum_';
 
   @override
   _ForumPageState createState() => _ForumPageState();
@@ -77,37 +77,6 @@ class _ForumPageState extends State<ForumPage> {
         heroTag: 'forum_page_floating_action_button',
       ),
     );
-  }
-
-  // 发帖
-  Future<bool> _onPost(String text, List<UploadedFile> medias) async {
-    if (_postLabel?.isNotEmpty != true) {
-      _postLabel = await _LabelWidget.requireLabel(context);
-    }
-    if (_postLabel?.isNotEmpty != true) return false;
-    final result = await repository.post(
-      label: _postLabel,
-      content: text,
-      mediaIds: medias.map((e) => e.id).toList(),
-    );
-    if (result.fail) {
-      showToast(result.msg);
-      return false;
-    }
-    final loginUser = context.read<UserVM>();
-    eventBus.sendEvent(
-      EventBusType.forumPosted,
-      Post(
-          id: result.data,
-          posterId: loginUser.user.id,
-          avatar: loginUser.user.avatar,
-          avatarThumb: loginUser.user.avatarThumb,
-          name: loginUser.user.name,
-          date: DateTime.now().format(),
-          content: text,
-          medias: medias),
-    );
-    return true;
   }
 }
 
@@ -238,8 +207,7 @@ class __PostLabelSheetState extends State<_PostLabelSheet> {
       minLines: 3,
       maxLines: 5,
       maxLength: 20,
-      buildCounter: (context, {currentLength, isFocused, maxLength}) =>
-          Text('$currentLength/$maxLength'),
+      buildCounter: (context, {currentLength, isFocused, maxLength}) => Text('$currentLength/$maxLength'),
       onChanged: (text) {
         if (_text?.isNotEmpty != text?.isNotEmpty) _controller.add(null);
         _text = text;

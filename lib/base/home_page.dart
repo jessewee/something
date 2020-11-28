@@ -5,7 +5,7 @@ import 'me_page.dart';
 
 /// 首页
 class HomePage extends StatelessWidget {
-  static const routeName = '/';
+  static const routeName = 'home';
   @override
   Widget build(BuildContext context) {
     return Scaffold(

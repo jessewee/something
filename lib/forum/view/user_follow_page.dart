@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../common/event_bus.dart';
 import '../../common/pub.dart';
 import '../../common/view_images.dart';
 import '../../common/models.dart';
@@ -11,10 +12,11 @@ import '../../common/extensions.dart';
 import '../model/m.dart';
 import '../vm/user_follow_vm.dart';
 import '../../base/iconfont.dart';
+import 'user_page.dart';
 
 /// 用户关注和粉丝列表页
 class UserFollowPage extends StatefulWidget {
-  static const routeName = '/forum/user_follow_page';
+  static const routeName = 'forum_user_follow_page';
   final UserFollowPageArg arg;
   const UserFollowPage(this.arg);
 
@@ -108,11 +110,23 @@ class __UserItemState extends State<_UserItem> {
   @override
   void initState() {
     _followStreamController = StreamController();
+    // 在其它页改变了关注状态
+    eventBus.on(EventBusType.forumUserChanged, (arg) {
+      if (arg == null || arg is! Map) return;
+      if (arg['userId'] != widget.user.id) return;
+      if (arg['followed'] == null) return;
+      final followed = arg['followed'] as bool;
+      if (followed != widget.user.followed) {
+        widget.user.followed = followed;
+        _followStreamController.send(null);
+      }
+    }, 'user_follow_page');
     super.initState();
   }
 
   @override
   void dispose() {
+    eventBus.off(tag: 'user_follow_page');
     _followStreamController?.makeSureClosed();
     super.dispose();
   }
@@ -122,48 +136,50 @@ class __UserItemState extends State<_UserItem> {
     final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-      child: Row(
-        children: [
-          // 头像
-          ImageWithUrl(
-            widget.user.avatarThumb,
-            width: 40.0,
-            height: 40.0,
-            round: true,
-            backgroundColor: Colors.grey[200],
-            errorWidget: Icon(Icons.emoji_people),
-            onPressed: () => viewImages(context, [widget.user.avatar]),
-          ),
-          // 名字
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0, right: 2.0),
-            child: Text(widget.user.name),
-          ),
-          // 性别
-          widget.user.isGenderClear
-              ? Icon(
-                  widget.user.isMale ? Iconfont.male : Iconfont.female,
-                  color: widget.user.isMale ? Colors.blue : Colors.pink,
-                  size: 16.0,
-                )
-              : null,
-          // 关注按钮
-          Expanded(
-              child: Container(
-            alignment: Alignment.centerRight,
-            child: StreamBuilder<bool>(
+      child: FlatButton(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+        onPressed: () => Navigator.pushNamed(
+          context,
+          UserPage.routeName,
+          arguments: UserPageArg(userId: widget.user.id),
+        ),
+        child: Row(
+          children: [
+            // 头像
+            ImageWithUrl(
+              widget.user.avatarThumb,
+              width: 40.0,
+              height: 40.0,
+              round: true,
+              backgroundColor: Colors.grey[200],
+              errorWidget: Icon(Icons.emoji_people),
+              onPressed: () => viewImages(context, [widget.user.avatar]),
+            ),
+            // 名字
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0, right: 2.0),
+              child: Text(widget.user.name),
+            ),
+            // 性别
+            if (widget.user.isGenderClear)
+              Icon(
+                widget.user.isMale ? Iconfont.male : Iconfont.female,
+                color: widget.user.isMale ? Colors.blue : Colors.pink,
+                size: 16.0,
+              ),
+            // 关注按钮
+            Spacer(),
+            StreamBuilder<bool>(
               stream: _followStreamController.stream,
               builder: (context, _) => NormalButton(
-                color: widget.user.followed
-                    ? theme.primaryColorLight
-                    : theme.primaryColor,
+                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                color: widget.user.followed ? theme.primaryColorLight : theme.primaryColor,
                 text: widget.user.followed ? '已关注' : '关注',
                 onPressed: _onFollowClick,
               ),
             ),
-          )),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -173,9 +189,13 @@ class __UserItemState extends State<_UserItem> {
     final result = await widget.onFollowClick(widget.user.id);
     if (result.isNotEmpty) {
       showToast(result);
-    } else {
-      _followStreamController.send(null);
+      return;
     }
+    _followStreamController.send(null);
+    eventBus.sendEvent(
+      EventBusType.forumUserChanged,
+      {'userId': widget.user.id, 'followed': widget.user.followed},
+    );
     return;
   }
 }

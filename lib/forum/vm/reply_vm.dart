@@ -147,6 +147,7 @@ class ReplyVM {
       EventBusType.forumPosted,
       Post(
           id: result.data,
+          label: postLabel,
           posterId: user.id,
           avatar: user.avatar,
           avatarThumb: user.avatarThumb,
