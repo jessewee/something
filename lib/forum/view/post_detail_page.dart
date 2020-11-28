@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../common/pub.dart';
 import '../../common/widgets.dart';
+import '../../common/event_bus.dart';
 
 import '../vm/reply_vm.dart';
 import '../model/post.dart';
@@ -76,7 +77,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   // 回复发送成功的回调
   void _onReplied(PostBase postBase) {
-    setState(() => _vm.addNewReply(postBase as Floor));
+    setState(() {
+      _vm.addNewReply(postBase as Floor);
+      widget.post.replyCnt++;
+      eventBus.sendEvent(
+        EventBusType.forumPostItemChanged,
+        {'postId': widget.post.id, 'replyCnt': widget.post.replyCnt},
+      );
+    });
   }
 
   // 内容显示

@@ -16,7 +16,7 @@ import 'post_long_content_sheet.dart';
 
 /// 楼层回复列表页面，这个用showModalBottomSheet显示，不注册在页面路由里
 class PostFloorRepliesSheet extends StatefulWidget {
-  static Future show(BuildContext context, Floor floor) {
+  static Future show(BuildContext context, Floor floor, void Function() onReplied) {
     return showModalBottomSheet(
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -25,12 +25,13 @@ class PostFloorRepliesSheet extends StatefulWidget {
         ),
       ),
       context: context,
-      builder: (context) => PostFloorRepliesSheet(floor),
+      builder: (context) => PostFloorRepliesSheet(floor, onReplied),
     );
   }
 
   final Floor floor;
-  PostFloorRepliesSheet(this.floor);
+  final void Function() onReplied;
+  PostFloorRepliesSheet(this.floor, this.onReplied);
 
   @override
   _PostFloorRepliesSheetState createState() => _PostFloorRepliesSheetState();
@@ -139,6 +140,10 @@ class _PostFloorRepliesSheetState extends State<PostFloorRepliesSheet> {
 
   // 回复发送成功的回调
   void _onReplied(PostBase postBase) {
-    setState(() => _vm.addNewReply(postBase as InnerFloor));
+    widget.onReplied();
+    setState(() {
+      _vm.addNewReply(postBase as InnerFloor);
+      widget.floor.replyCnt++;
+    });
   }
 }

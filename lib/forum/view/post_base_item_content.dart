@@ -273,13 +273,12 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
       ),
       onPressed: widget.postBase is Floor
           // 查看回复按钮，有可能会返回新数量
-          ? () async {
+          ? () {
               final floor = widget.postBase as Floor;
-              final result = await PostFloorRepliesSheet.show(context, floor);
-              if (result != null && result is int) {
-                floor.replyCnt = result;
+              PostFloorRepliesSheet.show(context, floor, () {
+                // floor对象的replyCnt已经在PostFloorRepliesSheet里改变了，这里只通知页面刷新就行
                 _replyCntStreamController?.send(null);
-              }
+              });
             }
           // 回复按钮
           : widget.onReplyClick,
