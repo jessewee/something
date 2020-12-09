@@ -19,21 +19,16 @@ extension PostBaseExt on PostBase {
     }
     if (result.fail) return result.msg;
     final oa = myAttitude;
-    final na = like == null
-        ? 0
-        : like
-            ? 1
-            : -1;
-    myAttitude = na;
-    if (oa == na) return '';
-    if (oa == 1) {
+    myAttitude = like;
+    if (oa == like) return '';
+    if (oa == true) {
       likeCnt--;
-      if (na == -1) dislikeCnt++;
-    } else if (oa == -1) {
+      if (like == false) dislikeCnt++;
+    } else if (oa == false) {
       dislikeCnt--;
-      if (na == 1) likeCnt++;
+      if (like == true) likeCnt++;
     } else {
-      if (na == 1) {
+      if (like == true) {
         likeCnt++;
       } else {
         dislikeCnt++;

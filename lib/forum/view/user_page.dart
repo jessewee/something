@@ -8,6 +8,7 @@ import '../../common/pub.dart';
 import '../../common/models.dart';
 import '../../common/view_images.dart';
 import '../../common/extensions.dart';
+import '../../common/event_bus.dart';
 
 import '../model/m.dart';
 import '../../base/iconfont.dart';
@@ -18,10 +19,10 @@ import 'user_reply_page.dart';
 
 /// 用户信息页
 class UserPage extends StatefulWidget {
-  static const routeName = '/forum/user';
-  final String userId;
+  static const routeName = 'forum_user';
+  final UserPageArg arg;
 
-  UserPage(this.userId);
+  UserPage(this.arg);
 
   @override
   _UserPageState createState() => _UserPageState();
@@ -33,7 +34,7 @@ class _UserPageState extends State<UserPage> {
 
   @override
   void initState() {
-    _followStreamController = StreamController();
+    _followStreamController = StreamController.broadcast();
     super.initState();
   }
 
@@ -45,26 +46,31 @@ class _UserPageState extends State<UserPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_myself == null)
-      _myself = widget.userId == context.watch<UserVM>().user.id;
+    if (_myself == null) {
+      final loginUser = context.watch<UserVM>().user;
+      _myself = widget.arg.userId == loginUser.id || widget.arg.userName == loginUser.name;
+    }
     return Scaffold(
       appBar: AppBar(title: Text('用户信息')),
-      body: SingleChildScrollView(
-        child: FutureBuilder<Result<ForumUser>>(
-          future: repository.getUserInfo(widget.userId),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return CenterInfoText('加载中...');
-            }
-            if (snapshot.data.fail) {
-              return CenterInfoText(snapshot.data.msg);
-            }
-            return Padding(
+      body: FutureBuilder<Result<ForumUser>>(
+        future: repository.getUserInfo(
+          userId: widget.arg.userId,
+          userName: widget.arg.userName,
+        ),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CenterInfoText('加载中...');
+          }
+          if (snapshot.data.fail) {
+            return CenterInfoText(snapshot.data.msg);
+          }
+          return SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 15.0),
               child: _buildContent(context, snapshot.data.data),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -84,11 +90,11 @@ class _UserPageState extends State<UserPage> {
         _buildItem(
           '名字',
           content: user.name,
-          mid: user.isGenderClear
+          tail: user.isGenderClear
               ? Icon(
                   user.isMale ? Iconfont.male : Iconfont.female,
                   color: user.isMale ? Colors.blue : Colors.pink,
-                  size: 16.0,
+                  size: 12.0,
                 )
               : null,
         ),
@@ -114,21 +120,26 @@ class _UserPageState extends State<UserPage> {
         _buildItem('注册日期', content: user.registerDate),
         divider,
         // 关注的人数、粉丝数量
-        _buildButtonItem(
-          '关注${user.followingCount}',
-          '粉丝${user.followerCount}',
-          () => Navigator.pushNamed(
-            context,
-            UserFollowPage.routeName,
-            arguments: UserFollowPageArg(user.id, true),
-          ),
-          () => Navigator.pushNamed(
-            context,
-            UserFollowPage.routeName,
-            arguments: UserFollowPageArg(user.id, false),
-          ),
-        ),
+        StreamBuilder(
+            stream: _followStreamController.stream,
+            builder: (context, snapshot) {
+              return _buildButtonItem(
+                '关注${user.followingCount}',
+                '粉丝${user.followerCount}',
+                () => Navigator.pushNamed(
+                  context,
+                  UserFollowPage.routeName,
+                  arguments: UserFollowPageArg(user.id, true),
+                ),
+                () => Navigator.pushNamed(
+                  context,
+                  UserFollowPage.routeName,
+                  arguments: UserFollowPageArg(user.id, false),
+                ),
+              );
+            }),
         divider,
+
         // 发帖数量、回复数量
         _buildButtonItem(
           '发帖${user.postCount}',
@@ -152,37 +163,59 @@ class _UserPageState extends State<UserPage> {
         if (_myself != true)
           StreamBuilder<bool>(
             stream: _followStreamController.stream,
-            builder: (context, snapshot) => NormalButton(
-              color:
-                  user.followed ? theme.primaryColorLight : theme.primaryColor,
-              text: user.followed ? '已关注' : '关注',
-              onPressed: () async {
-                await repository.follow(user.id, !user.followed);
-                _followStreamController.send(null);
-              },
+            builder: (context, snapshot) => Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: NormalButton(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                color: user.followed ? theme.primaryColorLight : theme.primaryColor,
+                text: user.followed ? '已关注' : '关注',
+                onPressed: () async {
+                  final result = await repository.follow(user.id, !user.followed);
+                  if (result.fail) {
+                    showToast(result.msg);
+                    return;
+                  }
+                  user.followed = !user.followed;
+                  if (user.followed)
+                    user.followerCount++;
+                  else
+                    user.followerCount--;
+                  _followStreamController.send(null);
+                  eventBus.sendEvent(
+                    EventBusType.forumUserChanged,
+                    {'userId': user.id, 'followed': user.followed},
+                  );
+                },
+              ),
             ),
           )
       ],
     );
   }
 
-  Widget _buildItem(String label, {String content, Widget tail, Widget mid}) {
+  Widget _buildItem(
+    String label, {
+    String content,
+    Widget tail,
+    Widget mid,
+    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8.0),
+      padding: const EdgeInsets.all(15.0),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: crossAxisAlignment,
         children: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: Text(label),
           ),
-          if (mid != null)
-            Padding(padding: const EdgeInsets.only(right: 8.0), child: mid),
-          if (content == null)
-            Spacer()
-          else
-            Expanded(child: Text(content, textAlign: TextAlign.end)),
-          if (tail != null) tail,
+          if (mid != null) Padding(padding: const EdgeInsets.only(right: 8.0), child: mid),
+          if (content == null) Spacer() else Expanded(child: Text(content, textAlign: TextAlign.end)),
+          if (tail != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 5.0),
+              child: tail,
+            ),
         ],
       ),
     );
@@ -194,18 +227,21 @@ class _UserPageState extends State<UserPage> {
     VoidCallback onLeftClick,
     VoidCallback onRightClick,
   ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextButton(onPressed: onLeftClick, child: Text(left)),
-          ),
-          Expanded(
-            child: TextButton(onPressed: onRightClick, child: Text(right)),
-          ),
-        ],
-      ),
+    return Row(
+      children: [
+        Expanded(
+          child: TextButton(onPressed: onLeftClick, child: Text(left)),
+        ),
+        Expanded(
+          child: TextButton(onPressed: onRightClick, child: Text(right)),
+        ),
+      ],
     );
   }
+}
+
+class UserPageArg {
+  final String userId;
+  final String userName;
+  UserPageArg({this.userId, this.userName});
 }

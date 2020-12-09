@@ -72,5 +72,8 @@ enum EventBusType {
   forumPostItemChanged,
 
   /// 主页里发帖成功
-  forumPosted
+  forumPosted,
+
+  /// 社区用户信息改变，一般是在详情页点了关注或取消关注需要通知上一页的
+  forumUserChanged,
 }

@@ -20,6 +20,9 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 /// 应用入口
 class MyApp extends StatefulWidget {
   final Map<String, WidgetBuilder> _mappedRoutes;
+
+  /// routeName是路径格式的话，会把前边的也push进去，比如要显示/a/b页面时，会依次把/、/a、/a/b三个页面都push到页面栈里，所以routeName就不要带/了
+  /// 详见MaterialApp的initialRoute说明
   final List<RouteInfo> _routes = [
     RouteInfo(LauncherPage.routeName, false, (_) => LauncherPage()),
     RouteInfo(HomePage.routeName, false, (_) => HomePage()),
@@ -31,8 +34,7 @@ class MyApp extends StatefulWidget {
   ];
 
   MyApp() : _mappedRoutes = {} {
-    final exited = forumRoutes
-        .where((f) => _routes.indexWhere((r) => f.name == r.name) >= 0);
+    final exited = forumRoutes.where((f) => _routes.indexWhere((r) => f.name == r.name) >= 0);
     assert(exited.isEmpty, '以下页面路由名字已经存在：$exited');
     _routes.addAll(forumRoutes);
     for (final r in _routes) {

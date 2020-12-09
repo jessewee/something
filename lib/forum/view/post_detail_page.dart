@@ -6,7 +6,9 @@ import 'package:flutter/widgets.dart';
 
 import '../../common/pub.dart';
 import '../../common/widgets.dart';
+import '../../common/event_bus.dart';
 
+import '../vm/reply_vm.dart';
 import '../model/post.dart';
 import '../view/bottom_reply_bar.dart';
 import '../view/post_base_item_content.dart';
@@ -14,7 +16,7 @@ import '../vm/post_vm.dart';
 
 /// 帖子详情
 class PostDetailPage extends StatefulWidget {
-  static const routeName = '/forum/post_detail';
+  static const routeName = 'forum_post_detail';
   final Post post;
 
   PostDetailPage(this.post);
@@ -56,23 +58,18 @@ class _PostDetailPageState extends State<PostDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: StreamBuilder<bool>(
-            initialData: _loading.value,
             stream: _loading.stream,
             builder: (context, snapshot) {
-              return TextWithLoading(
-                _vm.post.label,
-                snapshot.data != null,
-              );
+              return TextWithLoading(_vm.post.label, _loading.value != null);
             }),
         actions: [
-          if (_vm.totalFloorCnt > 200)
-            TextButton(child: Text('跳转楼层'), onPressed: _showToFloors),
+          if (_vm.totalFloorCnt > 200) TextButton(child: Text('跳转楼层'), onPressed: _showToFloors),
         ],
       ),
       body: Column(
         children: [
           Expanded(child: _buildContent()),
-          BottomReplyBar(postId: _vm.post.id, onReplied: _onReplied),
+          BottomReplyBar(ReplyVM(postId: _vm.post.id, onReplied: _onReplied)),
         ],
       ),
     );
@@ -80,7 +77,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   // 回复发送成功的回调
   void _onReplied(PostBase postBase) {
-    setState(() => _vm.addNewReply(postBase as Floor));
+    setState(() {
+      _vm.addNewReply(postBase as Floor);
+      widget.post.replyCnt++;
+      eventBus.sendEvent(
+        EventBusType.forumPostItemChanged,
+        {'postId': widget.post.id, 'replyCnt': widget.post.replyCnt},
+      );
+    });
   }
 
   // 内容显示
@@ -97,11 +101,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 ? PostBaseItemContent(_vm.floors[index - 1])
                 : StreamBuilder<bool>(
                     stream: _loading.stream,
-                    builder: (context, snapshot) {
-                      return LoadMore(
-                        noMore: snapshot.data == null && _vm.noMoreData,
-                      );
-                    }),
+                    builder: (context, snapshot) => LoadMore(
+                      noMore: _loading.value == null && _vm.noMoreData,
+                    ),
+                  ),
       ),
     );
   }
@@ -118,8 +121,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         final items = <MapEntry<String, void Function()>>[];
         for (var i = 0; i < cnt; i++) {
           final start = pageSize * i + 1;
-          final end =
-              i == cnt - 1 ? _vm.totalFloorCnt : (pageSize * (i + 1) + 1);
+          final end = i == cnt - 1 ? _vm.totalFloorCnt : (pageSize * (i + 1) + 1);
           items.add(MapEntry(
             '$start楼~$end楼',
             () => _loadData(floorStartIdx: start, floorEndIdx: end),
@@ -153,10 +155,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
       floorStartIdx: floorStartIdx,
       floorEndIdx: floorEndIdx,
     );
-    _loading.add(null);
     if (result.success) {
       if (mounted) setState(() => _loading.setValueWithoutNotify(null));
     } else {
+      _loading.add(null);
       showToast(result.msg);
     }
   }

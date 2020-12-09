@@ -10,7 +10,7 @@ import 'api/api.dart' as api;
 
 /// 注册页
 class RegisterPage extends StatefulWidget {
-  static const routeName = '/register';
+  static const routeName = 'register';
 
   @override
   _RegisterPageState createState() => _RegisterPageState();
@@ -115,9 +115,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   decoration: InputDecoration(labelText: '验证码'),
                   maxLength: 6,
                   onChanged: (text) => _vfCode = text,
-                  validator: (text) => text.trim().isEmpty && _email.isNotEmpty
-                      ? '请输入验证码'
-                      : null,
+                  validator: (text) => text.trim().isEmpty && _email.isNotEmpty ? '请输入验证码' : null,
                 ),
                 // 确定按钮
                 Builder(

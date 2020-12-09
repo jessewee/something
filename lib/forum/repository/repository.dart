@@ -17,9 +17,9 @@ Future<Result<UploadedFile>> upload(
   return await baseApi.upload(path, type, tag: tag);
 }
 
-/// 获取用户信息
-Future<Result<ForumUser>> getUserInfo(String userId) async {
-  return await api.getUserInfo(userId);
+/// 获取用户信息，用户id和用户名传一个
+Future<Result<ForumUser>> getUserInfo({String userId, String userName}) async {
+  return await api.getUserInfo(userId: userId, userName: userName);
 }
 
 /// 获取关注人列表 [targetUserId]查看的是谁的粉丝列表，null表示登陆人
@@ -128,10 +128,9 @@ Future<Result<ReplyResultData>> reply({
   String content,
   List<String> mediaIds,
 }) async {
-  assert(
-    postId != null || floorId != null || innerFloorId != null,
-    'reply---postId、floorId和innerFloorId必须传一个',
-  );
+  assert(innerFloorId != null
+      ? (floorId != null && postId != null)
+      : postId != null);
   assert(
     content?.isNotEmpty == true || mediaIds?.isNotEmpty == true,
     'reply---content和medias必须传一个',

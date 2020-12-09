@@ -76,7 +76,7 @@ class PostWall extends StatelessWidget {
         onClick: (id) {
           final post = posts.match(id);
           if (post == null) return;
-          post.changeLikeState(post.myAttitude == 1 ? null : true);
+          post.changeLikeState(post.myAttitude == true ? null : true);
         },
       ),
       CircleMenuItem(
@@ -87,7 +87,7 @@ class PostWall extends StatelessWidget {
         onClick: (id) {
           final post = posts.match(id);
           if (post == null) return;
-          post.changeLikeState(post.myAttitude == -1 ? null : false);
+          post.changeLikeState(post.myAttitude == false ? null : false);
         },
       ),
       CircleMenuItem(
@@ -98,7 +98,7 @@ class PostWall extends StatelessWidget {
           Navigator.pushNamed(
             context,
             UserPage.routeName,
-            arguments: post.posterId,
+            arguments: UserPageArg(userId: post.posterId),
           );
         },
       ),

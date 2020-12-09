@@ -44,6 +44,12 @@ class Network {
     return __refreshToken;
   }
 
+  void clearToken() {
+    _token = '';
+    __refreshToken = '';
+    SharedPreferences.getInstance().then((sp) => sp.clear());
+  }
+
   Network._init() {
     _dio = Dio();
     _dio.options.baseUrl = apiServer;
@@ -288,5 +294,8 @@ const errorCodes = {
   10017: '验证码不正确',
 
   /// 昵称已存在
-  10018: '昵称已存在'
+  10018: '昵称已存在',
+
+  /// 用户不存在
+  10019: '用户不存在'
 };

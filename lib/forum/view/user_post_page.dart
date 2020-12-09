@@ -15,7 +15,7 @@ import 'select_post_label_page.dart';
 
 /// 用户发帖记录页
 class UserPostPage extends StatefulWidget {
-  static const routeName = '/forum/user_post_page';
+  static const routeName = 'forum_user_post_page';
   final UserPostPageArg arg;
   const UserPostPage(this.arg);
 
@@ -48,8 +48,7 @@ class _UserPostPageState extends State<UserPostPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_myself == null)
-      _myself = widget.arg.userId == context.watch<UserVM>().user.id;
+    if (_myself == null) _myself = widget.arg.userId == context.watch<UserVM>().user.id;
     return Scaffold(
       appBar: AppBar(
         title: StreamBuilder<bool>(
@@ -118,8 +117,7 @@ class _FilterAreaState extends State<_FilterArea> {
     final theme = Theme.of(context);
     final primaryColor = theme.primaryColor;
     final textCaptionStyle = theme.textTheme.caption;
-    final textPrimaryCaptionStyle =
-        textCaptionStyle.copyWith(color: theme.primaryColor);
+    final textPrimaryCaptionStyle = textCaptionStyle.copyWith(color: theme.primaryColor);
     final label = widget.filter.labels.join(',');
     // 标签
     Widget labelWidget = _buildLabelOrFollowing(
@@ -171,8 +169,7 @@ class _FilterAreaState extends State<_FilterArea> {
       margin: const EdgeInsets.symmetric(horizontal: 4.0),
       child: OutlineButton(
         child: text.isEmpty
-            ? Text(defaultText,
-                overflow: TextOverflow.ellipsis, style: textCaptionStyle)
+            ? Text(defaultText, overflow: TextOverflow.ellipsis, style: textCaptionStyle)
             : Tooltip(
                 message: text,
                 child: Text(
@@ -211,9 +208,7 @@ class _FilterAreaState extends State<_FilterArea> {
             child: Icon(
               Icons.search,
               size: textPrimaryCaptionStyle.fontSize * 1.5,
-              color: widget.filter.searchContent.isEmpty
-                  ? textCaptionStyle.color
-                  : primaryColor,
+              color: widget.filter.searchContent.isEmpty ? textCaptionStyle.color : primaryColor,
             ),
           ),
         ],
@@ -236,8 +231,7 @@ class _FilterAreaState extends State<_FilterArea> {
 
   // 点标签
   void _onLabelClick() async {
-    final result =
-        await Navigator.pushNamed(context, SelectPostLabelPage.routeName);
+    final result = await Navigator.pushNamed(context, SelectPostLabelPage.routeName);
     if (result == null || !mounted) return;
     setState(() {
       widget.filter.labels = result;
@@ -247,8 +241,7 @@ class _FilterAreaState extends State<_FilterArea> {
 
   // 点击搜索
   void _onSearchClick() async {
-    final result =
-        await Navigator.pushNamed(context, SearchContentPage.routeName);
+    final result = await Navigator.pushNamed(context, SearchContentPage.routeName);
     if (result == null || !mounted) return;
     setState(() {
       widget.filter.searchContent = result;

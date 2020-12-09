@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:something/common/event_bus.dart';
 
 import '../../common/models.dart';
 import '../../common/play_video_page.dart';
@@ -31,20 +33,36 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
   StreamController<int> _likeStatusStreamController; // 点赞点踩按钮改变
   StreamController<bool> _followStreamController; // 关注按钮改变
   StreamController<int> _replyCntStreamController; // 回复按钮改变
+  List<TapGestureRecognizer> _tapGestureRecognizers; // 点击目标对象
 
   @override
   void initState() {
     _likeStatusStreamController = StreamController.broadcast();
     if (widget.postBase is Post) {
       _followStreamController = StreamController();
+      // 在其它页改变了关注状态
+      final post = widget.postBase as Post;
+      eventBus.on(EventBusType.forumUserChanged, (arg) {
+        if (arg == null || arg is! Map) return;
+        if (arg['userId'] != widget.postBase.posterId) return;
+        if (arg['followed'] == null) return;
+        final followed = arg['followed'] as bool;
+        if (followed != post.posterFollowed) {
+          post.posterFollowed = followed;
+          _followStreamController.send(null);
+        }
+      }, 'post_list_item');
     } else if (widget.postBase is Floor) {
       _replyCntStreamController = StreamController();
     }
+    _tapGestureRecognizers = [];
     super.initState();
   }
 
   @override
   void dispose() {
+    if (widget.postBase is Post) eventBus.off(tag: 'post_list_item');
+    _tapGestureRecognizers.forEach((e) => e.dispose());
     _replyCntStreamController?.makeSureClosed();
     _followStreamController?.makeSureClosed();
     _likeStatusStreamController.makeSureClosed();
@@ -66,28 +84,18 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     );
     // 名字
     Widget name = Text(widget.postBase.name, style: theme.textTheme.subtitle2);
-    // 日期
-    Widget date = Text(widget.postBase.date, style: theme.textTheme.caption);
-    // 标签
-    Widget label;
-    if (widget.postBase is Post) {
-      final post = widget.postBase as Post;
-      label = Text(
-        post.label,
-        style: theme.textTheme.caption.copyWith(color: Colors.white),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-      );
-      label = Container(
-        child: label,
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        decoration: ShapeDecoration(
-          color: Colors.yellow[900],
-          shape: StadiumBorder(),
-        ),
-      );
-      label = Tooltip(message: post.label, child: label);
+    // 楼层和日期
+    String dateText;
+    if (widget.postBase is Floor) {
+      final floor = widget.postBase as Floor;
+      dateText = '第${floor.floor}楼 · ${floor.date}';
+    } else if (widget.postBase is InnerFloor) {
+      final innerFloor = widget.postBase as InnerFloor;
+      dateText = '第${innerFloor.innerFloor}楼 · ${innerFloor.date}';
+    } else {
+      dateText = widget.postBase.date;
     }
+    Widget date = Text(dateText, style: theme.textTheme.caption);
     // 关注按钮
     Widget follow;
     if (widget.postBase is Post) {
@@ -95,32 +103,20 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
       follow = StreamBuilder<bool>(
         stream: _followStreamController.stream,
         builder: (context, _) => NormalButton(
-          color: post.posterFollowed
-              ? theme.primaryColorLight
-              : theme.primaryColor,
+          color: post.posterFollowed ? theme.primaryColorLight : theme.primaryColor,
           text: post.posterFollowed ? '已关注' : '关注',
           onPressed: _onFollowClick,
         ),
       );
     }
-    // 头像、名字、日期区域
+    // 头像、名字、楼层和日期区域
     Widget top = Row(
       children: <Widget>[
         avatar.withMargin(right: 8.0),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              name,
-              label == null
-                  ? date.withMargin(top: 8.0)
-                  : Row(
-                      children: [
-                        date.withMargin(right: 8.0),
-                        Flexible(child: label),
-                      ],
-                    ).withMargin(top: 8.0),
-            ],
+            children: <Widget>[name, date.withMargin(top: 8.0)],
           ),
         ),
         if (follow != null) follow,
@@ -132,7 +128,67 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
       onPressed: _onViewUserClick,
     );
     // 文本
-    Widget content = Text(widget.postBase.content);
+    List<InlineSpan> contentSpans = [];
+    if (widget.postBase is InnerFloor && (widget.postBase as InnerFloor).targetId?.isNotEmpty == true) {
+      final innerFloor = widget.postBase as InnerFloor;
+      contentSpans.add(TextSpan(text: '回复'));
+      // 点击事件
+      final tgr = TapGestureRecognizer()
+        ..onTap = () {
+          final targetId = (widget.postBase as InnerFloor).targetId;
+          Navigator.pushNamed(
+            context,
+            UserPage.routeName,
+            arguments: UserPageArg(userId: targetId),
+          );
+        };
+      _tapGestureRecognizers.add(tgr);
+      // 名字显示
+      contentSpans.add(TextSpan(
+        text: innerFloor.targetName,
+        style: TextStyle(color: Colors.blue),
+        recognizer: tgr,
+      ));
+      contentSpans.add(TextSpan(text: '： '));
+    }
+    if (widget.postBase.content.contains('@')) {
+      var text = widget.postBase.content;
+      var idx = -1;
+      while ((idx = text.indexOf('@')) >= 0) {
+        if (idx > 0) contentSpans.add(TextSpan(text: text.substring(0, idx)));
+        var endIdx = text.indexOf(' ', idx);
+        if (endIdx < 0) endIdx = text.length - 1;
+        if (endIdx > idx + 1) {
+          final target = text.substring(idx + 1, endIdx + 1);
+          // 点击事件
+          final tgr = TapGestureRecognizer()
+            ..onTap = () {
+              Navigator.pushNamed(
+                context,
+                UserPage.routeName,
+                arguments: UserPageArg(userName: target.trim()),
+              );
+            };
+          _tapGestureRecognizers.add(tgr);
+          // 名字显示
+          contentSpans.add(TextSpan(
+            text: '@$target',
+            style: TextStyle(color: Colors.blue),
+            recognizer: tgr,
+          ));
+        }
+        text = text.substring(endIdx + 1);
+      }
+      contentSpans.add(TextSpan(text: text));
+    } else {
+      contentSpans.add(TextSpan(text: widget.postBase.content));
+    }
+    Widget content = RichText(
+      text: TextSpan(
+        style: TextStyle(color: theme.textTheme.bodyText1.color),
+        children: contentSpans,
+      ),
+    );
     // 图片和视频
     Widget media = _buildMedias(context, widget.postBase.medias);
     // 回复
@@ -154,8 +210,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     Widget like = StreamBuilder(
       stream: _likeStatusStreamController.stream,
       builder: (context, _) => NormalButton(
-        color:
-            widget.postBase.myAttitude == 1 ? theme.primaryColor : Colors.black,
+        color: widget.postBase.myAttitude == true ? theme.primaryColor : Colors.black,
         icon: Iconfont.like,
         text: '${widget.postBase.likeCnt}',
         onPressed: _onLikeClick,
@@ -165,9 +220,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     Widget dislike = StreamBuilder(
       stream: _likeStatusStreamController.stream,
       builder: (context, _) => NormalButton(
-        color: widget.postBase.myAttitude == -1
-            ? theme.primaryColor
-            : Colors.black,
+        color: widget.postBase.myAttitude == false ? theme.primaryColor : Colors.black,
         icon: Iconfont.dislike,
         text: '${widget.postBase.dislikeCnt}',
         onPressed: _onDislikeClick,
@@ -190,7 +243,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
         content,
         if (media != null) media.withMargin(top: 8.0, bottom: 8.0),
         buttons,
-        Divider(color: Colors.grey[300], height: 1.0).withMargin(top: 8.0),
+        if (widget.postBase is! Post) Divider(color: Colors.grey[300], height: 1.0).withMargin(top: 8.0),
       ],
     );
     final leftSpace = widget.postBase is Post ? 12.0 : 60.0;
@@ -200,7 +253,11 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[top, bottom],
+      children: <Widget>[
+        top,
+        bottom,
+        if (widget.postBase is Post) Divider(color: Colors.grey[100], height: 20, thickness: 20).withMargin(top: 8.0),
+      ],
     );
   }
 
@@ -216,13 +273,12 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
       ),
       onPressed: widget.postBase is Floor
           // 查看回复按钮，有可能会返回新数量
-          ? () async {
+          ? () {
               final floor = widget.postBase as Floor;
-              final result = await PostFloorRepliesSheet.show(context, floor);
-              if (result != null && result is int) {
-                floor.replyCnt = result;
+              PostFloorRepliesSheet.show(context, floor, () {
+                // floor对象的replyCnt已经在PostFloorRepliesSheet里改变了，这里只通知页面刷新就行
                 _replyCntStreamController?.send(null);
-              }
+              });
             }
           // 回复按钮
           : widget.onReplyClick,
@@ -231,7 +287,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
 
   // 点赞
   Future _onLikeClick() async {
-    final target = widget.postBase.myAttitude == 1 ? null : true;
+    final target = widget.postBase.myAttitude == true ? null : true;
     final result = await widget.postBase.changeLikeState(target);
     if (result.isNotEmpty) {
       showToast(result);
@@ -243,7 +299,7 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
 
   // 点踩
   Future _onDislikeClick() async {
-    final target = widget.postBase.myAttitude == -1 ? null : false;
+    final target = widget.postBase.myAttitude == false ? null : false;
     final result = await widget.postBase.changeLikeState(target);
     if (result.isNotEmpty) {
       showToast(result);
@@ -254,16 +310,12 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
   }
 
   // 查看发布人
-  void _onViewUserClick() async {
-    final result = await Navigator.pushNamed(
+  void _onViewUserClick() {
+    Navigator.pushNamed(
       context,
       UserPage.routeName,
-      arguments: widget.postBase.posterId,
+      arguments: UserPageArg(userId: widget.postBase.posterId),
     );
-    if (widget.postBase is Post && result != null && result is bool) {
-      (widget.postBase as Post).posterFollowed = result;
-      _followStreamController?.send(null);
-    }
   }
 
   // 关注按钮
@@ -272,9 +324,13 @@ class _PostBaseItemContentState extends State<PostBaseItemContent> {
     final result = await post.changeFollowPosterStatus();
     if (result.isNotEmpty) {
       showToast(result);
-    } else {
-      _followStreamController.send(null);
+      return;
     }
+    _followStreamController.send(null);
+    eventBus.sendEvent(
+      EventBusType.forumUserChanged,
+      {'userId': post.posterId, 'followed': post.posterFollowed},
+    );
     return;
   }
 

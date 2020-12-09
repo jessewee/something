@@ -37,11 +37,11 @@ class ForumUser extends User {
 extension ForumUserExt on ForumUser {
   static ForumUser fromApiData(Map<String, dynamic> apiData) {
     return ForumUser(
-      id: apiData['id'] ?? '',
+      id: apiData['id']?.toString() ?? '',
       name: apiData['name'] ?? '',
       avatar: apiData['avatar'] ?? '',
       avatarThumb: apiData['avatar_thumb'] ?? '',
-      gender: apiData['gender'] ?? '',
+      gender: GenderExt.fromName(apiData['gender']),
       birthday: apiData['birthday'] ?? '',
       registerDate: apiData['register_date'] ?? '',
       followerCount: apiData['follower_count'] ?? 0,

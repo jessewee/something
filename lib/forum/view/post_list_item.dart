@@ -50,11 +50,22 @@ class _PostItemState extends State<PostItem> {
       '${PostItem.eventBusEventType}_${widget.post.id}',
     );
     _likeStatusStreamController = StreamController.broadcast();
+    // 在详情页改变了关注状态
+    eventBus.on(EventBusType.forumUserChanged, (arg) {
+      if (arg == null || arg is! Map) return;
+      if (arg['userId'] != widget.post.posterId) return;
+      if (arg['followed'] == null) return;
+      final followed = arg['followed'] as bool;
+      if (followed != widget.post.posterFollowed) {
+        setState(() => widget.post.posterFollowed = followed);
+      }
+    }, 'post_list_item');
     super.initState();
   }
 
   @override
   void dispose() {
+    eventBus.off(tag: 'post_list_item');
     _likeStatusStreamController.makeSureClosed();
     eventBus.off(tag: '${PostItem.eventBusEventType}_${widget.post.id}');
     super.dispose();
@@ -78,6 +89,22 @@ class _PostItemState extends State<PostItem> {
     );
     // 日期
     Widget date = Text(widget.post.date, style: theme.textTheme.caption);
+    // 标签
+    Widget label = Text(
+      widget.post.label,
+      style: theme.textTheme.caption.copyWith(color: Colors.white),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+    );
+    label = Container(
+      child: label,
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      decoration: ShapeDecoration(
+        color: Colors.yellow[900],
+        shape: StadiumBorder(),
+      ),
+    );
+    label = Tooltip(message: widget.post.label, child: label);
     // 头像、名字、日期区域
     Widget top = Row(
       children: <Widget>[
@@ -85,7 +112,17 @@ class _PostItemState extends State<PostItem> {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[name, date.withMargin(top: 8.0)],
+            children: <Widget>[
+              name,
+              label == null
+                  ? date.withMargin(top: 8.0)
+                  : Row(
+                      children: [
+                        date.withMargin(right: 8.0),
+                        Flexible(child: label),
+                      ],
+                    ).withMargin(top: 8.0),
+            ],
           ),
         ),
       ],
@@ -95,7 +132,7 @@ class _PostItemState extends State<PostItem> {
       onPressed: () => Navigator.pushNamed(
         context,
         UserPage.routeName,
-        arguments: widget.post.posterId,
+        arguments: UserPageArg(userId: widget.post.posterId),
       ),
       child: top,
     ).withMargin(bottom: 8.0);
@@ -110,22 +147,20 @@ class _PostItemState extends State<PostItem> {
     Widget like = StreamBuilder(
       stream: _likeStatusStreamController.stream,
       builder: (context, _) => NormalButton(
-        color: widget.post.myAttitude == 1 ? theme.primaryColor : Colors.black,
+        color: widget.post.myAttitude == true ? theme.primaryColor : Colors.black,
         icon: Iconfont.like,
         text: '${widget.post.likeCnt}',
-        onPressed: () =>
-            _changeLikeState(widget.post.myAttitude == 1 ? null : true),
+        onPressed: () => _changeLikeState(widget.post.myAttitude == true ? null : true),
       ),
     );
     // 点踩
     Widget dislike = StreamBuilder(
       stream: _likeStatusStreamController.stream,
       builder: (context, _) => NormalButton(
-        color: widget.post.myAttitude == -1 ? theme.primaryColor : Colors.black,
+        color: widget.post.myAttitude == false ? theme.primaryColor : Colors.black,
         icon: Iconfont.dislike,
         text: '${widget.post.dislikeCnt}',
-        onPressed: () =>
-            _changeLikeState(widget.post.myAttitude == -1 ? null : false),
+        onPressed: () => _changeLikeState(widget.post.myAttitude == false ? null : false),
       ),
     );
     // 回复、点赞、点踩区域
@@ -149,10 +184,7 @@ class _PostItemState extends State<PostItem> {
         media = Wrap(
           spacing: 5.0,
           runSpacing: 5.0,
-          children: [
-            for (var i = 0; i < cnt; i++)
-              _buildMedia(widget.post.medias[i], cnt)
-          ],
+          children: [for (var i = 0; i < cnt; i++) _buildMedia(widget.post.medias[i], cnt)],
         );
       }
       media = Container(margin: const EdgeInsets.only(top: 5.0), child: media);
@@ -178,8 +210,7 @@ class _PostItemState extends State<PostItem> {
 
   // 到详情页
   void _toDetailPage() {
-    Navigator.pushNamed(context, PostDetailPage.routeName,
-        arguments: widget.post);
+    Navigator.pushNamed(context, PostDetailPage.routeName, arguments: widget.post);
   }
 
   // 构建图片或者视频Widget
@@ -224,8 +255,7 @@ class _PostItemState extends State<PostItem> {
 
   // 查看图片
   void _viewMediaImages(UploadedFile cur) {
-    final images =
-        widget.post.medias.where((m) => m.type == FileType.image).toList();
+    final images = widget.post.medias.where((m) => m.type == FileType.image).toList();
     final idx = images.indexOf(cur);
     viewImages(
       context,

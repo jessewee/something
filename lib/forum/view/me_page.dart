@@ -31,11 +31,29 @@ class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
       _user.postCount += 1;
       if (mounted) setState(() {});
     });
+    // 在其它页改变了关注状态
+    eventBus.on(EventBusType.forumUserChanged, (arg) {
+      if (arg == null || arg is! Map) return;
+      if (arg['userId'] == null) return;
+      if (arg['followed'] == null) return;
+      final userId = arg['userId'] as String;
+      final followed = arg['followed'] as bool;
+      setState(() {
+        if (followed) {
+          _user.followingCount += 1;
+          if (userId == _user.id) _user.followerCount += 1; // 自己关注自己
+        } else {
+          _user.followingCount -= 1;
+          if (userId == _user.id) _user.followerCount -= 1; // 自己关注自己
+        }
+      });
+    }, 'forum_me_page');
   }
 
   @override
   void dispose() {
     eventBus.off(type: EventBusType.forumPosted);
+    eventBus.off(tag: 'forum_me_page');
     super.dispose();
   }
 
@@ -66,7 +84,7 @@ class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
   }
 
   Future<void> _loadData(String userId) async {
-    final result = await repository.getUserInfo(userId);
+    final result = await repository.getUserInfo(userId: userId);
     if (result.fail) {
       setState(() => _errormsg = result.msg);
     } else {
@@ -88,7 +106,7 @@ class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
         _buildItem(
           '名字',
           content: user.name,
-          mid: user.isGenderClear
+          tail: user.isGenderClear
               ? Icon(
                   user.isMale ? Iconfont.male : Iconfont.female,
                   color: user.isMale ? Colors.blue : Colors.pink,
@@ -150,29 +168,35 @@ class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
         ),
         divider,
         // 备注
-        _buildItem('备注', content: user.remark),
+        _buildItem('备注', content: user.remark, crossAxisAlignment: CrossAxisAlignment.start),
         divider,
       ],
     );
   }
 
-  Widget _buildItem(String label, {String content, Widget tail, Widget mid}) {
+  Widget _buildItem(
+    String label, {
+    String content,
+    Widget tail,
+    Widget mid,
+    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
+  }) {
     return Container(
       padding: const EdgeInsets.all(15.0),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: crossAxisAlignment,
         children: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: Text(label),
           ),
-          if (mid != null)
-            Padding(padding: const EdgeInsets.only(right: 8.0), child: mid),
-          if (content == null)
-            Spacer()
-          else
-            Expanded(child: Text(content, textAlign: TextAlign.end)),
-          if (tail != null) tail,
+          if (mid != null) Padding(padding: const EdgeInsets.only(right: 8.0), child: mid),
+          if (content == null) Spacer() else Expanded(child: Text(content, textAlign: TextAlign.end)),
+          if (tail != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 5.0),
+              child: tail,
+            ),
         ],
       ),
     );
@@ -184,18 +208,15 @@ class _MePageState extends State<MePage> with AutomaticKeepAliveClientMixin {
     VoidCallback onLeftClick,
     VoidCallback onRightClick,
   ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextButton(onPressed: onLeftClick, child: Text(left)),
-          ),
-          Expanded(
-            child: TextButton(onPressed: onRightClick, child: Text(right)),
-          ),
-        ],
-      ),
+    return Row(
+      children: [
+        Expanded(
+          child: TextButton(onPressed: onLeftClick, child: Text(left)),
+        ),
+        Expanded(
+          child: TextButton(onPressed: onRightClick, child: Text(right)),
+        ),
+      ],
     );
   }
 }

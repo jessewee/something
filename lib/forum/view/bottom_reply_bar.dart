@@ -5,41 +5,15 @@ import 'package:provider/provider.dart';
 
 import '../../common/models.dart';
 import '../../common/pub.dart';
-import '../../common/extensions.dart';
 
+import '../vm/reply_vm.dart';
 import '../model/m.dart';
-import '../model/post.dart';
-import '../repository/repository.dart' as repository;
 import '../view/select_following_page.dart';
 import 'post_long_content_sheet.dart';
 
 class BottomReplyBar extends StatefulWidget {
-  /// 回复楼主时用这个参数
-  final String postId;
-
-  /// 回复层主时用这个参数
-  final String floorId;
-
-  /// 回复非层主时用这个参数
-  final String innerFloorId;
-
-  /// 层内回复目标id
-  final String targetId;
-
-  /// 层内回复目标名字
-  final String targetName;
-
-  /// 回复成功的回调，会把回复内容封装成Post、Floor、InnerFloor对象
-  final void Function(PostBase) onReplied;
-
-  const BottomReplyBar({
-    this.postId,
-    this.floorId,
-    this.innerFloorId,
-    this.targetId,
-    this.targetName,
-    this.onReplied,
-  });
+  final ReplyVM vm;
+  const BottomReplyBar(this.vm);
 
   @override
   _BottomReplyBarState createState() => _BottomReplyBarState();
@@ -73,11 +47,6 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
     const iconSize = 24.0;
     const iconPadding = 7.0;
     const inputRadius = 19.0;
-    final hintText = widget.targetName?.isNotEmpty == true
-        ? '回复${widget.targetName}'
-        : widget.postId?.isNotEmpty == true
-            ? '回复楼主'
-            : '回复层主';
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -113,7 +82,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
               controller: _controller,
               textInputAction: TextInputAction.send,
               decoration: InputDecoration(
-                hintText: hintText,
+                hintText: widget.vm.hintText,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 15.0,
                   vertical: 8.0,
@@ -153,11 +122,7 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
   // 长回复
   void _onLongReplyClick(BuildContext context) async {
     _focusNode.unfocus();
-    PostLongContentSheet.show(
-      context,
-      _onSubmit,
-      defaultText: _controller.text,
-    );
+    PostLongContentSheet.show(context, widget.vm);
   }
 
   // @某人
@@ -177,92 +142,10 @@ class _BottomReplyBarState extends State<BottomReplyBar> {
   // 提交回复
   Future<bool> _onSubmit(String text, List<UploadedFile> medias) async {
     _sending.add(true);
-    final result = await _doSubmit(text, medias);
+    final result =
+        await widget.vm.submit(context.read<UserVM>().user, text, medias);
     _sending.add(false);
+    if (result) _controller.text = '';
     return result;
-  }
-
-  Future<bool> _doSubmit(String text, List<UploadedFile> medias) async {
-    // 回复楼主
-    if (widget.postId?.isNotEmpty == true) {
-      final result = await repository.reply(
-        postId: widget.postId,
-        content: text,
-        mediaIds: medias.map((e) => e.id).toList(),
-      );
-      if (result.fail) {
-        showToast(result.msg);
-        return false;
-      }
-      final loginUser = context.read<UserVM>();
-      widget.onReplied(Floor(
-        id: result.data.floorId,
-        posterId: loginUser.user.id,
-        avatar: loginUser.user.avatar,
-        avatarThumb: loginUser.user.avatarThumb,
-        name: loginUser.user.name,
-        date: DateTime.now().format(),
-        content: text,
-        medias: medias,
-        floor: result.data.floor,
-      ));
-      _controller.text = '';
-      return true;
-    }
-    // 回复层主
-    if (widget.floorId?.isNotEmpty == true) {
-      final result = await repository.reply(
-        floorId: widget.floorId,
-        content: text,
-        mediaIds: medias.map((e) => e.id).toList(),
-      );
-      if (result.fail) {
-        showToast(result.msg);
-        return false;
-      }
-      final loginUser = context.read<UserVM>();
-      widget.onReplied(InnerFloor(
-        id: result.data.innerFloorId,
-        posterId: loginUser.user.id,
-        avatar: loginUser.user.avatar,
-        avatarThumb: loginUser.user.avatarThumb,
-        name: loginUser.user.name,
-        date: DateTime.now().format(),
-        content: text,
-        medias: medias,
-        innerFloor: result.data.innerFloor,
-      ));
-      _controller.text = '';
-      return true;
-    }
-    // 层内回复
-    if (widget.innerFloorId?.isNotEmpty == true) {
-      final result = await repository.reply(
-        innerFloorId: widget.innerFloorId,
-        content: text,
-        mediaIds: medias.map((e) => e.id).toList(),
-      );
-      if (result.fail) {
-        showToast(result.msg);
-        return false;
-      }
-      final loginUser = context.read<UserVM>();
-      widget.onReplied(InnerFloor(
-        id: result.data.innerFloorId,
-        posterId: loginUser.user.id,
-        avatar: loginUser.user.avatar,
-        avatarThumb: loginUser.user.avatarThumb,
-        name: loginUser.user.name,
-        date: DateTime.now().format(),
-        content: text,
-        medias: medias,
-        innerFloor: result.data.innerFloor,
-        targetId: widget.targetId ?? '',
-        targetName: widget.targetName ?? '',
-      ));
-      _controller.text = '';
-      return true;
-    }
-    return false;
   }
 }

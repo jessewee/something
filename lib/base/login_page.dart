@@ -14,7 +14,7 @@ import 'retrieve_pwd_page.dart';
 
 /// 登录页
 class LoginPage extends StatefulWidget {
-  static const routeName = '/login';
+  static const routeName = 'login';
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -25,8 +25,7 @@ class _LoginPageState extends State<LoginPage> {
   String _pwd;
 
   // 是否可登录
-  get _loginable =>
-      this._account?.isNotEmpty == true && this._pwd?.isNotEmpty == true;
+  get _loginable => this._account?.isNotEmpty == true && this._pwd?.isNotEmpty == true;
 
   @override
   void initState() {
@@ -67,13 +66,11 @@ class _LoginPageState extends State<LoginPage> {
               children: <Widget>[
                 FlatButton(
                   child: Text('注册账号'),
-                  onPressed: () =>
-                      Navigator.of(context).pushNamed(RegisterPage.routeName),
+                  onPressed: () => Navigator.of(context).pushNamed(RegisterPage.routeName),
                 ),
                 FlatButton(
                   child: Text('找回密码'),
-                  onPressed: () => Navigator.of(context)
-                      .pushNamed(RetrievePwdPage.routeName),
+                  onPressed: () => Navigator.of(context).pushNamed(RetrievePwdPage.routeName),
                 ),
               ],
             ),
@@ -146,8 +143,7 @@ class _InputWidget extends StatelessWidget {
           Expanded(
             child: TextField(
               autofocus: false,
-              textInputAction:
-                  flag ? TextInputAction.next : TextInputAction.done,
+              textInputAction: flag ? TextInputAction.next : TextInputAction.done,
               onSubmitted: (value) => onSubmitted?.call(),
               decoration: InputDecoration(
                 hintText: flag ? "请输入账号" : "请输入密码",

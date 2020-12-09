@@ -8,7 +8,7 @@ import '../repository/repository.dart' as repository;
 
 /// 选择标签给上一页，可多选
 class SelectPostLabelPage extends StatefulWidget {
-  static const routeName = '/forum/select_post_label_page';
+  static const routeName = 'forum_select_post_label_page';
   final bool singleSelect;
   const SelectPostLabelPage({this.singleSelect = false});
   @override

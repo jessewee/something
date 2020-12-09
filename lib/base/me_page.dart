@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:something/common/network.dart';
 import 'package:something/common/pub.dart';
 
 import '../common/view_images.dart';
@@ -11,7 +12,7 @@ import 'iconfont.dart';
 
 /// 我的页面
 class MePage extends StatefulWidget {
-  static const routeName = '/me';
+  static const routeName = 'me';
 
   @override
   _MePageState createState() => _MePageState();
@@ -43,6 +44,7 @@ class _MePageState extends State<MePage> {
       endIndent: 12.0,
     );
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // 头像
         _Item(
@@ -93,6 +95,25 @@ class _MePageState extends State<MePage> {
           onTap: _changeRemark,
         ),
         divider,
+        // 退出登录
+        Padding(
+          padding: const EdgeInsets.fromLTRB(15.0, 50.0, 15.0, 25.0),
+          child: OutlinedButton(
+            onPressed: () {
+              showAlertDialog(
+                title: '确认',
+                content: '确认要退出登录？',
+                onConfirm: () {
+                  context.read<UserVM>().user = User();
+                  network.clearToken();
+                  Navigator.pop(context);
+                  return;
+                },
+              );
+            },
+            child: Text('退出登录'),
+          ),
+        ),
       ],
     );
   }
@@ -138,8 +159,7 @@ class _MePageState extends State<MePage> {
 
   // 修改头像
   Future _changeAvatar() async {
-    final pickedFile =
-        await ImagePicker().getImage(source: ImageSource.gallery);
+    final pickedFile = await ImagePicker().getImage(source: ImageSource.gallery);
     if (pickedFile == null) return;
     final ur = await api.upload(pickedFile.path, FileType.image);
     if (ur.fail) {
@@ -147,8 +167,7 @@ class _MePageState extends State<MePage> {
       return;
     }
     final data = ur.data;
-    final result =
-        await api.updateUserInfo(avatar: data.url, avatarThumb: data.thumbUrl);
+    final result = await api.updateUserInfo(avatar: data.url, avatarThumb: data.thumbUrl);
     if (result.fail) {
       showToast(result.msg);
       return;
@@ -251,9 +270,7 @@ class __ItemState extends State<_Item> {
                 child: Text(
                   widget.content,
                   style: TextStyle(
-                    color: widget.onTap == null
-                        ? Colors.grey[400]
-                        : Colors.grey[800],
+                    color: widget.onTap == null ? Colors.grey[400] : Colors.grey[800],
                   ),
                 ),
               ),

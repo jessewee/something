@@ -74,8 +74,9 @@ class StreamControllerWithData<T> {
 
 /// 显示Toast
 void showToast(String msg) {
-  OverlayEntry overlayEntry = OverlayEntry(builder: (context) {
-    return Center(
+  if (msg?.isNotEmpty != true) return;
+  OverlayEntry overlayEntry = OverlayEntry(
+    builder: (context) => Center(
       child: Container(
         decoration: BoxDecoration(
           color: const Color.fromARGB(255, 50, 50, 50),
@@ -91,10 +92,11 @@ void showToast(String msg) {
               .copyWith(color: Colors.white),
         ),
       ),
-    );
-  });
+    ),
+  );
   SchedulerBinding.instance.addPostFrameCallback(
-      (_) => navigatorKey.currentState.overlay.insert(overlayEntry));
+    (_) => navigatorKey.currentState.overlay.insert(overlayEntry),
+  );
   SchedulerBinding.instance.ensureVisualUpdate();
   Future.delayed(const Duration(seconds: 2)).then((_) => overlayEntry.remove());
 }

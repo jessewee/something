@@ -7,7 +7,7 @@ import 'home_page.dart';
 
 /// 启动页
 class LauncherPage extends StatefulWidget {
-  static const routeName = '/launcher';
+  static const routeName = 'launcher';
   @override
   _LauncherPageState createState() => _LauncherPageState();
 }

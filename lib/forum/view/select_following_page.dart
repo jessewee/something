@@ -9,7 +9,7 @@ import '../model/m.dart';
 import '../repository/repository.dart' as repository;
 
 class SelectFollowingPage extends StatefulWidget {
-  static const routeName = '/forum/select_following_page';
+  static const routeName = 'forum_select_following_page';
   final bool singleSelect;
   const SelectFollowingPage({this.singleSelect = false});
   @override
@@ -71,14 +71,8 @@ class _SelectFollowingPageState extends State<SelectFollowingPage> {
     }
     _data = result.data ?? [];
     _data.sort((u0, u1) {
-      final c0 = _records
-              .firstWhere((e) => e.key == u0.id, orElse: () => null)
-              ?.value ??
-          0;
-      final c1 = _records
-              .firstWhere((e) => e.key == u1.id, orElse: () => null)
-              ?.value ??
-          0;
+      final c0 = _records.firstWhere((e) => e.key == u0.id, orElse: () => null)?.value ?? 0;
+      final c1 = _records.firstWhere((e) => e.key == u1.id, orElse: () => null)?.value ?? 0;
       return c0.compareTo(c1);
     });
     if (mounted) setState(() {});

@@ -125,7 +125,7 @@ Future<Result<DataWidthPageInfo<Post>>> getPosts(
             likeCnt: e['like_count'] ?? 0,
             dislikeCnt: e['dislike_count'] ?? 0,
             replyCnt: e['reply_count'] ?? 0,
-            myAttitude: e['attitude'] ?? 0,
+            myAttitude: e['attitude'],
             posterFollowed: e['poster_followed'] == true,
             medias: _mapMedias(e['medias']),
           ))
@@ -169,9 +169,10 @@ Future<Result<FloorResultData>> getFloors({
             replyCnt: e['reply_count'] ?? 0,
             likeCnt: e['like_count'] ?? 0,
             dislikeCnt: e['dislike_count'] ?? 0,
-            myAttitude: e['attitude'] ?? 0,
+            myAttitude: e['attitude'],
             medias: _mapMedias(e['medias']),
             floor: e['floor'],
+            postId: e['post_id']?.toString(),
           ))
       .toList();
   return Result.success(FloorResultData(
@@ -190,7 +191,7 @@ Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
   int dataPageSize = 100,
 }) async {
   final result = await network.get(
-    '/forum/get_innser_floors',
+    '/forum/get_inner_floors',
     params: {
       'floor_id': floorId,
       'data_idx': dataIdx,
@@ -213,11 +214,13 @@ Future<Result<DataWidthPageInfo<InnerFloor>>> getInnerFloors({
             content: e['text'] ?? '',
             likeCnt: e['like_count'] ?? 0,
             dislikeCnt: e['dislike_count'] ?? 0,
-            myAttitude: e['attitude'] ?? 0,
+            myAttitude: e['attitude'],
             medias: _mapMedias(e['medias']),
-            innerFloor: e['innser_floor'],
-            targetId: e['target_id'],
-            targetName: e['target_name'],
+            innerFloor: e['inner_floor'],
+            targetId: e['target_id']?.toString() ?? '',
+            targetName: e['target_name'] ?? '',
+            postId: e['post_id']?.toString() ?? '',
+            floorId: e['floor_id']?.toString() ?? '',
           ))
       .toList();
   return Result.success(DataWidthPageInfo<InnerFloor>(
@@ -291,10 +294,10 @@ Future<Result<String>> post({
 }
 
 /// 获取社区用户数据
-Future<Result<ForumUser>> getUserInfo(String userId) async {
+Future<Result<ForumUser>> getUserInfo({String userId, String userName}) async {
   final tmp = await network.get(
     '/forum/get_user_info',
-    params: {'user_id': userId},
+    params: {'user_id': userId, 'user_name': userName},
   );
   if (tmp.fail) return Result(code: tmp.code, msg: tmp.msg);
   final map = tmp.data;

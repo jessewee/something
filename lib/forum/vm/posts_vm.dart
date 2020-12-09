@@ -29,10 +29,7 @@ class PostsVM {
   /// 获取登录人对某个帖子当前的态度 null 表示中立
   bool getLikeStatus(String postId) {
     final post = _posts.firstWhere((p) => p.id == postId, orElse: () => null);
-    if (post == null) return null;
-    if (post.myAttitude == 1) return true;
-    if (post.myAttitude == -1) return false;
-    return null;
+    return post?.myAttitude;
   }
 
   /// 获取数据
