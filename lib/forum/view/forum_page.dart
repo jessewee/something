@@ -2,17 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:provider/provider.dart';
 
-import '../../common/event_bus.dart';
-import '../../common/pub.dart';
 import '../../common/widgets.dart';
-import '../../common/models.dart';
 import '../../common/extensions.dart';
 
-import '../repository/repository.dart' as repository;
 import '../vm/reply_vm.dart';
-import '../model/post.dart';
 import 'select_post_label_page.dart';
 import 'post_long_content_sheet.dart';
 import 'me_page.dart';
@@ -28,7 +22,6 @@ class ForumPage extends StatefulWidget {
 
 class _ForumPageState extends State<ForumPage> {
   int _curTabIdx = 0;
-  String _postLabel = '';
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +63,6 @@ class _ForumPageState extends State<ForumPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (!context.checkLogin()) return;
-          _postLabel = '';
           PostLongContentSheet.show(context, ReplyVM(showLabel: true));
         },
         child: Icon(Icons.add, color: Colors.white),
@@ -207,7 +199,8 @@ class __PostLabelSheetState extends State<_PostLabelSheet> {
       minLines: 3,
       maxLines: 5,
       maxLength: 20,
-      buildCounter: (context, {currentLength, isFocused, maxLength}) => Text('$currentLength/$maxLength'),
+      buildCounter: (context, {currentLength, isFocused, maxLength}) =>
+          Text('$currentLength/$maxLength'),
       onChanged: (text) {
         if (_text?.isNotEmpty != text?.isNotEmpty) _controller.add(null);
         _text = text;
