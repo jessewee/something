@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../chatroom/chatroom.dart';
 import '../forum/view/forum_page.dart';
 import 'me_page.dart';
 
@@ -18,8 +19,14 @@ class HomePage extends StatelessWidget {
           children: [
             // 社区
             _forum(context),
-            // 我的
-            Row(children: [Spacer(), Expanded(child: _me(context))]),
+            Row(
+              children: [
+                // 聊天室
+                Expanded(child: _chatroom(context)),
+                // 我的
+                Expanded(child: _me(context)),
+              ],
+            ),
           ],
         ),
       ),
@@ -86,6 +93,23 @@ class HomePage extends StatelessWidget {
       gradient: [Colors.cyan, Colors.indigo, Colors.blue],
       child: child,
       onTap: () => Navigator.pushNamed(context, ForumPage.routeName),
+    );
+  }
+
+  // 聊天室
+  Widget _chatroom(BuildContext context) {
+    return _buildItem(
+      context: context,
+      gradient: [Colors.blue[100], Colors.blue[800], Colors.blue],
+      child: Text(
+        '聊天室',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 25.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      onTap: () => Navigator.pushNamed(context, ChatRoom.routeName),
     );
   }
 

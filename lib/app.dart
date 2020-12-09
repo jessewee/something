@@ -8,6 +8,7 @@ import 'base/login_page.dart';
 import 'base/me_page.dart';
 import 'base/register_page.dart';
 import 'base/retrieve_pwd_page.dart';
+import 'chatroom/chatroom.dart';
 import 'common/event_bus.dart';
 import 'forum/forum.dart';
 
@@ -26,6 +27,7 @@ class MyApp extends StatefulWidget {
     RouteInfo(LoginPage.routeName, false, (_) => LoginPage()),
     RouteInfo(RetrievePwdPage.routeName, false, (_) => RetrievePwdPage()),
     RouteInfo(MePage.routeName, true, (_) => MePage()),
+    RouteInfo(ChatRoom.routeName, true, (_) => ChatRoom()),
   ];
 
   MyApp() : _mappedRoutes = {} {

@@ -73,8 +73,8 @@ extension UserExt on User {
 
 class UserVM with ChangeNotifier {
   User _user;
-  get user => _user;
-  set user(value) {
+  User get user => _user;
+  set user(User value) {
     _user = value;
     notifyListeners();
   }
