@@ -8,6 +8,7 @@ import 'base/login_page.dart';
 import 'base/me_page.dart';
 import 'base/register_page.dart';
 import 'base/retrieve_pwd_page.dart';
+import 'base/user_page.dart';
 import 'chatroom/chatroom.dart';
 import 'common/event_bus.dart';
 import 'forum/forum.dart';
@@ -30,11 +31,22 @@ class MyApp extends StatefulWidget {
     RouteInfo(LoginPage.routeName, false, (_) => LoginPage()),
     RouteInfo(RetrievePwdPage.routeName, false, (_) => RetrievePwdPage()),
     RouteInfo(MePage.routeName, true, (_) => MePage()),
+    RouteInfo(UserPage.routeName, true, (context) {
+      final arg = ModalRoute.of(context).settings.arguments;
+      if (arg == null || arg is! UserPageArg) return ParamErrorPage(arg);
+      final userPageArg = arg as UserPageArg;
+      if (userPageArg.userId?.isNotEmpty != true &&
+          userPageArg.userName.isNotEmpty != true) {
+        return ParamErrorPage(arg);
+      }
+      return UserPage(userPageArg);
+    }),
     RouteInfo(ChatRoom.routeName, true, (_) => ChatRoom()),
   ];
 
   MyApp() : _mappedRoutes = {} {
-    final exited = forumRoutes.where((f) => _routes.indexWhere((r) => f.name == r.name) >= 0);
+    final exited = forumRoutes
+        .where((f) => _routes.indexWhere((r) => f.name == r.name) >= 0);
     assert(exited.isEmpty, '以下页面路由名字已经存在：$exited');
     _routes.addAll(forumRoutes);
     for (final r in _routes) {

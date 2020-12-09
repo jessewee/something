@@ -37,8 +37,25 @@ Future<Result> login(String account, String pwd) async {
 }
 
 /// 获取用户数据
-Future<Result<User>> getUserInfo({bool checkLogin = true}) async {
-  final tmp = await network.get('/get_user_info', checkLogin: checkLogin);
+Future<Result<User>> getUserInfo({
+  String userId,
+  String userName,
+  bool checkLogin = true,
+}) async {
+  Result tmp;
+  if (userId?.isNotEmpty == true || userName?.isNotEmpty == true) {
+    tmp = await network.get(
+      '/get_target_user_info',
+      params: {
+        'user_id': userId,
+        'user_name': userName,
+      },
+      checkLogin: checkLogin,
+    );
+  } else {
+    tmp = await network.get('/get_user_info', checkLogin: checkLogin);
+  }
+
   if (tmp.fail) return Result(code: tmp.code, msg: tmp.msg);
   final map = tmp.data;
   return Result.success(User(
