@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:something/base/login_page.dart';
 
 import '../base/user_page.dart';
 import '../common/extensions.dart';
@@ -7,37 +8,64 @@ import '../common/models.dart';
 import 'chatroom_vm.dart';
 
 /// 聊天室页面
-class ChatRoom extends StatelessWidget {
+class Chatroom extends StatefulWidget {
   static const routeName = 'chatroom';
+
+  @override
+  _ChatroomState createState() => _ChatroomState();
+}
+
+class _ChatroomState extends State<Chatroom> {
+  ChatroomVM _vm;
+
+  @override
+  void initState() {
+    _vm = ChatroomVM(context.read<UserVM>().user.name);
+    _vm.init();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _vm.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final userName = context.watch<UserVM>().user.name;
-    return ChangeNotifierProvider<ChatroomVM>(
-      create: (_) => ChatroomVM(userName),
-      child: Builder(
-        builder: (context) => Scaffold(
-          appBar: AppBar(
-            title: Text('聊天室'),
-            actions: [
-              TextButton(
-                onPressed: () => _showMembers(context),
-                child: Text(
-                  '成员${context.select<ChatroomVM, int>((vm) => vm.totalMemberCount)}',
-                  style: TextStyle(color: Colors.white),
-                ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('聊天室'),
+        actions: [
+          TextButton(
+            onPressed: () => _showMembers(context),
+            child: StreamBuilder<int>(
+              initialData: _vm.totalCount.value,
+              stream: _vm.totalCount.stream,
+              builder: (_, snapshot) => Text(
+                '成员${snapshot.data}',
+                style: TextStyle(color: Colors.white),
               ),
-            ],
+            ),
           ),
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [Expanded(child: _Content()), _Input()],
+        ],
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: StreamBuilder<List<Message>>(
+              initialData: _vm.contents.value,
+              stream: _vm.contents.stream,
+              builder: (context, snapshot) => _Content(snapshot.data),
+            ),
           ),
-        ),
+          _Input(_vm),
+        ],
       ),
     );
   }
 
-  // 显示成员列表
   void _showMembers(BuildContext context) {
     showModalBottomSheet(
       isScrollControlled: true,
@@ -45,13 +73,15 @@ class ChatRoom extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(2.0)),
       ),
       context: context,
-      builder: (context) => _Members(),
+      builder: (context) => _Members(_vm),
     );
   }
 }
 
 /// 成员列表
 class _Members extends StatelessWidget {
+  final ChatroomVM _vm;
+  const _Members(this._vm);
   @override
   Widget build(BuildContext context) {
     final screenH = MediaQuery.of(context).size.height;
@@ -66,8 +96,11 @@ class _Members extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: <Widget>[
-                Text(
-                    '成员${context.select<ChatroomVM, int>((vm) => vm.totalMemberCount)}'),
+                StreamBuilder<int>(
+                  initialData: _vm.totalCount.value,
+                  stream: _vm.totalCount.stream,
+                  builder: (_, snapshot) => Text('成员${snapshot.data}'),
+                ),
                 IconButton(
                   icon: Icon(Icons.close),
                   onPressed: () => Navigator.pop(context),
@@ -78,26 +111,41 @@ class _Members extends StatelessWidget {
           // 分割线
           Divider(height: 1.0, thickness: 1.0),
           // 观众
-          Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Text(
-                '观众${context.select<ChatroomVM, int>((vm) => vm.strangerCnt)}'),
-          ),
-          // 成员列表
-          ListView.builder(
-            itemCount:
-                context.select<ChatroomVM, int>((vm) => vm.members.length),
-            itemBuilder: (context, index) => TextButton(
-              child: Text(context
-                  .select<ChatroomVM, List<String>>((vm) => vm.members)[index]),
-              onPressed: () => Navigator.pushNamed(
-                context,
-                UserPage.routeName,
-                arguments: UserPageArg(
-                    userName:
-                        context.select<ChatroomVM, String>((vm) => vm.name)),
+          StreamBuilder<int>(
+            initialData: _vm.strangerCnt.value,
+            stream: _vm.strangerCnt.stream,
+            builder: (context, snapshot) => Visibility(
+              visible: snapshot.data > 0,
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Text('观众${snapshot.data}'),
               ),
             ),
+          ),
+          // 成员列表
+          Expanded(
+            child: StreamBuilder<List<String>>(
+                initialData: _vm.members.value,
+                stream: _vm.members.stream,
+                builder: (_, snapshot) => Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Wrap(
+                        runSpacing: 5.0,
+                        spacing: 5.0,
+                        children: snapshot.data
+                            .map<Widget>(
+                              (m) => ActionChip(
+                                label: Text(m),
+                                onPressed: () => Navigator.pushNamed(
+                                  context,
+                                  UserPage.routeName,
+                                  arguments: UserPageArg(userName: m),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    )),
           ),
         ],
       ),
@@ -107,51 +155,78 @@ class _Members extends StatelessWidget {
 
 /// 聊天内容
 class _Content extends StatelessWidget {
+  final List<Message> contents;
+  const _Content(this.contents);
   @override
   Widget build(BuildContext context) {
-    final contents =
-        context.select<ChatroomVM, List<Message>>((vm) => vm.contents);
     final loginUser = context.select<UserVM, String>((vm) => vm.user.name);
+    String lastTime = '';
+    final captionStyle = Theme.of(context).textTheme.caption;
     return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 15.0),
       itemCount: contents.length,
       itemBuilder: (context, index) {
         final msg = contents[index];
         final time = formatTime(msg.time);
         final self = msg.sender == loginUser;
-        return Column(
+        final result = Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 消息时间
-            if (time.isNotEmpty)
+            if (time.isNotEmpty && time != lastTime)
               Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: Text(time, textAlign: TextAlign.center),
               ),
             // 消息发送人
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Text(
-                msg.sender,
-                textAlign: self ? TextAlign.right : TextAlign.left,
+            if (!msg.systemMsg)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Text(
+                  msg.sender,
+                  textAlign: self ? TextAlign.right : TextAlign.left,
+                  style: captionStyle,
+                ),
               ),
-            ),
             // 消息内容
-            Container(
-              margin: self
-                  ? const EdgeInsets.only(left: 50.0)
-                  : const EdgeInsets.only(right: 50.0),
-              padding: const EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5.0),
-                color: self ? Colors.green : Colors.blue,
+            if (msg.systemMsg)
+              Container(
+                padding: const EdgeInsets.all(12.0),
+                alignment: Alignment.center,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(25.0),
+                    color: Colors.grey,
+                  ),
+                  child: Text(
+                    msg.content,
+                    style: captionStyle.copyWith(color: Colors.white),
+                  ),
+                ),
+              )
+            else
+              Container(
+                margin: self
+                    ? const EdgeInsets.only(left: 80.0)
+                    : const EdgeInsets.only(right: 80.0),
+                alignment: self ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(
+                  padding: const EdgeInsets.all(12.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5.0),
+                    color: self ? Colors.green : Colors.blue,
+                  ),
+                  child: Text(
+                    msg.content,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
               ),
-              child: Text(
-                msg.content,
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
           ],
         );
+        lastTime = time;
+        return result;
       },
     );
   }
@@ -172,6 +247,8 @@ class _Content extends StatelessWidget {
 
 /// 输入框
 class _Input extends StatefulWidget {
+  final ChatroomVM vm;
+  const _Input(this.vm);
   @override
   __InputState createState() => __InputState();
 }
@@ -192,7 +269,17 @@ class __InputState extends State<_Input> {
 
   @override
   Widget build(BuildContext context) {
-    final vm = Provider.of<ChatroomVM>(context, listen: false);
+    final loginUser = context.watch<UserVM>();
+    widget.vm.name = loginUser.user.name;
+    if (loginUser.user.id.isEmpty) {
+      return Container(
+        color: Colors.grey[200],
+        child: TextButton(
+          child: Text('登录后可参与聊天'),
+          onPressed: () => Navigator.pushNamed(context, LoginPage.routeName),
+        ),
+      );
+    }
     return Container(
       color: Colors.grey[200],
       child: TextField(
@@ -201,7 +288,7 @@ class __InputState extends State<_Input> {
           contentPadding: const EdgeInsets.all(8.0),
         ),
         onSubmitted: (text) {
-          vm.sendMsg(text);
+          widget.vm.sendMsg(text);
           _controller.text = '';
         },
         controller: _controller,

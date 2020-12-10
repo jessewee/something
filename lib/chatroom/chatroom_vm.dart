@@ -1,31 +1,37 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../configs.dart';
+import '../common/pub.dart';
 
-class ChatroomVM with ChangeNotifier {
-  final String name;
+class ChatroomVM {
+  String name;
   int _strangerCnt = 0;
   List<String> _members = [];
   List<Message> _contents = [];
   WebSocketChannel _webSocketChannel;
 
-  /// 总数量
-  int get totalMemberCount => _strangerCnt + _members.length;
+  /// 总人数
+  StreamControllerWithData<int> totalCount;
 
   /// 非成员数量
-  int get strangerCnt => _strangerCnt;
+  StreamControllerWithData<int> strangerCnt;
 
   /// 成员列表
-  List<String> get members => _members;
+  StreamControllerWithData<List<String>> members;
 
   /// 内容列表
-  List<Message> get contents => _contents;
+  StreamControllerWithData<List<Message>> contents;
 
-  ChatroomVM(this.name) {
+  ChatroomVM(this.name);
+
+  void init() {
+    totalCount = StreamControllerWithData(0, broadcast: true);
+    strangerCnt = StreamControllerWithData(0, broadcast: true);
+    members = StreamControllerWithData([], broadcast: true);
+    contents = StreamControllerWithData([]);
     _webSocketChannel = IOWebSocketChannel.connect(chatServer);
     _webSocketChannel.stream.listen((event) {
       print('------------------------------------------------');
@@ -38,20 +44,31 @@ class ChatroomVM with ChangeNotifier {
           _strangerCnt = msg['stranger_count'] ?? 0;
           _members =
               msg['members']?.map<String>((m) => m as String)?.toList() ?? [];
+          totalCount?.add(_strangerCnt + _members.length,
+              ignoreIfSameValue: true);
+          strangerCnt?.add(_strangerCnt, ignoreIfSameValue: true);
+          members?.add(_members);
           _contents.add(Message(msg['sender'], msg['time'], msg['content']));
-          notifyListeners();
+          contents?.add(_contents);
           break;
         case 'message':
           _contents.add(Message(msg['sender'], msg['time'], msg['content']));
-          notifyListeners();
+          contents?.add(_contents);
           break;
       }
     });
     _webSocketChannel?.sink?.add(json.encode({'type': 'join', 'name': name}));
   }
-  @override
+
   void dispose() {
-    super.dispose();
+    totalCount?.dispose();
+    totalCount = null;
+    strangerCnt?.dispose();
+    strangerCnt = null;
+    members?.dispose();
+    members = null;
+    contents?.dispose();
+    contents = null;
     _webSocketChannel?.sink?.add(json.encode({'type': 'leave', 'name': name}));
     _webSocketChannel?.sink?.close();
     _webSocketChannel = null;
@@ -69,5 +86,6 @@ class Message {
   final String sender;
   final int time; // 秒数
   final String content;
+  bool get systemMsg => sender == 'system';
   Message(this.sender, this.time, this.content);
 }

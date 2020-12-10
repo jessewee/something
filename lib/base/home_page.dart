@@ -24,7 +24,11 @@ class HomePage extends StatelessWidget {
                 // 聊天室
                 Expanded(child: _chatroom(context)),
                 // 我的
-                Expanded(child: _me(context)),
+                Expanded(
+                    child: Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: _me(context),
+                )),
               ],
             ),
           ],
@@ -109,7 +113,7 @@ class HomePage extends StatelessWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
-      onTap: () => Navigator.pushNamed(context, ChatRoom.routeName),
+      onTap: () => Navigator.pushNamed(context, Chatroom.routeName),
     );
   }
 

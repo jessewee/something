@@ -41,7 +41,7 @@ class MyApp extends StatefulWidget {
       }
       return UserPage(userPageArg);
     }),
-    RouteInfo(ChatRoom.routeName, true, (_) => ChatRoom()),
+    RouteInfo(Chatroom.routeName, true, (_) => Chatroom()),
   ];
 
   MyApp() : _mappedRoutes = {} {
