@@ -74,6 +74,17 @@ class ChatroomVM {
     _webSocketChannel = null;
   }
 
+  /// 用户切换
+  void updateUser(String name) {
+    if (this.name.isEmpty == name.isEmpty) {
+      this.name = name;
+      return;
+    }
+    _webSocketChannel?.sink?.add(json.encode({'type': 'leave', 'name': name}));
+    this.name = name;
+    _webSocketChannel?.sink?.add(json.encode({'type': 'join', 'name': name}));
+  }
+
   /// 发送消息
   void sendMsg(String msg) {
     _webSocketChannel?.sink

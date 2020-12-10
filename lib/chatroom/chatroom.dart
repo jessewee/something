@@ -110,7 +110,7 @@ class _Members extends StatelessWidget {
           ),
           // 分割线
           Divider(height: 1.0, thickness: 1.0),
-          // 观众
+          // 路人
           StreamBuilder<int>(
             initialData: _vm.strangerCnt.value,
             stream: _vm.strangerCnt.stream,
@@ -118,7 +118,7 @@ class _Members extends StatelessWidget {
               visible: snapshot.data > 0,
               child: Padding(
                 padding: const EdgeInsets.all(15.0),
-                child: Text('观众${snapshot.data}'),
+                child: Text('路人${snapshot.data}'),
               ),
             ),
           ),
@@ -154,19 +154,55 @@ class _Members extends StatelessWidget {
 }
 
 /// 聊天内容
-class _Content extends StatelessWidget {
+class _Content extends StatefulWidget {
   final List<Message> contents;
   const _Content(this.contents);
+
+  @override
+  __ContentState createState() => __ContentState();
+}
+
+class __ContentState extends State<_Content> {
+  ScrollController _controller;
+  bool _scrolled = false;
+  @override
+  void initState() {
+    _controller = ScrollController();
+    _controller.addListener(() {
+      final pos = _controller.position;
+      _scrolled = pos.pixels < pos.maxScrollExtent - 20.0;
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final loginUser = context.select<UserVM, String>((vm) => vm.user.name);
     String lastTime = '';
     final captionStyle = Theme.of(context).textTheme.caption;
+    if (!_scrolled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final pos = _controller.position;
+        if (pos.pixels < pos.maxScrollExtent)
+          _controller.animateTo(
+            pos.maxScrollExtent,
+            duration: Duration(milliseconds: 150),
+            curve: Curves.bounceIn,
+          );
+      });
+    }
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0),
-      itemCount: contents.length,
+      controller: _controller,
+      padding: const EdgeInsets.all(15.0),
+      itemCount: widget.contents.length,
       itemBuilder: (context, index) {
-        final msg = contents[index];
+        final msg = widget.contents[index];
         final time = formatTime(msg.time);
         final self = msg.sender == loginUser;
         final result = Column(
@@ -270,7 +306,7 @@ class __InputState extends State<_Input> {
   @override
   Widget build(BuildContext context) {
     final loginUser = context.watch<UserVM>();
-    widget.vm.name = loginUser.user.name;
+    widget.vm.updateUser(loginUser.user.name);
     if (loginUser.user.id.isEmpty) {
       return Container(
         color: Colors.grey[200],

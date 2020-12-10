@@ -31,7 +31,7 @@ class MyApp extends StatefulWidget {
     RouteInfo(LoginPage.routeName, false, (_) => LoginPage()),
     RouteInfo(RetrievePwdPage.routeName, false, (_) => RetrievePwdPage()),
     RouteInfo(MePage.routeName, true, (_) => MePage()),
-    RouteInfo(UserPage.routeName, true, (context) {
+    RouteInfo(UserPage.routeName, false, (context) {
       final arg = ModalRoute.of(context).settings.arguments;
       if (arg == null || arg is! UserPageArg) return ParamErrorPage(arg);
       final userPageArg = arg as UserPageArg;
@@ -41,7 +41,7 @@ class MyApp extends StatefulWidget {
       }
       return UserPage(userPageArg);
     }),
-    RouteInfo(Chatroom.routeName, true, (_) => Chatroom()),
+    RouteInfo(Chatroom.routeName, false, (_) => Chatroom()),
   ];
 
   MyApp() : _mappedRoutes = {} {
