@@ -81,7 +81,7 @@ class _Members extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(15.0),
             child: Text(
-                '观众${context.select<ChatroomVM, int>((vm) => vm.viewerCnt)}'),
+                '观众${context.select<ChatroomVM, int>((vm) => vm.strangerCnt)}'),
           ),
           // 成员列表
           ListView.builder(
